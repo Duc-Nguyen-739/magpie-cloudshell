@@ -32,19 +32,30 @@ chính thức làm chuẩn:
 
 ## TL;DR (English)
 
-A reproducible, headless magpie setup for Google Cloud Shell / VPS / WSL / container:
+A reproducible, headless magpie setup for Google Cloud Shell / VPS / WSL / container.
+Step 1 is the official magpie repo; everything after that is this repo's setup, and the
+only manual step left is signing in to providers.
 
 ```sh
+# 1) magpie, from the official repo (or let bootstrap.sh do it — see below)
+git clone https://github.com/yetone/magpie.git ~/.local/src/magpie
+cd ~/.local/src/magpie && make cli && install -m755 magpie ~/.local/bin/magpie
+
+# 2) this repo's setup: plugins, wrappers, OpenCode + OpenChamber, groups, agents
 git clone https://github.com/Duc-Nguyen-739/magpie-cloudshell.git
-cd magpie-cloudshell
-bash bootstrap.sh          # magpie CLI + 6 plugins + OpenCode + OpenChamber + wrappers
-bash scripts/login.sh      # the provider sign-ins (AutoClaw, WorkBuddy, Qoder, API keys)
-bash scripts/finish.sh     # Main/Code routing groups + point agents at group/main
+cd magpie-cloudshell && bash bootstrap.sh
+
+# 3) sign in — the only manual step; groups are created right after each sign-in
+bash scripts/login.sh autoclaw
+bash scripts/login.sh workbuddy
+bash scripts/login.sh qoder
+bash scripts/login.sh keys
+
 openchamber                # both UIs up, links printed with the key already in them
 ```
 
-Everything except the sign-ins can be done by an AI agent — see [`AGENTS.md`](AGENTS.md).
-The setup it reproduces is listed exactly in [`docs/inventory.md`](docs/inventory.md).
+Nothing else to install after the sign-ins. An AI agent can do steps 1–2 —
+see [`AGENTS.md`](AGENTS.md). The exact setup reproduced: [`docs/inventory.md`](docs/inventory.md).
 
 ---
 
@@ -76,23 +87,44 @@ Kiểm kê chi tiết (phiên bản, tài khoản, model, rule): [`docs/inventor
 
 ## Cài
 
+**Bước 1 — magpie từ repo chính chủ.** Chọn một trong hai:
+
+```sh
+# a) build từ source (cần git + Go ≥ 1.26; Cloud Shell có sẵn Go)
+git clone https://github.com/yetone/magpie.git ~/.local/src/magpie
+cd ~/.local/src/magpie && make cli
+install -m755 magpie ~/.local/bin/magpie
+
+# b) để bootstrap tự làm: nó clone repo chính chủ và build hộ
+bash bootstrap.sh --from-source
+```
+
+Hoặc dùng bản dựng sẵn chính thức (nhanh nhất, không cần Go):
+`curl -fsSL https://usemagpie.ai/install.sh | MAGPIE_CLI=1 sh`
+— `bootstrap.sh` không có `--from-source` sẽ gọi đúng lệnh này.
+
+**Bước 2 — setup của repo này:**
+
 ```sh
 git clone https://github.com/Duc-Nguyen-739/magpie-cloudshell.git
 cd magpie-cloudshell
 bash bootstrap.sh
 ```
 
-`bootstrap.sh` chạy 7 bước, **chạy lại nhiều lần vẫn an toàn**:
+`bootstrap.sh` chạy 8 bước, **chạy lại nhiều lần vẫn an toàn**:
 
-1. Cài magpie bản terminal (`MAGPIE_CLI=1`) vào `~/.local/bin`.
+1. Cài magpie — bỏ qua nếu đã có (dùng `--from-source` để build từ repo chính chủ).
 2. Cài 6 plugin provider (lần đầu tải bun ~180 MB).
 3. Copy `openchamber`, `openmagpie`, `magpie-headless-*` vào `~/.local/bin`.
 4. Thêm khối PATH + tự bật vào `~/.bashrc` (đánh dấu `# >>> magpie-cloudshell >>>`).
 5. Cài OpenCode (script curl chính thức) và OpenChamber (`npm -g @openchamber/web`).
 6. Copy 2 subagent + skill, sinh provider block trong `opencode.jsonc`.
-7. Bật gateway + web UI, in link đã kèm key, in việc còn lại.
+7. Bật gateway + web UI, in link đã kèm key.
+8. Tạo group + trỏ agent nếu đã có model (chưa có thì đăng nhập xong sẽ tự tạo).
 
-Tuỳ chọn: `--minimal` (chỉ magpie, không OpenCode/OpenChamber), `--no-autostart`.
+Tuỳ chọn: `--from-source`, `--minimal` (chỉ magpie, không OpenCode/OpenChamber), `--no-autostart`.
+
+**Bước 3 — đăng nhập provider.** Xong, không phải cài gì nữa.
 
 ## Đăng nhập provider — phần duy nhất phải làm tay
 
@@ -108,22 +140,36 @@ bash scripts/login.sh keys         # OpenCode Zen + Kilo (dán API key)
 Hoặc mở link web UI → **Settings → Providers → Add / Sign in**. Hai cách gọi cùng một
 gateway nên kết quả như nhau.
 
+> **Trên Cloud Shell, đây là cách đã dùng ở máy tham chiếu** (không tunnel, không cài thêm):
+> `openmagpie` → mở link → Settings → Providers → Add provider → **AutoClaw (Zhipu)** →
+> Sign in → chọn Google/z.ai → làm slider Aliyun rồi uỷ quyền → trình duyệt dừng ở
+> `http://localhost:<cổng>/auth/callback-…` và trang đó không load được → **copy nguyên
+> địa chỉ trên thanh địa chỉ, dán vào ô `Callback URL`** trong hộp đăng nhập của magpie →
+> Enter. Tài khoản hiện ra trong danh sách, xong.
+> Từng bước + cách xử lý khi cổng bận: [`docs/autoclaw-login.md`](docs/autoclaw-login.md) (Cách A).
+
+**Mỗi lần đăng nhập xong, `login.sh` tự chạy `finish.sh`** — tạo/cập nhật group và trỏ
+agent, nên bạn không phải làm gì thêm. Thêm `--no-finish` nếu muốn tự chạy sau.
+
 | Provider | Cách đăng nhập | Chi tiết |
 |---|---|---|
-| AutoClaw (Zhipu) | OAuth Google/z.ai; Cloud Shell cần forward cổng | [`docs/autoclaw-login.md`](docs/autoclaw-login.md) |
+| AutoClaw (Zhipu) | OAuth Google/z.ai; trên Cloud Shell đăng nhập qua **web UI + dán Callback URL** | [`docs/autoclaw-login.md`](docs/autoclaw-login.md) |
 | WorkBuddy AI | OAuth web (hoặc desktop sign-in / API key) | [`docs/providers.md`](docs/providers.md) |
 | Qoder | OAuth web | [`docs/providers.md`](docs/providers.md) |
 | OpenCode Zen | API key `oc_…` | [`docs/providers.md`](docs/providers.md) |
 | Kilo | API key `eyJ…` | [`docs/providers.md`](docs/providers.md) |
 | OpenCode Zen Free | plugin, key công khai (mặc định tắt) | [`docs/providers.md`](docs/providers.md) |
 
-## Tạo group + trỏ agent
+## Group + agent (tự động sau khi đăng nhập)
+
+`login.sh` đã chạy `finish.sh` cho bạn sau mỗi lần đăng nhập. Nếu bạn đăng nhập bằng
+**web UI** thay vì `login.sh`, chạy một lần:
 
 ```sh
 bash scripts/finish.sh
 ```
 
-Tạo (hoặc cập nhật) hai group và trỏ OpenCode + OpenChamber vào `group/main`:
+Nó tạo (hoặc cập nhật) hai group và trỏ OpenCode + OpenChamber vào `group/main`:
 
 | | `group/main` | `group/code` |
 |---|---|---|
@@ -161,7 +207,8 @@ bootstrap.sh                cài đặt một lần
 AGENTS.md                   playbook cho AI agent (đọc là cài được hết)
 config/agents/              coder.md, tester.md (subagent OpenCode)
 scripts/
-  install.sh                magpie CLI (MAGPIE_CLI=1)
+  install.sh                magpie CLI từ installer chính thức (MAGPIE_CLI=1)
+  install-from-source.sh    clone repo chính chủ + make cli (cần Go)
   plugins.sh                6 plugin provider
   install-opencode.sh       OpenCode (opencode.ai/install)
   install-openchamber.sh    @openchamber/web vào ~/.npm-global

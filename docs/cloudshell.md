@@ -85,6 +85,32 @@ tail -f ~/.local/state/magpie/headless.log
 magpie-headless-stop            # dừng cả supervisor và gateway
 ```
 
+## Đăng nhập provider trên Cloud Shell
+
+OAuth của AutoClaw/WorkBuddy/Qoder kết thúc bằng một redirect về
+`http://localhost:<cổng>` — "localhost" đó là **máy bạn**, không phải Cloud Shell, nên
+trang cuối không load được. Magpie web UI có sẵn ô **Callback URL** để dán địa chỉ đó:
+magpie gọi ngược vào server tạm của plugin (trên máy nó) và hoàn tất đăng nhập.
+
+**Không cần SSH tunnel.** Đây là luồng đã dùng trên máy tham chiếu:
+
+1. `openmagpie` → mở link preview (đã kèm key).
+2. **Settings → Providers → Add provider → AutoClaw (Zhipu) → Sign in** → chọn Google/z.ai.
+3. Trang đăng nhập của plugin chạy trên `127.0.0.1:<cổng>` của Cloud Shell. Nếu laptop
+   không mở được link đó, mở cùng đường dẫn qua preview: `https://<cổng>-<WEB_HOST>/`
+   (Cloud Shell cho preview mọi cổng; cổng là 18432 / 19654 / 19723 / 53699).
+4. Làm slider Aliyun → đăng nhập → uỷ quyền.
+5. Trình duyệt dừng ở `http://localhost:<cổng>/auth/callback-…` (trang trắng / lỗi).
+   **Copy nguyên địa chỉ trên thanh địa chỉ**, dán vào ô **Callback URL** trong hộp đăng
+   nhập của magpie, Enter. Tài khoản hiện ra trong danh sách.
+
+Chính UI của magpie nói điều này khi chạy trên server/Docker:
+*"If the page the browser ends on won't load (magpie runs on a server or in Docker),
+copy its whole address and paste it here and press Enter."*
+
+Trong terminal headless, `bash scripts/login.sh autoclaw` chỉ **in hướng dẫn rồi thoát**
+(không treo chờ callback). Thêm `--cli` nếu bạn đã mở tunnel và muốn chạy luồng CLI.
+
 ## Chia sẻ gateway cho máy khác
 
 Hai cách, chọn một:

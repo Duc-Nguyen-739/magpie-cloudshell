@@ -46,8 +46,21 @@ tự tìm. Đừng cài node bằng sudo nếu không cần.
 
 ### 1. Cài (không cần con người)
 
+Cách nhanh:
+
 ```sh
 bash bootstrap.sh
+```
+
+Muốn magpie build từ **repo chính chủ** (<https://github.com/yetone/magpie>) thay vì bản
+dựng sẵn — người dùng yêu cầu, hoặc cần bản mới nhất từ source:
+
+```sh
+bash bootstrap.sh --from-source     # clone + make cli + install vào ~/.local/bin
+# tương đương:
+#   git clone https://github.com/yetone/magpie.git ~/.local/src/magpie
+#   cd ~/.local/src/magpie && make cli && install -m755 magpie ~/.local/bin/magpie
+#   cd - && bash bootstrap.sh        # bootstrap thấy magpie rồi thì bỏ qua bước cài
 ```
 
 Nếu người dùng chỉ muốn gateway (không OpenCode/OpenChamber): `bash bootstrap.sh --minimal`.
@@ -67,16 +80,23 @@ command -v openchamber openmagpie magpie-headless-start
 
 Nói rõ, bằng ngôn ngữ của họ, rồi chờ:
 
-> Cần đăng nhập provider — đây là phần duy nhất phải làm tay:
+> Cần đăng nhập provider — đây là phần duy nhất phải làm tay. **Trên Cloud Shell, làm
+> qua web UI của magpie, không phải qua CLI** (trình duyệt của bạn không ở cùng máy):
 >
-> - `bash scripts/login.sh autoclaw` — **AutoClaw (Zhipu)**, OAuth Google/z.ai.
->   Trên Cloud Shell phải chuyển tiếp cổng trước (mục "Cách A" trong
->   `docs/autoclaw-login.md`), nếu không trình duyệt không gọi được callback `127.0.0.1`.
-> - `bash scripts/login.sh workbuddy` — WorkBuddy AI, đăng nhập trên web.
-> - `bash scripts/login.sh qoder` — Qoder.
-> - `bash scripts/login.sh keys` — dán key OpenCode Zen và/hoặc Kilo (tuỳ chọn).
+> - `openmagpie` → mở link (đã kèm key) → Settings → Providers → Add provider →
+>   **AutoClaw (Zhipu)** → Sign in → chọn Google/z.ai.
+> - Làm slider Aliyun và uỷ quyền. Trình duyệt sẽ dừng ở
+>   `http://localhost:<cổng>/auth/callback-…`; trang đó không load được — **copy nguyên
+>   địa chỉ, dán vào ô `Callback URL`** trong hộp đăng nhập của magpie, Enter.
+> - Tương tự cho WorkBuddy AI và Qoder (cũng trong web UI).
+> - Hoặc dán API key OpenCode Zen / Kilo: `bash scripts/login.sh keys`.
+> - Muốn dùng CLI thật thì cần SSH tunnel trước — `docs/autoclaw-login.md` Cách B.
 >
 > Xong thì báo tôi.
+
+`login.sh` tự chạy `finish.sh` sau mỗi lần đăng nhập thành công, nên không cần bước nào thêm.
+Thêm `--no-finish` nếu muốn tách ra. Trên máy headless, `login.sh autoclaw` chỉ in hướng dẫn
+rồi thoát (không treo chờ callback); thêm `--cli` nếu bạn đã mở tunnel.
 
 Không hỏi mật khẩu. Không ghi key vào file trong repo. Key người dùng đưa thì chỉ dùng
 trên dòng lệnh: `magpie provider add opencode-zen <key>`.
@@ -91,13 +111,14 @@ magpie models | head -40
 
 Provider còn "not signed in" thì bỏ qua — group chỉ dựng từ model thật sự có.
 
-### 4. Tạo group + trỏ agent
+### 4. Group + agent (đã tự chạy — chỉ kiểm tra)
+
+`login.sh` đã gọi `finish.sh` (= `setup-groups.sh --force` + `setup-agents.sh` + `doctor.sh`)
+sau mỗi lần đăng nhập. Nếu người dùng đăng nhập qua **web UI**, hoặc bạn cần chạy lại:
 
 ```sh
 bash scripts/finish.sh
 ```
-
-= `setup-groups.sh --force` + `setup-agents.sh` + `doctor.sh`.
 
 Kiểm tra:
 

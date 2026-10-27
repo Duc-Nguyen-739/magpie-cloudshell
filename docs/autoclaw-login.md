@@ -29,7 +29,10 @@ magpie plugin add @magpie-community/opencode-autoclaw-auth
 
 Lần đầu magpie tải bun (~180 MB) vào `~/.cache/magpie/bun/`. Không cần root.
 
-## 2. Đăng nhập (quốc tế — `autoclaw`)
+## 2. Đăng nhập bằng CLI (máy có trình duyệt)
+
+> Máy headless / Cloud Shell: đọc **mục 3** trước — cách đã dùng ở đó là web UI + dán
+> Callback URL, không phải lệnh dưới đây.
 
 ```sh
 magpie plugin login autoclaw
@@ -59,11 +62,45 @@ Sau khi chọn, plugin:
 > trỏ tới `127.0.0.1`/`localhost`. Trên Cloud Shell (trình duyệt ở máy bạn) phải
 > chuyển tiếp cổng — xem mục 3.
 
-## 3. Cloud Shell / máy headless — ba cách
+## 3. Cloud Shell / máy headless — cách dùng trên máy này
 
-### Cách A — chuyển tiếp cổng (khuyến nghị, không cần máy khác cài gì)
+Trên máy tham chiếu, AutoClaw được đăng nhập **qua web UI của magpie** (link Cloud Shell
+preview), không dùng SSH tunnel và không chạy `magpie plugin login` trong terminal.
+Lý do: web UI có sẵn ô **Callback URL** để bạn dán địa chỉ cuối cùng, nên vòng OAuth
+vẫn khép kín dù trình duyệt ở máy khác.
 
-Mở một phiên SSH từ **máy bạn** tới Cloud Shell, forward cả 4 cổng:
+### Cách A — web UI + dán Callback URL (khuyến nghị, không cần tunnel)
+
+1. Mở link magpie web UI (đã kèm key):
+   ```sh
+   openmagpie
+   ```
+   Trên Cloud Shell link có dạng `https://3430-$WEB_HOST/?k=…`; bấm là vào.
+2. **Settings → Providers → Add provider → AutoClaw (Zhipu) → Sign in**, chọn
+   `Google` hoặc `z.ai`.
+3. Magpie mở trang đăng nhập của plugin. Trang đó chạy trên `127.0.0.1:<cổng>` của máy
+   Cloud Shell, nên nếu link `127.0.0.1` không mở được từ laptop của bạn:
+   - lấy cổng trong link (18432 / 19654 / 19723 / 53699),
+   - mở cùng đường dẫn qua preview của Cloud Shell: `https://<cổng>-$WEB_HOST/`
+     (Cloud Shell cho preview mọi cổng).
+4. Làm slider Aliyun → đăng nhập Google/z.ai → đồng ý uỷ quyền.
+5. Trình duyệt sẽ bị đẩy tới `http://localhost:<cổng>/auth/callback-…` và **trang này
+   không load được** (localhost là laptop của bạn, không phải máy Cloud Shell). Đúng
+   như thiết kế: **copy nguyên địa chỉ trên thanh địa chỉ**, dán vào ô **Callback URL**
+   trong hộp đăng nhập của magpie, Enter.
+6. Magpie gọi ngược vào server tạm của plugin trên máy nó, đổi code lấy token, tài khoản
+   hiện ra trong danh sách. Xong — không cần cài hay mở gì thêm.
+
+Chính UI của magpie nói điều này khi chạy trên server/Docker:
+*"If the page the browser ends on won't load (magpie runs on a server or in Docker),
+copy its whole address and paste it here and press Enter."*
+
+> Mẹo: nếu bước 3 bạn mở được link `127.0.0.1` (ví dụ dùng SSH tunnel), thì bước 5
+> thường tự khép kín, không cần dán. Có tunnel hay không đều được.
+
+### Cách B — SSH tunnel (nếu muốn luồng tự khép kín)
+
+Từ **máy bạn** mở phiên SSH tới Cloud Shell, forward cả 4 cổng callback:
 
 ```sh
 gcloud cloud-shell ssh --authorize-session \
@@ -73,26 +110,17 @@ gcloud cloud-shell ssh --authorize-session \
   --ssh-flag="-L 53699:127.0.0.1:53699"
 ```
 
-Nếu có SSH trực tiếp tới máy chạy magpie thì tương đương:
+Hoặc có SSH trực tiếp:
 
 ```sh
 ssh -L 18432:127.0.0.1:18432 -L 19654:127.0.0.1:19654 \
     -L 19723:127.0.0.1:19723 -L 53699:127.0.0.1:53699 <user@host>
 ```
 
-Trong **phiên SSH đó** chạy:
+Trong phiên đó chạy `magpie plugin login autoclaw`, mở URL `127.0.0.1:<cổng>` trên máy
+bạn — callback sẽ về thẳng server tạm, không phải dán gì.
 
-```sh
-magpie plugin login autoclaw
-```
-
-Rồi mở URL `http://127.0.0.1:<cổng>` **trên máy bạn** (cổng đã được forward về Cloud Shell).
-Chọn Google/z.ai, làm theo trang. Xong là token nằm trên Cloud Shell.
-
-Vì sao forward cả 4 cổng: plugin lấy cổng trống đầu tiên; forward sẵn cả 4 thì không
-phải sửa lệnh SSH khi cổng 18432 bận.
-
-### Cách B — đăng nhập trên máy có desktop rồi chuyển token
+### Cách C — đăng nhập trên máy có desktop rồi chuyển token
 
 Trên máy có trình duyệt (macOS/Windows/Linux desktop), cài magpie và:
 
@@ -108,24 +136,19 @@ Copy `~/magpie.mgb` sang Cloud Shell rồi:
 magpie restore --no-agents ~/magpie.mgb  # nhập lại passphrase
 ```
 
-`--no-agents` để không ghi đè cấu hình agent trên máy đích. File backup chứa cả
-provider/account đã đăng nhập, nên cách này chuyển được AutoClaw, WorkBuddy, Qoder
-cùng lúc.
+`--no-agents` để không ghi đè cấu hình agent trên máy đích. Cách này chuyển được
+AutoClaw, WorkBuddy, Qoder cùng lúc.
 
-### Cách C — đồng bộ nhiều máy
-
-Nếu bạn dùng nhiều máy thường xuyên, bật đồng bộ mã hoá của magpie:
+### Cách D — đồng bộ nhiều máy
 
 ```sh
 magpie github on github://<owner>/<repo>   # file mã hoá trong repo GitHub
-# hoặc
 magpie webdav on <address>                 # Nextcloud, Nutstore…
-# hoặc
 magpie s3 on s3://<bucket>[/<prefix>]
 ```
 
-Máy nào cũng có provider, account, group, model của agent như nhau. Lần đầu vẫn
-phải đăng nhập ở một máy có trình duyệt.
+Máy nào cũng có provider, account, group, model của agent như nhau. Lần đầu vẫn phải
+đăng nhập ở một máy có trình duyệt (cách A hoặc C).
 
 ## 4. Đăng nhập bản Trung Quốc (`autoclaw-cn`)
 
