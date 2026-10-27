@@ -1,0 +1,139 @@
+#!/usr/bin/env bash
+# openchamber — bật CẢ magpie (gateway + web UI) và OpenChamber, rồi in
+# hai link đã kèm key: bấm là vào.
+#
+#   openchamber            bật cả hai, in link
+#   openchamber <lệnh…>    chuyển nguyên cho CLI thật của OpenChamber
+set -u
+
+export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$PATH"
+
+say()  { printf '%b\n' "$*"; }
+ok()   { printf '  \033[32m✓\033[0m %s\n' "$*"; }
+die()  { printf '  \033[31m✗\033[0m %s\n' "$*" >&2; exit 1; }
+
+# ------------------------------------------------------------ node (nvm)
+ensure_node() {
+  command -v node >/dev/null 2>&1 && return 0
+  for nd in /usr/local/nvm/versions/node/v*/bin "$HOME/.nvm/versions/node/v*/bin"; do
+    if [ -x "$nd/node" ]; then export PATH="$nd:$PATH"; return 0; fi
+  done
+  export NVM_DIR="${NVM_DIR:-/usr/local/nvm}"
+  # shellcheck disable=SC1091
+  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" --no-use && nvm use default >/dev/null 2>&1
+  command -v node >/dev/null 2>&1
+}
+
+# ------------------------------------------------------ CLI thật của OpenChamber
+real_openchamber() {
+  if [ -x "$HOME/.npm-global/bin/openchamber" ]; then
+    printf '%s' "$HOME/.npm-global/bin/openchamber"; return 0
+  fi
+  local found
+  found="$(command -v openchamber 2>/dev/null || true)"
+  if [ -n "$found" ] && [ "$found" != "$HOME/.local/bin/openchamber" ]; then
+    printf '%s' "$found"; return 0
+  fi
+  return 1
+}
+
+install_openchamber() {
+  ensure_node || die "không tìm thấy node ≥ 20 (cài node hoặc nvm)"
+  say "  đang cài OpenChamber vào ~/.npm-global (một lần)…"
+  npm install -g --prefix "$HOME/.npm-global" @openchamber/web >/dev/null 2>&1 \
+    || die "npm install @openchamber/web thất bại"
+  [ -x "$HOME/.npm-global/bin/openchamber" ] || die "cài xong nhưng thiếu ~/.npm-global/bin/openchamber"
+}
+
+# --------------------------------------------------------------- lệnh con
+case "${1:-up}" in
+  up|open|"") action=up ;;
+  *)
+    real="$(real_openchamber || true)"
+    [ -n "$real" ] || { install_openchamber; real="$(real_openchamber)"; }
+    exec "$real" "$@"
+    ;;
+esac
+
+# ---------------------------------------------------------------- tiện ích
+preview() { # port → URL (Cloud Shell: https://<port>-<WEB_HOST>/)
+  if [ -n "${WEB_HOST:-}" ]; then printf 'https://%s-%s/' "$1" "$WEB_HOST"
+  else printf 'http://127.0.0.1:%s/' "$1"; fi
+}
+link() { printf '\033]8;;%s\033\\%s\033]8;;\033\\' "$1" "$1"; }
+wait_http() { # url, giây
+  local url=$1 n=${2:-25} _
+  for _ in $(seq 1 "$n"); do
+    curl -fsS -o /dev/null -m 2 "$url" 2>/dev/null && return 0
+    sleep 1
+  done
+  return 1
+}
+
+# ------------------------------------------------------------------ magpie
+MP_CONF="$HOME/.config/magpie"
+MP_KEY_FILE="$MP_CONF/web-key"
+MP_PORT="${MAGPIE_WEB_PORT:-3430}"
+mkdir -p "$MP_CONF"
+
+if ! command -v magpie >/dev/null 2>&1; then
+  say "  đang cài magpie…"
+  t=$(mktemp)
+  curl -fsSL https://usemagpie.ai/install.sh -o "$t" || die "không tải được installer"
+  MAGPIE_CLI=1 sh "$t" >/dev/null 2>&1 || die "cài magpie thất bại"
+  rm -f "$t"
+  ok "magpie $(magpie --version 2>/dev/null | head -1)"
+fi
+
+if [ ! -s "$MP_KEY_FILE" ]; then
+  head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n' > "$MP_KEY_FILE"
+  chmod 600 "$MP_KEY_FILE"
+fi
+MP_KEY=$(cat "$MP_KEY_FILE")
+
+# Trang trả lời mới là bằng chứng thật, không phải pid.
+if ! curl -fsS -o /dev/null -m 2 "http://127.0.0.1:$MP_PORT/?k=$MP_KEY" 2>/dev/null; then
+  say "  đang bật magpie (gateway + web UI)…"
+  for pid in $(pgrep -f '^magpie serve' 2>/dev/null); do kill "$pid" 2>/dev/null; done
+  sleep 1
+  setsid nohup "$HOME/.local/bin/magpie-headless" >/dev/null 2>&1 </dev/null &
+  disown 2>/dev/null || true
+  wait_http "http://127.0.0.1:$MP_PORT/?k=$MP_KEY" 25 || die "magpie không lên; xem ~/.local/state/magpie/headless.log"
+  ok "magpie đã bật"
+fi
+
+# -------------------------------------------------------------- openchamber
+OC_PORT="${OPENCHAMBER_PORT:-3000}"
+REAL="$(real_openchamber || true)"
+if [ -z "$REAL" ]; then
+  install_openchamber
+  REAL="$(real_openchamber)"
+fi
+
+if ! curl -fsS -o /dev/null -m 3 "http://127.0.0.1:$OC_PORT/" 2>/dev/null; then
+  say "  đang bật OpenChamber…"
+  # daemon mode: CLI thật tự tách ra nền
+  "$REAL" serve --port "$OC_PORT" >/dev/null 2>&1 || "$REAL" >/dev/null 2>&1
+  wait_http "http://127.0.0.1:$OC_PORT/" 40 || die "OpenChamber không lên (xem log của nó)"
+  ok "OpenChamber đã bật"
+fi
+
+# ------------------------------------------------------------------- link
+MP_URL="$(preview "$MP_PORT")?k=$MP_KEY"
+OC_URL="$(preview "$OC_PORT")"
+
+say ""
+say "  \033[1mOpenChamber\033[0m  ·  agent chạy trên magpie group/main"
+say ""
+printf '    %s\n' "$(link "$OC_URL")"
+say ""
+say "  \033[1mmagpie\033[0m  ·  gateway 127.0.0.1:3425"
+say ""
+printf '    %s\n' "$(link "$MP_URL")"
+say ""
+say "  magpie key: \033[1m$MP_KEY\033[0m"
+say ""
+say "  Máy khác thì tunnel cả hai cổng:"
+say "    ssh -L $OC_PORT:127.0.0.1:$OC_PORT -L $MP_PORT:127.0.0.1:$MP_PORT <máy-này>"
+say "    rồi mở http://127.0.0.1:$OC_PORT/ và http://127.0.0.1:$MP_PORT/?k=$MP_KEY"
+say ""

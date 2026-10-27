@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# magpie-headless-status — đang chạy không, ở đâu, link kèm key.
+set -u
+
+export PATH="$HOME/.local/bin:$PATH"
+
+CONF="$HOME/.config/magpie"
+PID_FILE="$HOME/.local/state/magpie/headless.pid"
+KEY="$(cat "$CONF/web-key" 2>/dev/null)"
+PORT="${MAGPIE_WEB_PORT:-3430}"
+
+running=no
+[ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null && running=yes
+pgrep -f '^magpie serve' >/dev/null 2>&1 && gw=yes || gw=no
+
+echo "supervisor : $running  (pid $(cat "$PID_FILE" 2>/dev/null || echo '-'))"
+echo "gateway    : $gw  http://127.0.0.1:${MAGPIE_ADDR##*:}"
+if magpie healthcheck >/dev/null 2>&1; then echo "health     : ok"; else echo "health     : không trả lời"; fi
+echo
+echo "link local : http://127.0.0.1:$PORT/?k=$KEY"
+if [ -n "${WEB_HOST:-}" ]; then
+  echo "preview    : https://$PORT-$WEB_HOST/?k=$KEY"
+fi
+echo
+echo "log        : $HOME/.local/state/magpie/headless.log"

@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# Không bao giờ commit bí mật
+*.key
+*.pem
+web-key
+*.token
+.env
+.env.*
+
+# Log / state cục bộ
+*.log
+state/

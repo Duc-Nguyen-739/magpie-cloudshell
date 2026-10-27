@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# magpie-headless-start — bật gateway + web UI ở nền. Không bao giờ block
+# (được gọi từ .bashrc, nên một tab mới không được chờ nó).
+set -u
+
+export PATH="$HOME/.local/bin:$PATH"
+
+STATE="$HOME/.local/state/magpie"
+PID_FILE="$STATE/headless.pid"
+mkdir -p "$STATE"
+
+if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+  echo "đã chạy (pid $(cat "$PID_FILE"))"
+  exit 0
+fi
+
+# setsid: ra khỏi process group của shell này, đóng terminal vẫn sống.
+setsid nohup "$HOME/.local/bin/magpie-headless" >/dev/null 2>&1 </dev/null &
+disown 2>/dev/null || true
+
+if [ "${MAGPIE_HEADLESS_VERBOSE:-}" = 1 ]; then
+  echo "đang bật ở nền; log: $STATE/headless.log"
+fi
+exit 0

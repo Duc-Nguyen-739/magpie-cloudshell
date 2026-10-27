@@ -1,0 +1,149 @@
+#!/usr/bin/env bash
+# setup-groups.sh — tạo hai routing group đang dùng: group/main và group/code.
+#
+#   bash scripts/setup-groups.sh            tạo group còn thiếu, bỏ qua group đã có
+#   bash scripts/setup-groups.sh --force    tạo lại (thay) cả hai group
+#   bash scripts/setup-groups.sh --dry-run  chỉ in lệnh, không đổi gì
+#
+# Chỉ đưa vào group những model thật sự có (đã đăng nhập provider), nên chạy được
+# cả khi mới đăng nhập 1-2 provider; chạy lại sau khi đăng nhập thêm để lấp đủ.
+set -uo pipefail
+
+export PATH="$HOME/.local/bin:$PATH"
+
+FORCE=0
+DRY=0
+for a in "$@"; do
+  case "$a" in
+    --force)   FORCE=1 ;;
+    --dry-run) DRY=1 ;;
+    -h|--help)
+      sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
+      exit 0 ;;
+    *) printf 'tham số lạ: %s (dùng --force, --dry-run)\n' "$a" >&2; exit 2 ;;
+  esac
+done
+
+say()  { printf '  %s\n' "$*"; }
+ok()   { printf '  \033[32m✓\033[0m %s\n' "$*"; }
+warn() { printf '  \033[33m!\033[0m %s\n' "$*" >&2; }
+die()  { printf '  \033[31m✗\033[0m %s\n' "$*" >&2; exit 1; }
+
+run() {
+  if [ "$DRY" = 1 ]; then
+    printf '  \033[2m[dry-run]\033[0m'
+    printf ' %q' "$@"
+    printf '\n'
+  else
+    "$@"
+  fi
+}
+
+# ---------------------------------------------------------------- dữ liệu
+# Thứ tự này là thứ tự fallback: model đầu trả lời, hỏng/hết quota thì sang model sau.
+MODELS=(
+  workbuddy-ai/deepseek-v4.1-flash      # WorkBuddy AI — nhanh, rẻ, đa dụng
+  workbuddy-ai/glm-5.3                  # WorkBuddy AI — mạnh hơn cho code/review
+  workbuddy-ai/deepseek-v4.1-flash-sg   # WorkBuddy AI — cùng model, region SG
+  workbuddy-ai/glm-5.3-flash            # WorkBuddy AI — GLM bản flash
+  autoclaw/zaicoding_glm-5.3            # AutoClaw — GLM-5.3 coding plan
+  autoclaw/zai_glm-5.3-flash            # AutoClaw — GLM-5.3 flash
+  opencode-zen/deepseek-v4.1-flash-free # OpenCode Zen — free
+  opencode-zen/glm-5.3-flash-free       # OpenCode Zen — free
+)
+
+LEVELS=low,high,max                       # mức reasoning agent được chọn
+CLASSIFIER=opencode-zen/jev-1.13-free     # model nhỏ đọc mỗi lượt khi effort=auto
+
+command -v magpie >/dev/null 2>&1 || die "chưa có magpie trên PATH (~/.local/bin)"
+
+# ------------------------------------------------------- model nào đang có
+models_now="$(magpie models 2>/dev/null | awk '{print $1}')"
+[ -n "$models_now" ] || die "magpie chưa có model nào — đăng nhập provider trước (bash scripts/login.sh)"
+
+PRESENT=()
+for m in "${MODELS[@]}"; do
+  if printf '%s\n' "$models_now" | grep -Fxq "$m"; then PRESENT+=("$m"); fi
+done
+
+if [ ${#PRESENT[@]} -eq 0 ]; then
+  die "không có model nào trong danh sách hiện có. Chạy: bash scripts/login.sh"
+fi
+
+say "model có sẵn: ${#PRESENT[@]}/${#MODELS[@]}"
+for m in "${MODELS[@]}"; do
+  printf '%s\n' "${PRESENT[@]}" | grep -Fxq "$m" || warn "thiếu $m (provider chưa đăng nhập?)"
+done
+
+in_present() { printf '%s\n' "${PRESENT[@]}" | grep -Fxq "$1"; }
+
+# --------------------------------------------------------------- tạo group
+join() { local IFS=,; printf '%s' "$*"; }
+
+create_group() { # <tên> <id> <stays>; trả 1 nếu bỏ qua (đã có, không --force)
+  local name=$1 id=$2 stays=$3
+  local list; list="$(join "${PRESENT[@]}")"
+
+  if magpie groups 2>/dev/null | grep -q "group/$id"; then
+    if [ "$FORCE" != 1 ]; then
+      say "group/$id đã có — bỏ qua (dùng --force để tạo lại)"
+      return 1
+    fi
+    say "thay group/$id"
+  fi
+
+  run magpie group add "$name" "models=$list" routing=order "stays=$stays" >/dev/null || return 1
+
+  # levels + classifier + effort đi cùng một lệnh: magpie ghi file có độ trễ, tách
+  # lệnh thì lệnh sau có thể chưa thấy classifier của lệnh trước.
+  if [ "$DRY" = 1 ]; then
+    run magpie group set "$id" "levels=$LEVELS" "classifier=$CLASSIFIER" effort=auto
+  elif magpie group set "$id" "levels=$LEVELS" "classifier=$CLASSIFIER" effort=auto >/dev/null 2>&1; then
+    ok "levels=$LEVELS · effort=auto · classifier=$CLASSIFIER"
+  elif magpie group set "$id" "levels=$LEVELS" >/dev/null 2>&1; then
+    warn "không đặt được classifier $CLASSIFIER (thiếu provider?) — giữ levels, effort để agent tự chọn"
+  else
+    warn "không đặt được levels cho group/$id"
+  fi
+}
+
+add_rule() { # <id> <model> <cờ…>
+  local id=$1 model=$2; shift 2
+  if ! in_present "$model"; then
+    warn "bỏ rule cho $id: $model không có trong group"
+    return 0
+  fi
+  run magpie group rule add "$id" "use=$model" "$@" >/dev/null || warn "rule lỗi: $*"
+}
+
+# ------------------------------------------------------------- group/main
+# Chat thường ngày: giữ hội thoại trên một account (session) để prompt cache còn giá trị.
+say ""
+say "group/main — chat thường ngày, stays=session"
+if create_group "Main" main session; then
+  add_rule main workbuddy-ai/deepseek-v4.1-flash images      # ảnh → model mạnh nhất
+  add_rule main workbuddy-ai/glm-5.3-flash compact           # nén hội thoại → model rẻ
+fi
+
+# ------------------------------------------------------------- group/code
+# Việc code: đổi model theo từng lượt (turn) vì mỗi bước cần model khác nhau.
+say ""
+say "group/code — công việc code, stays=turn, 4 rule theo ý định"
+if create_group "Code" code turn; then
+  add_rule code workbuddy-ai/deepseek-v4.1-flash \
+    intent="asking for a detailed plan before any code is written (lên plan, lập kế hoạch chi tiết)"
+  add_rule code workbuddy-ai/deepseek-v4.1-flash \
+    intent="writing, implementing or fixing code (viết code, code theo plan, implement, sửa code)"
+  add_rule code workbuddy-ai/glm-5.3 \
+    intent="running tests or checking the code just written, before it is finished (kiểm tra, test code vừa viết)"
+  add_rule code workbuddy-ai/deepseek-v4.1-flash \
+    intent="final overall review of the finished code and releasing or publishing it (kiểm tra tổng thể lần cuối, duyệt, phát hành, release, ship)"
+  add_rule code workbuddy-ai/deepseek-v4.1-flash images
+fi
+
+say ""
+if [ "$DRY" = 1 ]; then
+  say "dry-run: không thay đổi gì."
+else
+  ok "xong. Xem lại: magpie group main · magpie group code"
+fi

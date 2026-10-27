@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# magpie-headless-stop — tắt supervisor và gateway.
+set -u
+
+export PATH="$HOME/.local/bin:$PATH"
+
+PID_FILE="$HOME/.local/state/magpie/headless.pid"
+
+if [ -f "$PID_FILE" ]; then
+  pid="$(cat "$PID_FILE")"
+  kill "$pid" 2>/dev/null && echo "đã dừng supervisor (pid $pid)"
+  rm -f "$PID_FILE"
+else
+  echo "supervisor không chạy"
+fi
+
+# Khớp neo ở argv[0]: một shell đang gõ "magpie serve" không bị giết nhầm.
+for pid in $(pgrep -f '^magpie serve' 2>/dev/null); do
+  kill "$pid" 2>/dev/null && echo "đã dừng gateway (pid $pid)"
+done
+
+exit 0

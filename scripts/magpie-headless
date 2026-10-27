@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# magpie-headless — giữ gateway + web UI chạy mà không cần systemd.
+# Được gọi bởi magpie-headless-start; tự khởi động lại nếu magpie chết.
+set -u
+
+export PATH="$HOME/.local/bin:$PATH"
+
+CONF="$HOME/.config/magpie"
+KEY_FILE="$CONF/web-key"
+STATE="$HOME/.local/state/magpie"
+LOG="$STATE/headless.log"
+PID_FILE="$STATE/headless.pid"
+
+WEB_ADDR="${MAGPIE_WEB_ADDR:-0.0.0.0:${MAGPIE_WEB_PORT:-3430}}"
+GW_ADDR="${MAGPIE_ADDR:-127.0.0.1:3425}"
+
+mkdir -p "$STATE" "$CONF"
+
+if [ ! -s "$KEY_FILE" ]; then
+  head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n' > "$KEY_FILE"
+  chmod 600 "$KEY_FILE"
+fi
+
+export MAGPIE_WEB_KEY="$(cat "$KEY_FILE")"
+export MAGPIE_ADDR="$GW_ADDR"
+
+echo $$ > "$PID_FILE"
+
+# Vòng lặp, không phải một lần chạy: crash hay update đều tự sống lại sau 3s.
+while :; do
+  printf '\n[%s] starting: magpie serve --web=%s\n' "$(date -Is)" "$WEB_ADDR" >> "$LOG"
+  magpie serve "--web=$WEB_ADDR" >> "$LOG" 2>&1
+  rc=$?
+  printf '[%s] exited rc=%s; restarting in 3s\n' "$(date -Is)" "$rc" >> "$LOG"
+  sleep 3
+done
