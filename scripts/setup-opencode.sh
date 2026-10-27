@@ -13,6 +13,11 @@ warn() { printf '  \033[33m!\033[0m %s\n' "$*" >&2; }
 
 mkdir -p "$CONF/agents"
 
+if ! command -v magpie >/dev/null 2>&1; then
+  warn "chưa có magpie trên PATH — chạy bash bootstrap.sh trước; bỏ qua bước này"
+  exit 1
+fi
+
 models_now="$(magpie models 2>/dev/null | awk '{print $1}')"
 has_model() { printf '%s\n' "$models_now" | grep -Fxq "$1"; }
 
