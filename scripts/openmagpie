@@ -63,6 +63,14 @@ if [ "$running" = no ]; then
 fi
 
 # ------------------------------------------------------------------ link
+# Lần đầu sau khi đăng nhập provider: tự tạo group + trỏ agent, để "đăng nhập là xong".
+if ! magpie groups 2>/dev/null | grep -q "group/main" \
+   && magpie models 2>/dev/null | grep -q . \
+   && [ -x "$HOME/.local/bin/magpie-finish" ]; then
+  say "  tạo routing group lần đầu…"
+  "$HOME/.local/bin/magpie-finish" >/dev/null 2>&1 || true
+fi
+
 # Cloud Shell phục vụ cổng ở https://<port>-<WEB_HOST>/.
 if [ -n "${WEB_HOST:-}" ]; then
   URL="https://$PORT-$WEB_HOST/?k=$KEY"

@@ -54,6 +54,19 @@ for f in openchamber openmagpie magpie-headless magpie-headless-start magpie-hea
   install -m 755 "$REPO_DIR/scripts/$f" "$HOME/.local/bin/$f"
   ok "~/.local/bin/$f"
 done
+
+# Bản sao scripts + config, để `magpie-finish` chạy được cả khi repo đã bị xoá.
+SHARE="$HOME/.local/share/magpie-cloudshell"
+mkdir -p "$SHARE"
+cp -R "$REPO_DIR/scripts" "$SHARE/"
+cp -R "$REPO_DIR/config" "$SHARE/" 2>/dev/null || true
+cat > "$HOME/.local/bin/magpie-finish" <<EOF
+#!/usr/bin/env bash
+# Tạo/cập nhật routing group + trỏ agent (bản cài từ magpie-cloudshell).
+exec bash "$SHARE/scripts/finish.sh" "\$@"
+EOF
+chmod 755 "$HOME/.local/bin/magpie-finish"
+ok "~/.local/bin/magpie-finish"
 export PATH="$HOME/.local/bin:$HOME/.opencode/bin:$HOME/.npm-global/bin:$PATH"
 
 # ------------------------------------------- 4. PATH + autostart trong .bashrc

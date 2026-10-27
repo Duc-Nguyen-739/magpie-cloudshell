@@ -114,10 +114,13 @@ Provider còn "not signed in" thì bỏ qua — group chỉ dựng từ model th
 ### 4. Group + agent (đã tự chạy — chỉ kiểm tra)
 
 `login.sh` đã gọi `finish.sh` (= `setup-groups.sh --force` + `setup-agents.sh` + `doctor.sh`)
-sau mỗi lần đăng nhập. Nếu người dùng đăng nhập qua **web UI**, hoặc bạn cần chạy lại:
+sau mỗi lần đăng nhập. Nếu người dùng đăng nhập qua **web UI** (cách dùng trên Cloud Shell),
+`openmagpie` / `openchamber` tự gọi `magpie-finish` một lần khi thấy có model mà chưa có
+`group/main`. Chạy tay khi cần:
 
 ```sh
-bash scripts/finish.sh
+magpie-finish          # bản cài
+bash scripts/finish.sh # từ repo
 ```
 
 Kiểm tra:

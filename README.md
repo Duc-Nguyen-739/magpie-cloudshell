@@ -151,6 +151,10 @@ gateway nên kết quả như nhau.
 **Mỗi lần đăng nhập xong, `login.sh` tự chạy `finish.sh`** — tạo/cập nhật group và trỏ
 agent, nên bạn không phải làm gì thêm. Thêm `--no-finish` nếu muốn tự chạy sau.
 
+Nếu bạn đăng nhập **trong web UI** (cách dùng trên Cloud Shell), lần mở kế tiếp
+`openmagpie` / `openchamber` sẽ tự tạo group một lần khi thấy đã có model. Muốn làm ngay:
+`magpie-finish`.
+
 | Provider | Cách đăng nhập | Chi tiết |
 |---|---|---|
 | AutoClaw (Zhipu) | OAuth Google/z.ai; trên Cloud Shell đăng nhập qua **web UI + dán Callback URL** | [`docs/autoclaw-login.md`](docs/autoclaw-login.md) |
@@ -195,6 +199,7 @@ script chỉ đưa vào group những model thật sự có.
 | `magpie providers` / `accounts` / `groups` | xem provider, tài khoản, group |
 | `magpie quota` | còn bao nhiêu credit |
 | `magpie usage 7d` | agent/model/tài khoản đã dùng gì |
+| `magpie-finish` | tạo/cập nhật group + trỏ agent (bản cài; giống `bash scripts/finish.sh`) |
 | `bash scripts/doctor.sh` | kiểm tra toàn bộ (binary, gateway, provider, group, agent, cổng, key, dung lượng) |
 | `openchamber <lệnh>` | chuyển nguyên cho CLI thật (`status`, `models`, `session`…) |
 
@@ -229,6 +234,10 @@ docs/
   opencode.md               OpenCode nối magpie thế nào, subagent, skill
   cloudshell.md             headless: cổng, key, preview, PATH, autostart
 ```
+
+`bootstrap.sh` còn cài `magpie-finish` (bản sao scripts trong
+`~/.local/share/magpie-cloudshell`, chạy được cả khi đã xoá repo) và hai wrapper tự gọi
+nó một lần khi thấy có model mà chưa có `group/main`.
 
 ## Gỡ
 

@@ -102,6 +102,14 @@ if ! curl -fsS -o /dev/null -m 2 "http://127.0.0.1:$MP_PORT/?k=$MP_KEY" 2>/dev/n
   ok "magpie đã bật"
 fi
 
+# Lần đầu sau khi đăng nhập provider: tự tạo group + trỏ agent.
+if ! magpie groups 2>/dev/null | grep -q "group/main" \
+   && magpie models 2>/dev/null | grep -q . \
+   && [ -x "$HOME/.local/bin/magpie-finish" ]; then
+  say "  tạo routing group lần đầu…"
+  "$HOME/.local/bin/magpie-finish" >/dev/null 2>&1 || true
+fi
+
 # -------------------------------------------------------------- openchamber
 OC_PORT="${OPENCHAMBER_PORT:-3000}"
 REAL="$(real_openchamber || true)"
