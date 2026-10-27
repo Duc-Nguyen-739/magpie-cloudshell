@@ -54,6 +54,8 @@ for f in openchamber openmagpie magpie-headless magpie-headless-start magpie-hea
   install -m 755 "$REPO_DIR/scripts/$f" "$HOME/.local/bin/$f"
   ok "~/.local/bin/$f"
 done
+install -m 755 "$REPO_DIR/scripts/autoclaw-link.sh" "$HOME/.local/bin/autoclaw-link"
+ok "~/.local/bin/autoclaw-link"
 
 # Bản sao scripts + config, để `magpie-finish` chạy được cả khi repo đã bị xoá.
 SHARE="$HOME/.local/share/magpie-cloudshell"

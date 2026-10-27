@@ -73,6 +73,7 @@ headless_hint() {
     say "  3. Trang đăng nhập chạy trên 127.0.0.1:<cổng> của máy này. Nếu laptop không mở"
     say "     được link đó, mở cùng đường dẫn qua preview:  https://<cổng>-<WEB_HOST>/"
     say "     (cổng là 18432 / 19654 / 19723 / 53699)"
+    say "     Hoặc để script in link hộ:  bash scripts/autoclaw-link.sh --watch"
     say "  4. Uỷ quyền xong, trình duyệt bị đẩy tới http://localhost:<cổng>/auth/callback-…"
     say "     và trang đó KHÔNG load được (localhost là laptop của bạn). Copy nguyên địa"
     say "     chỉ trên thanh địa chỉ, dán vào ô Callback URL trong hộp đăng nhập, Enter."

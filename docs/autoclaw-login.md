@@ -69,6 +69,79 @@ preview), không dùng SSH tunnel và không chạy `magpie plugin login` trong 
 Lý do: web UI có sẵn ô **Callback URL** để bạn dán địa chỉ cuối cùng, nên vòng OAuth
 vẫn khép kín dù trình duyệt ở máy khác.
 
+### Link localhost trên Cloud Shell — vì sao và làm sao
+
+Plugin AutoClaw mở server tạm ở `127.0.0.1:<cổng>` **trên máy chạy magpie** (Cloud Shell).
+Trang đăng nhập chỉ nghe ở loopback, nên từ laptop bạn `http://127.0.0.1:18432/` là
+**laptop của bạn** — không có gì ở đó. Cloud Shell có sẵn proxy cho mọi cổng:
+
+```
+https://<cổng>-<WEB_HOST>/     →     127.0.0.1:<cổng> trên máy Cloud Shell
+```
+
+`WEB_HOST` do Cloud Shell đặt; xem bằng `echo "$WEB_HOST"`, hoặc lấy từ link `openmagpie`
+in ra (phần sau `3430-`). Cổng là một trong **18432 / 19654 / 19723 / 53699** — plugin lấy
+cổng trống đầu tiên, nên mỗi phiên có thể khác nhau.
+
+#### Cách nhanh: để script in link hộ
+
+```sh
+bash scripts/autoclaw-link.sh                 # link của cổng đang mở + 4 bước
+bash scripts/autoclaw-link.sh --watch         # bấm Sign in trước, script chờ rồi in link
+bash scripts/autoclaw-link.sh --port 18432    # chỉ định cổng
+bash scripts/autoclaw-link.sh --tunnel        # in lệnh ssh -L thay vì link preview
+```
+
+Script tự dò cổng đang LISTEN trong 4 cổng trên (dùng `/dev/tcp`, không cần `ss`); nếu
+chưa có phiên nào thì in sẵn cả 4 link để bạn dùng khi magpie hiện cổng.
+
+#### Tự làm, không dùng script
+
+1. Trong magpie bấm **Sign in** cho AutoClaw. Hộp đăng nhập hiện link dạng
+   `http://127.0.0.1:<cổng>/`.
+2. Lấy `<cổng>` trong link đó (ví dụ 18432).
+3. Mở `https://<cổng>-<WEB_HOST>/`, ví dụ:
+
+   ```
+   https://18432-cs-28f1e998-00ee-428c-9143-a40617d331ce.cs-asia-east1-vger.cloudshell.dev/
+   ```
+
+   (đúng host của Cloud Shell bạn đang dùng — đừng copy host trong ví dụ).
+4. Trang mở ra là **chính trang đăng nhập của plugin** (slider Aliyun → Google/z.ai).
+   Nếu trang trắng/403: kiểm tra bạn còn phiên Cloud Shell đó, và cổng còn mở:
+
+   ```sh
+   ss -ltnp | grep -E '18432|19654|19723|53699'
+   ```
+
+   Phiên chỉ sống ~10 phút; hết thì bấm Sign in lại.
+5. Nếu preview vẫn không vào được (mạng công ty chặn `*.cloudshell.dev`), dùng
+   **Cách B** bên dưới (SSH tunnel) — khi đó mở thẳng `http://127.0.0.1:<cổng>/`.
+
+#### Đi tiếp: dán Callback URL
+
+Sau khi uỷ quyền, trình duyệt bị đẩy tới:
+
+```
+http://localhost:<cổng>/auth/callback-<vendor>?code=…&state=…
+```
+
+Trang đó **không load được** — đúng như thiết kế, vì `localhost` là laptop của bạn. Copy
+**nguyên cả URL** (phải có cả `?code=…&state=…`), dán vào ô **Callback URL** trong hộp đăng
+nhập của magpie, Enter. Magpie gọi ngược vào server tạm trên máy nó, đổi code lấy token.
+
+| Dán sai | Kết quả |
+|---|---|
+| chỉ dán `code=…` | không được — cần cả URL |
+| URL cụt, mất `?code=…&state=…` | "This sign-in link is out of date" |
+| URL của cổng khác / phiên khác | `state` không khớp → bị từ chối |
+| dán sau > 10 phút | phiên hết hạn → bấm Sign in lại |
+| dán vào ô API key thay vì Callback URL | sai ô, không có gì xảy ra |
+
+Xong: `magpie accounts | grep -i autoclaw` thấy tài khoản, `magpie quota` thấy credit.
+Nếu bạn đăng nhập bằng `login.sh` thì nó tự chạy `finish.sh`; nếu bằng web UI thì lần mở
+`openmagpie`/`openchamber` kế tiếp sẽ tự tạo group (`magpie-finish`).
+
 ### Cách A — web UI + dán Callback URL (khuyến nghị, không cần tunnel)
 
 1. Mở link magpie web UI (đã kèm key):
@@ -79,10 +152,9 @@ vẫn khép kín dù trình duyệt ở máy khác.
 2. **Settings → Providers → Add provider → AutoClaw (Zhipu) → Sign in**, chọn
    `Google` hoặc `z.ai`.
 3. Magpie mở trang đăng nhập của plugin. Trang đó chạy trên `127.0.0.1:<cổng>` của máy
-   Cloud Shell, nên nếu link `127.0.0.1` không mở được từ laptop của bạn:
-   - lấy cổng trong link (18432 / 19654 / 19723 / 53699),
-   - mở cùng đường dẫn qua preview của Cloud Shell: `https://<cổng>-$WEB_HOST/`
-     (Cloud Shell cho preview mọi cổng).
+   Cloud Shell, nên từ laptop bạn phải mở qua preview: `https://<cổng>-<WEB_HOST>/`.
+   Muốn script in hộ link: `bash scripts/autoclaw-link.sh --watch`
+   (chi tiết ở mục **"Link localhost trên Cloud Shell"** ngay trên).
 4. Làm slider Aliyun → đăng nhập Google/z.ai → đồng ý uỷ quyền.
 5. Trình duyệt sẽ bị đẩy tới `http://localhost:<cổng>/auth/callback-…` và **trang này
    không load được** (localhost là laptop của bạn, không phải máy Cloud Shell). Đúng

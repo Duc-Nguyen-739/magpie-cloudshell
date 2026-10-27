@@ -87,6 +87,8 @@ Nói rõ, bằng ngôn ngữ của họ, rồi chờ:
 >
 > - `openmagpie` → mở link (đã kèm key) → Settings → Providers → Add provider →
 >   **AutoClaw (Zhipu)** → Sign in → chọn Google/z.ai.
+> - Trang đăng nhập chạy trên `127.0.0.1:<cổng>` của Cloud Shell. Lấy link mở được từ
+>   laptop bằng `bash scripts/autoclaw-link.sh --watch` rồi mở link đó.
 > - Làm slider Aliyun và uỷ quyền. Trình duyệt sẽ dừng ở
 >   `http://localhost:<cổng>/auth/callback-…`; trang đó không load được — **copy nguyên
 >   địa chỉ, dán vào ô `Callback URL`** trong hộp đăng nhập của magpie, Enter.

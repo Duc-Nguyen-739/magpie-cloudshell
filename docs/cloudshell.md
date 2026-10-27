@@ -99,6 +99,7 @@ magpie gọi ngược vào server tạm của plugin (trên máy nó) và hoàn 
 3. Trang đăng nhập của plugin chạy trên `127.0.0.1:<cổng>` của Cloud Shell. Nếu laptop
    không mở được link đó, mở cùng đường dẫn qua preview: `https://<cổng>-<WEB_HOST>/`
    (Cloud Shell cho preview mọi cổng; cổng là 18432 / 19654 / 19723 / 53699).
+   Để script in hộ link: `bash scripts/autoclaw-link.sh --watch` (bản cài: `autoclaw-link`).
 4. Làm slider Aliyun → đăng nhập → uỷ quyền.
 5. Trình duyệt dừng ở `http://localhost:<cổng>/auth/callback-…` (trang trắng / lỗi).
    **Copy nguyên địa chỉ trên thanh địa chỉ**, dán vào ô **Callback URL** trong hộp đăng

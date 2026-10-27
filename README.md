@@ -145,10 +145,11 @@ gateway nên kết quả như nhau.
 
 > **Trên Cloud Shell, đây là cách đã dùng ở máy tham chiếu** (không tunnel, không cài thêm):
 > `openmagpie` → mở link → Settings → Providers → Add provider → **AutoClaw (Zhipu)** →
-> Sign in → chọn Google/z.ai → làm slider Aliyun rồi uỷ quyền → trình duyệt dừng ở
-> `http://localhost:<cổng>/auth/callback-…` và trang đó không load được → **copy nguyên
-> địa chỉ trên thanh địa chỉ, dán vào ô `Callback URL`** trong hộp đăng nhập của magpie →
-> Enter. Tài khoản hiện ra trong danh sách, xong.
+> Sign in → chọn Google/z.ai → lấy link preview cho cổng magpie vừa mở bằng
+> `bash scripts/autoclaw-link.sh --watch` → làm slider Aliyun rồi uỷ quyền → trình duyệt
+> dừng ở `http://localhost:<cổng>/auth/callback-…` và trang đó không load được → **copy
+> nguyên địa chỉ trên thanh địa chỉ, dán vào ô `Callback URL`** trong hộp đăng nhập của
+> magpie → Enter. Tài khoản hiện ra trong danh sách, xong.
 > Từng bước + cách xử lý khi cổng bận: [`docs/autoclaw-login.md`](docs/autoclaw-login.md) (Cách A).
 
 **Mỗi lần đăng nhập xong, `login.sh` tự chạy `finish.sh`** — tạo/cập nhật group và trỏ
@@ -203,6 +204,8 @@ script chỉ đưa vào group những model thật sự có.
 | `magpie quota` | còn bao nhiêu credit |
 | `magpie usage 7d` | agent/model/tài khoản đã dùng gì |
 | `magpie-finish` | tạo/cập nhật group + trỏ agent (bản cài; giống `bash scripts/finish.sh`) |
+| `bash scripts/autoclaw-link.sh` | in **link localhost/preview** để mở trang đăng nhập AutoClaw từ laptop (`--watch`, `--port`, `--tunnel`) |
+| `autoclaw-link` | như trên, bản cài trong `~/.local/bin` |
 | `bash scripts/doctor.sh` | kiểm tra toàn bộ (binary, gateway, provider, group, agent, cổng, key, dung lượng) |
 | `openchamber <lệnh>` | chuyển nguyên cho CLI thật (`status`, `models`, `session`…) |
 
@@ -222,6 +225,7 @@ scripts/
   install-openchamber.sh    @openchamber/web vào ~/.npm-global
   setup-opencode.sh         2 subagent + skill magpie-setup
   setup-settings.sh         settings.json + tắt provider (chỉ thêm khoá thiếu)
+  autoclaw-link.sh          in link localhost/preview để đăng nhập AutoClaw
   login.sh                  trạng thái + đăng nhập từng provider
   setup-groups.sh           group/main, group/code (--force, --dry-run)
   setup-agents.sh           trỏ agent vào group/main
