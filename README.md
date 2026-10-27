@@ -111,16 +111,19 @@ cd magpie-cloudshell
 bash bootstrap.sh
 ```
 
-`bootstrap.sh` chạy 8 bước, **chạy lại nhiều lần vẫn an toàn**:
+`bootstrap.sh` chạy 9 bước, **chạy lại nhiều lần vẫn an toàn**:
 
 1. Cài magpie — bỏ qua nếu đã có (dùng `--from-source` để build từ repo chính chủ).
 2. Cài 6 plugin provider (lần đầu tải bun ~180 MB).
-3. Copy `openchamber`, `openmagpie`, `magpie-headless-*` vào `~/.local/bin`.
+3. Copy `openchamber`, `openmagpie`, `magpie-headless-*`, `magpie-finish` vào `~/.local/bin`
+   (kèm bản sao scripts/config ở `~/.local/share/magpie-cloudshell`).
 4. Thêm khối PATH + tự bật vào `~/.bashrc` (đánh dấu `# >>> magpie-cloudshell >>>`).
 5. Cài OpenCode (script curl chính thức) và OpenChamber (`npm -g @openchamber/web`).
-6. Copy 2 subagent + skill, sinh provider block trong `opencode.jsonc`.
-7. Bật gateway + web UI, in link đã kèm key.
+6. Bật gateway + web UI, in link đã kèm key.
+7. Cấu hình magpie giống máy tham chiếu: `settings.json` (theme dark, vision, imageGen,
+   check-in AutoClaw, cỡ chữ…), tắt provider `opencode-zen-free`.
 8. Tạo group + trỏ agent nếu đã có model (chưa có thì đăng nhập xong sẽ tự tạo).
+9. In việc còn lại: đăng nhập.
 
 Tuỳ chọn: `--from-source`, `--minimal` (chỉ magpie, không OpenCode/OpenChamber), `--no-autostart`.
 
@@ -218,6 +221,7 @@ scripts/
   install-opencode.sh       OpenCode (opencode.ai/install)
   install-openchamber.sh    @openchamber/web vào ~/.npm-global
   setup-opencode.sh         2 subagent + skill magpie-setup
+  setup-settings.sh         settings.json + tắt provider (chỉ thêm khoá thiếu)
   login.sh                  trạng thái + đăng nhập từng provider
   setup-groups.sh           group/main, group/code (--force, --dry-run)
   setup-agents.sh           trỏ agent vào group/main

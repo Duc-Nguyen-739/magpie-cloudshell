@@ -24,6 +24,8 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
 
 - magpie bản terminal trong `~/.local/bin` (không desktop, không systemd).
 - 6 plugin provider: AutoClaw (Zhipu), WorkBuddy, Qoder, ZCode, OpenCode Zen Free.
+- `settings.json` giống máy tham chiếu (theme dark, vision/imageGen, check-in AutoClaw),
+  `opencode-zen-free` tắt.
 - Hai routing group `group/main`, `group/code` trên cùng một ladder 8 model.
 - OpenCode + OpenChamber trỏ `group/main`; 2 subagent `coder`, `tester`; skill `magpie-setup`.
 - Supervisor bash giữ gateway + web UI sống; hai lệnh `openchamber` / `openmagpie` in
@@ -113,10 +115,10 @@ Provider còn "not signed in" thì bỏ qua — group chỉ dựng từ model th
 
 ### 4. Group + agent (đã tự chạy — chỉ kiểm tra)
 
-`login.sh` đã gọi `finish.sh` (= `setup-groups.sh --force` + `setup-agents.sh` + `doctor.sh`)
-sau mỗi lần đăng nhập. Nếu người dùng đăng nhập qua **web UI** (cách dùng trên Cloud Shell),
-`openmagpie` / `openchamber` tự gọi `magpie-finish` một lần khi thấy có model mà chưa có
-`group/main`. Chạy tay khi cần:
+`login.sh` đã gọi `finish.sh` (= `setup-settings.sh` + `setup-groups.sh --force` +
+`setup-agents.sh` + `doctor.sh`) sau mỗi lần đăng nhập. Nếu người dùng đăng nhập qua
+**web UI** (cách dùng trên Cloud Shell), `openmagpie` / `openchamber` tự gọi
+`magpie-finish` một lần khi thấy có model mà chưa có `group/main`. Chạy tay khi cần:
 
 ```sh
 magpie-finish          # bản cài

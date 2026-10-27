@@ -35,7 +35,7 @@ printf '\033[1mmagpie trên Cloud Shell\033[0m — cài đặt\n'
 printf 'repo: %s\n' "$REPO_DIR"
 
 # ------------------------------------------------------------------ 1. magpie
-step "1/8 · magpie (bản terminal, headless)"
+step "1/9 · magpie (bản terminal, headless)"
 if [ "$FROM_SOURCE" = 1 ]; then
   bash "$REPO_DIR/scripts/install-from-source.sh" || die "build từ repo chính chủ thất bại"
 else
@@ -44,11 +44,11 @@ fi
 export PATH="$HOME/.local/bin:$PATH"
 
 # ----------------------------------------------------------------- 2. plugins
-step "2/8 · plugin provider (lần đầu tải bun ~180 MB)"
+step "2/9 · plugin provider (lần đầu tải bun ~180 MB)"
 bash "$REPO_DIR/scripts/plugins.sh" || warn "một số plugin chưa cài được; chạy lại sau"
 
 # ------------------------------------------------------- 3. lệnh tiện dụng
-step "3/8 · lệnh tiện dụng trong ~/.local/bin"
+step "3/9 · lệnh tiện dụng trong ~/.local/bin"
 mkdir -p "$HOME/.local/bin"
 for f in openchamber openmagpie magpie-headless magpie-headless-start magpie-headless-stop magpie-headless-status; do
   install -m 755 "$REPO_DIR/scripts/$f" "$HOME/.local/bin/$f"
@@ -70,7 +70,7 @@ ok "~/.local/bin/magpie-finish"
 export PATH="$HOME/.local/bin:$HOME/.opencode/bin:$HOME/.npm-global/bin:$PATH"
 
 # ------------------------------------------- 4. PATH + autostart trong .bashrc
-step "4/8 · PATH và tự bật khi mở shell"
+step "4/9 · PATH và tự bật khi mở shell"
 RC="$HOME/.bashrc"
 BEGIN="# >>> magpie-cloudshell >>>"
 END="# <<< magpie-cloudshell <<<"
@@ -93,20 +93,24 @@ fi
 
 # --------------------------------------------------- 5. OpenCode + OpenChamber
 if [ "$MINIMAL" = 1 ]; then
-  step "5/8 · OpenCode + OpenChamber — bỏ qua (--minimal)"
+  step "5/9 · OpenCode + OpenChamber — bỏ qua (--minimal)"
 else
-  step "5/8 · OpenCode + OpenChamber"
+  step "5/9 · OpenCode + OpenChamber"
   bash "$REPO_DIR/scripts/install-opencode.sh" || warn "OpenCode chưa cài được"
   bash "$REPO_DIR/scripts/install-openchamber.sh" || warn "OpenChamber chưa cài được"
   bash "$REPO_DIR/scripts/setup-opencode.sh" || warn "subagent/skill chưa cài được"
 fi
 
 # ------------------------------------------------------------ 6. bật magpie
-step "6/8 · bật gateway + web UI"
+step "6/9 · bật gateway + web UI"
 "$HOME/.local/bin/openmagpie" || die "không bật được magpie"
 
-# ------------------------------------------------ 7. group + agent (nếu có model)
-step "7/8 · routing group + agent"
+# ------------------------------------------------------- 7. cấu hình magpie
+step "7/9 · cấu hình magpie (settings, provider tắt)"
+bash "$REPO_DIR/scripts/setup-settings.sh" || warn "chưa đặt được settings"
+
+# ------------------------------------------------ 8. group + agent (nếu có model)
+step "8/9 · routing group + agent"
 if magpie models 2>/dev/null | grep -q .; then
   bash "$REPO_DIR/scripts/setup-groups.sh" --force || warn "chưa tạo được group (xem lỗi ở trên)"
   bash "$REPO_DIR/scripts/setup-agents.sh" || warn "chưa trỏ được agent"
@@ -115,7 +119,7 @@ else
 fi
 
 # ------------------------------------------------------------ 8. việc còn lại
-step "8/8 · việc còn lại: chỉ đăng nhập"
+step "9/9 · việc còn lại: chỉ đăng nhập"
 cat <<'EOF'
   Không phải cài gì thêm. Chỉ đăng nhập provider:
 

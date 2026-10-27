@@ -139,6 +139,46 @@ Thứ tự 8 model trong cả hai group:
 ~/.opencode/bin/opencode
 ```
 
+## Settings của magpie (`settings.json`)
+
+| Khoá | Giá trị | Ý nghĩa |
+|---|---|---|
+| `theme` | `dark` | giao diện tối |
+| `lang` | `system` | theo ngôn ngữ hệ thống |
+| `tray` | `panel` | menu bar mở panel |
+| `currency` | `usd` | giá hiển thị bằng USD |
+| `updateEvery` | `360` | kiểm tra cập nhật mỗi 360 phút |
+| `vision` | `workbuddy-ai/deepseek-v4.1-flash` | model đọc ảnh cho tool vision |
+| `visionEffort` | `max` | mức reasoning cho vision |
+| `imageGen` | `workbuddy-ai/hy-image-3.5` | model tạo ảnh |
+| `trayUsageEvery` | `3` | nhịp cập nhật usage trên tray |
+| `textSize` | `110` | cỡ chữ UI |
+| `pluginCheckins.autoclaw` | `true` | điểm danh AutoClaw hằng ngày |
+
+`scripts/setup-settings.sh` chỉ **thêm khoá còn thiếu**, không ghi đè giá trị đã có; và chỉ
+đặt `vision`/`imageGen` khi model tương ứng đã tồn tại (tức sau khi đăng nhập WorkBuddy).
+
+## Repo này tái tạo được gì
+
+| Hạng mục | Repo | Ghi chú |
+|---|---|---|
+| magpie binary | ✅ | installer chính thức hoặc `--from-source` (clone yetone/magpie) |
+| 6 plugin provider | ✅ | `scripts/plugins.sh` |
+| 2 routing group | ✅ | **giống hệt** cấu hình máy này (đã so JSON) |
+| settings.json | ✅ | chỉ thêm khoá thiếu |
+| `opencode-zen-free` tắt | ✅ | `setup-settings.sh` |
+| OpenCode + provider `magpie` | ✅ | magpie tự ghi `opencode.jsonc` |
+| 2 subagent `coder`, `tester` | ✅ | `config/agents/` |
+| skill `magpie-setup` | ✅ (OpenCode) | Gemini/Antigravity: thêm qua Library page nếu muốn |
+| OpenChamber + cổng 3000 | ✅ | `install-openchamber.sh` |
+| `openchamber` / `openmagpie` + link kèm key | ✅ | wrapper + supervisor |
+| Tự bật ở shell đầu tiên | ✅ | khối `.bashrc` |
+| Provider account/key | ➖ | **bạn đăng nhập** (phần duy nhất) |
+| 5 provider gọi thẳng trong OpenCode (`bynara`, `kiraai`, `kiro`, `pendraa`, `amdradeon`) | ❌ | key riêng của chủ máy, không đưa vào repo; cách thêm: `docs/providers.md` |
+| Gemini CLI / Antigravity CLI | ➖ | tuỳ chọn, repo không cài |
+| Profiles `before-*` | ❌ | snapshot tạm thời, không cần |
+| Theme/notification của OpenChamber | ➖ | chọn trong UI (10 giây) |
+
 ## Bản đồ kết nối
 
 ```
