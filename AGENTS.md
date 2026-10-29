@@ -26,8 +26,10 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
 - 6 plugin provider: AutoClaw (Zhipu), WorkBuddy, Qoder, ZCode, OpenCode Zen Free.
 - `settings.json` giống máy tham chiếu (theme dark, vision/imageGen, check-in AutoClaw),
   `opencode-zen-free` tắt.
-- Hai routing group `group/main`, `group/code` trên cùng một ladder 8 model.
-- OpenCode + OpenChamber trỏ `group/main`; 2 subagent `coder`, `tester`; skill `magpie-setup`.
+- Bốn routing group: `group/main`, `group/code` (cùng một ladder 8 model), `group/glm`
+  (Tester, GLM đứng đầu), `group/deepseek` (dự phòng, chỉ DeepSeek).
+- OpenCode + OpenChamber trỏ `group/main`; agent `leader` + 2 subagent `coder`, `tester`;
+  skill `magpie-setup`.
 - Supervisor bash giữ gateway + web UI sống; hai lệnh `openchamber` / `openmagpie` in
   link web **đã kèm key**.
 - Đích chính xác của cấu hình: [`docs/inventory.md`](docs/inventory.md).

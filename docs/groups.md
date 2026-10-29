@@ -1,4 +1,4 @@
-# Routing group — hai group đang dùng
+# Routing group — bốn group đang dùng
 
 Group là nhiều model mà agent chọn như **một**. Agent trỏ vào `group/main`; gateway
 quyết định model nào trả lời từng lượt, và tự chuyển model kế tiếp khi model hiện tại
@@ -40,6 +40,31 @@ magpie group rule add code use=autoclaw/zaicoding_glm-5.3 \
 magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash \
   intent="final overall review of the finished code and releasing or publishing it (kiểm tra tổng thể lần cuối, duyệt, phát hành, release, ship)"
 magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash images
+```
+
+### `group/glm` — Tester
+
+Group riêng cho Tester để lượt test **luôn** bắt đầu bằng GLM, không phụ thuộc
+classifier đoán đúng ý định. Không rule, không classifier:
+
+```sh
+magpie group add "GLM" \
+  models=autoclaw/zaicoding_glm-5.3,autoclaw/zai_glm-5.3-flash,autoclaw/zai_auto-fast,autoclaw/zai_auto,opencode-zen/glm-5.3-flash-free,workbuddy-ai/glm-5.3,workbuddy-ai/glm-5.3-flash \
+  routing=order stays=auto
+magpie group set glm levels=low,high,max
+```
+
+### `group/deepseek` — dự phòng
+
+Chỉ endpoint DeepSeek, nên không bao giờ rơi sang GLM. Hiện không agent nào trỏ trực
+tiếp; giữ để ép một phiên chạy thuần DeepSeek:
+
+```sh
+magpie group add deepseek \
+  models=workbuddy-ai/deepseek-v4.1-flash,opencode-zen/deepseek-v4.1-flash-free,workbuddy-ai/deepseek-v4.1-flash-sg \
+  routing=order stays=turn
+magpie group set deepseek name="DeepSeek V4.1 Flash"
+magpie group set deepseek levels=low,high,max
 ```
 
 ## Vì sao như vậy

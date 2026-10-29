@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# setup-groups.sh — tạo hai routing group đang dùng: group/main và group/code.
+# setup-groups.sh — tạo bốn routing group đang dùng: main, code, glm, deepseek.
 #
 #   bash scripts/setup-groups.sh            tạo group còn thiếu, bỏ qua group đã có
-#   bash scripts/setup-groups.sh --force    tạo lại (thay) cả hai group
+#   bash scripts/setup-groups.sh --force    tạo lại (thay) cả bốn group
 #   bash scripts/setup-groups.sh --dry-run  chỉ in lệnh, không đổi gì
 #
 # Chỉ đưa vào group những model thật sự có (đã đăng nhập provider), nên chạy được
@@ -54,6 +54,24 @@ MODELS=(
 
 LEVELS=low,high,max                       # mức reasoning agent được chọn
 CLASSIFIER=opencode-zen/jev-1.13-free     # model nhỏ đọc mỗi lượt khi effort=auto
+
+# group/glm — Tester. Chỉ GLM, zaicoding đứng đầu; không rule, không classifier.
+GLM_MODELS=(
+  autoclaw/zaicoding_glm-5.3
+  autoclaw/zai_glm-5.3-flash
+  autoclaw/zai_auto-fast
+  autoclaw/zai_auto
+  opencode-zen/glm-5.3-flash-free
+  workbuddy-ai/glm-5.3
+  workbuddy-ai/glm-5.3-flash
+)
+
+# group/deepseek — dự phòng, chỉ endpoint DeepSeek, không bao giờ rơi sang GLM.
+DEEPSEEK_MODELS=(
+  workbuddy-ai/deepseek-v4.1-flash
+  opencode-zen/deepseek-v4.1-flash-free
+  workbuddy-ai/deepseek-v4.1-flash-sg
+)
 
 command -v magpie >/dev/null 2>&1 || die "chưa có magpie trên PATH (~/.local/bin)"
 
@@ -116,6 +134,40 @@ add_rule() { # <id> <model> <cờ…>
   run magpie group rule add "$id" "use=$model" "$@" >/dev/null || warn "rule lỗi: $*"
 }
 
+# Group đơn giản: đúng danh sách model được truyền, không rule, không classifier.
+make_simple() { # <tên> <id> <stays> <model…>
+  local name=$1 id=$2 stays=$3; shift 3
+  local list; list="$(join "$@")"
+
+  if magpie groups 2>/dev/null | grep -q "group/$id"; then
+    if [ "$FORCE" != 1 ]; then
+      say "group/$id đã có — bỏ qua (dùng --force để tạo lại)"
+      return 1
+    fi
+    # Xoá trước rồi tạo lại: nếu group đã được đổi tên hiển thị thì
+    # `group add <tên cũ>` sẽ tạo group mới với id bị đánh số (deepseek-2).
+    say "thay group/$id"
+    run magpie group rm "$id" >/dev/null || warn "không xoá được group/$id"
+  fi
+
+  run magpie group add "$name" "models=$list" routing=order "stays=$stays" >/dev/null || return 1
+  if [ "$DRY" = 1 ]; then
+    run magpie group set "$id" "levels=$LEVELS"
+  elif magpie group set "$id" "levels=$LEVELS" >/dev/null 2>&1; then
+    ok "levels=$LEVELS"
+  else
+    warn "không đặt được levels cho group/$id"
+  fi
+}
+
+# Lọc một danh sách model theo những model thật sự có (không chỉ trong ladder).
+present_of() {
+  local m
+  for m in "$@"; do
+    printf '%s\n' "$models_now" | grep -Fxq "$m" && printf '%s\n' "$m"
+  done
+}
+
 # ------------------------------------------------------------- group/main
 # Chat thường ngày: giữ hội thoại trên một account (session) để prompt cache còn giá trị.
 say ""
@@ -141,9 +193,35 @@ if create_group "Code" code turn; then
   add_rule code workbuddy-ai/deepseek-v4.1-flash images
 fi
 
+# ------------------------------------------------------------- group/glm
+# Tester dùng group riêng thay vì dựa vào rule intent của group/code: classifier
+# có thể đoán sai, còn group riêng thì luôn bắt đầu bằng zaicoding_glm.
+say ""
+say "group/glm — Tester, GLM 5.3 đứng đầu, stays=auto"
+glm_present=(); while IFS= read -r m; do [ -n "$m" ] && glm_present+=("$m"); done \
+  < <(present_of "${GLM_MODELS[@]}")
+if [ ${#glm_present[@]} -eq 0 ]; then
+  warn "không có model GLM nào — bỏ qua group/glm"
+elif make_simple "GLM" glm auto "${glm_present[@]}"; then
+  ok "group/glm: ${#glm_present[@]} model"
+fi
+
+# --------------------------------------------------------- group/deepseek
+# Dự phòng: chỉ endpoint DeepSeek, để ép một phiên không rơi sang GLM.
+say ""
+say "group/deepseek — dự phòng, chỉ DeepSeek"
+ds_present=(); while IFS= read -r m; do [ -n "$m" ] && ds_present+=("$m"); done \
+  < <(present_of "${DEEPSEEK_MODELS[@]}")
+if [ ${#ds_present[@]} -eq 0 ]; then
+  warn "không có model DeepSeek nào — bỏ qua group/deepseek"
+elif make_simple "deepseek" deepseek turn "${ds_present[@]}"; then
+  run magpie group set deepseek name="DeepSeek V4.1 Flash" >/dev/null
+  ok "group/deepseek: ${#ds_present[@]} model"
+fi
+
 say ""
 if [ "$DRY" = 1 ]; then
   say "dry-run: không thay đổi gì."
 else
-  ok "xong. Xem lại: magpie group main · magpie group code"
+  ok "xong. Xem lại: magpie groups · magpie group main · magpie group glm"
 fi

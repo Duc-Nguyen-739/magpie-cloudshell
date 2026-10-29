@@ -257,9 +257,9 @@ group có hiệu lực ngay ở lượt kế tiếp, không cần restart gatewa
 ## Cảnh báo
 
 - `scripts/setup-groups.sh --force` (và `finish.sh`, vì nó gọi `--force`) sẽ
-  **tạo lại `group/main` và `group/code`** theo ladder trong script. Từ bản này
-  ladder đó khớp tài liệu, nhưng nó vẫn xoá rule tự thêm tay. Muốn giữ thì đừng
-  chạy `--force`, hoặc chạy lại mục [Dựng lại](#dựng-lại).
+  **tạo lại cả bốn group** (`main`, `code`, `glm`, `deepseek`) theo ladder trong
+  script. Từ bản này ladder đó khớp tài liệu, nhưng nó vẫn xoá rule tự thêm tay.
+  Muốn giữ thì đừng chạy `--force`, hoặc chạy lại mục [Dựng lại](#dựng-lại).
 - `scripts/setup-opencode.sh` không ghi đè file agent đã có, nên `leader.md`,
   `coder.md`, `tester.md` đang chỉnh tay sẽ được giữ nguyên.
 - **OpenChamber không nhận biến thể `#high`**: `magpie openchamber group/main#high`

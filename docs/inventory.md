@@ -66,7 +66,7 @@ Lệnh tiện dụng tự viết trong `~/.local/bin`:
 opencode-zen-freex                          phục vụ opencode-zen-free
 ```
 
-## Routing group (2)
+## Routing group (4)
 
 | | `group/main` | `group/code` |
 |---|---|---|
@@ -79,7 +79,16 @@ opencode-zen-freex                          phục vụ opencode-zen-free
 | rule | ảnh → deepseek-v4.1-flash; compact → glm-5.3-flash | 4 intent + ảnh (test → zaicoding_glm) |
 | agent dùng | Leader, OpenCode, OpenChamber | Coder |
 
-Thứ tự 8 model trong cả hai group (DeepSeek trước, GLM sau):
+Hai group còn lại không rule, không classifier:
+
+| | `group/glm` | `group/deepseek` |
+|---|---|---|
+| Dùng cho | Tester | dự phòng (không agent nào trỏ) |
+| routing / stays | `order` / `auto` | `order` / `turn` |
+| levels | `low,high,max` | `low,high,max` |
+| model | 7 model GLM, `zaicoding_glm-5.3` đầu | 3 endpoint DeepSeek |
+
+Thứ tự 8 model trong `main` và `code` (DeepSeek trước, GLM sau):
 
 ```
 1 workbuddy-ai/deepseek-v4.1-flash

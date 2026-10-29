@@ -180,7 +180,7 @@ Nếu bạn đăng nhập **trong web UI** (cách dùng trên Cloud Shell), lầ
 bash scripts/finish.sh
 ```
 
-Nó tạo (hoặc cập nhật) hai group và trỏ OpenCode + OpenChamber vào `group/main`:
+Nó tạo (hoặc cập nhật) bốn group và trỏ OpenCode + OpenChamber vào `group/main`:
 
 | | `group/main` | `group/code` |
 |---|---|---|
@@ -189,6 +189,10 @@ Nó tạo (hoặc cập nhật) hai group và trỏ OpenCode + OpenChamber vào 
 | levels / effort | `low,high,max` / `auto` | `low,high,max` / `auto` |
 | classifier | `opencode-zen/jev-1.13-free` | `opencode-zen/jev-1.13-free` |
 | rule | ảnh → DeepSeek V4.1 Flash; nén → GLM-5.3 Flash | 4 intent (plan, code, test, review) + ảnh |
+
+Ngoài ra `group/glm` (Tester: 7 model GLM, `zaicoding_glm-5.3` đầu, `stays=auto`) và
+`group/deepseek` (dự phòng: 3 endpoint DeepSeek, `stays=turn`), cả hai không rule,
+không classifier.
 
 Ladder 8 model (thứ tự fallback) và lý do: [`docs/groups.md`](docs/groups.md).
 
@@ -230,7 +234,7 @@ scripts/
   setup-settings.sh         settings.json + tắt provider (chỉ thêm khoá thiếu)
   autoclaw-link.sh          in link localhost/preview để đăng nhập AutoClaw
   login.sh                  trạng thái + đăng nhập từng provider
-  setup-groups.sh           group/main, group/code (--force, --dry-run)
+  setup-groups.sh           group/main, code, glm, deepseek (--force, --dry-run)
   setup-agents.sh           trỏ agent vào group/main
   finish.sh                 setup-groups + setup-agents + doctor
   doctor.sh                 kiểm tra sức khoẻ toàn bộ
