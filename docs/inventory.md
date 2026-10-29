@@ -75,7 +75,7 @@ opencode-zen-freex                          phục vụ opencode-zen-free
 | stays | `session` | `turn` |
 | levels | `low,high,max` | `low,high,max` |
 | effort | `auto` | `auto` |
-| classifier | `opencode-zen-free/nemotron-3.5-lightning-free` | `opencode-zen-free/nemotron-3.5-lightning-free` |
+| classifier | `workbuddy-ai/hy3` | `workbuddy-ai/hy3` |
 | rule | ảnh → deepseek-v4.1-flash; compact → glm-5.3-flash | 4 intent + ảnh (test → zaicoding_glm) |
 | agent dùng | Leader, OpenCode, OpenChamber | Coder |
 

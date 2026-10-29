@@ -71,7 +71,7 @@ magpie group main
 ```
 
 - `routing=order`, `stays=session`, `levels=low,high,max`
-- `effort=auto` + classifier `opencode-zen-free/nemotron-3.5-lightning-free`
+- `effort=auto` + classifier `workbuddy-ai/hy3`
 - Rule `images` → `workbuddy-ai/deepseek-v4.1-flash`
 - Rule `compacting` → `workbuddy-ai/glm-5.3-flash`
 
@@ -97,7 +97,7 @@ magpie group code
 ```
 
 - `routing=order`, `stays=turn`, `levels=low,high,max`
-- `effort=auto` + classifier `opencode-zen-free/nemotron-3.5-lightning-free`
+- `effort=auto` + classifier `workbuddy-ai/hy3`
 - 5 rule theo ý định:
 
 | # | Rule | Model |
@@ -180,7 +180,7 @@ phiên chỉ chạy DeepSeek.
   trả lời để prompt cache còn giá trị; Code đổi model theo từng bước nên chọn
   lại mỗi lượt.
 - **Classifier điều chỉnh reasoning.** Main và Code dùng `effort=auto` + classifier
-  `opencode-zen-free/nemotron-3.5-lightning-free`: mỗi lượt model nhỏ này đọc yêu cầu
+  `workbuddy-ai/hy3`: mỗi lượt model nhỏ này đọc yêu cầu
   và chọn low/high/max thay vì cố định. `glm` và `deepseek` không gắn classifier để
   giữ hành vi đơn giản.
 
@@ -198,7 +198,7 @@ magpie provider models workbuddy-ai +glm-5.3-flash
 magpie group add "Main" \
   models=workbuddy-ai/deepseek-v4.1-flash,workbuddy-ai/deepseek-v4.1-flash-sg,autoclaw/zaicoding_glm-5.3,autoclaw/zai_glm-5.3-flash,workbuddy-ai/glm-5.3,workbuddy-ai/glm-5.3-flash,opencode-zen-free/deepseek-v4.1-flash-free,opencode-zen-free/glm-5.3-flash-free \
   routing=order stays=session
-magpie group set main levels=low,high,max classifier=opencode-zen-free/nemotron-3.5-lightning-free effort=auto
+magpie group set main levels=low,high,max classifier=workbuddy-ai/hy3 effort=auto
 magpie group rule add main use=workbuddy-ai/deepseek-v4.1-flash images
 magpie group rule add main use=workbuddy-ai/glm-5.3-flash compact
 
@@ -206,7 +206,7 @@ magpie group rule add main use=workbuddy-ai/glm-5.3-flash compact
 magpie group add "Code" \
   models=workbuddy-ai/deepseek-v4.1-flash,workbuddy-ai/deepseek-v4.1-flash-sg,autoclaw/zaicoding_glm-5.3,autoclaw/zai_glm-5.3-flash,workbuddy-ai/glm-5.3,workbuddy-ai/glm-5.3-flash,opencode-zen-free/deepseek-v4.1-flash-free,opencode-zen-free/glm-5.3-flash-free \
   routing=order stays=turn
-magpie group set code levels=low,high,max classifier=opencode-zen-free/nemotron-3.5-lightning-free effort=auto
+magpie group set code levels=low,high,max classifier=workbuddy-ai/hy3 effort=auto
 magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash \
   intent="asking for a detailed plan before any code is written (lên plan, lập kế hoạch chi tiết)"
 magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash \

@@ -53,7 +53,7 @@ MODELS=(
 )
 
 LEVELS=low,high,max                       # mức reasoning agent được chọn
-CLASSIFIER=opencode-zen-free/nemotron-3.5-lightning-free  # model nhỏ đọc mỗi lượt khi effort=auto
+CLASSIFIER=workbuddy-ai/hy3              # model nhỏ đọc mỗi lượt khi effort=auto (free, không tốn credit)
 
 # group/glm — Tester. Chỉ GLM, zaicoding đứng đầu; không rule, không classifier.
 GLM_MODELS=(

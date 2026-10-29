@@ -31,7 +31,7 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   (Tester, GLM đứng đầu), `group/deepseek` (dự phòng, chỉ DeepSeek).
 - Ladder 8 model: DeepSeek (WorkBuddy) → GLM (AutoClaw, WorkBuddy) → 2 rung cuối
   `opencode-zen-free` (`deepseek-v4.1-flash-free`, `glm-5.3-flash-free`) làm đường miễn
-  phí dự phòng; classifier `opencode-zen-free/nemotron-3.5-lightning-free`.
+  phí dự phòng; classifier `workbuddy-ai/hy3`.
 - OpenCode + OpenChamber trỏ `group/main`; agent `leader` + 2 subagent `coder`, `tester`;
   skill `magpie-setup`.
 - Supervisor bash giữ gateway + web UI sống; hai lệnh `openchamber` / `openmagpie` in

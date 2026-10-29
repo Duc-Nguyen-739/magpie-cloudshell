@@ -112,7 +112,7 @@ Provider đang dùng cho ladder: 8 model free, **bật**, xác thực bằng cre
 dùng chung của client OpenCode (không cần tài khoản, không cần key riêng). Hai rung cuối của
 `group/main`/`group/code` là `opencode-zen-free/deepseek-v4.1-flash-free` và
 `opencode-zen-free/glm-5.3-flash-free`; classifier của hai group là
-`opencode-zen-free/nemotron-3.5-lightning-free`. `group/glm` và `group/deepseek` cũng để
+`workbuddy-ai/hy3`. `group/glm` và `group/deepseek` cũng để
 model của provider này ở cuối. Vì sao chọn đường này thay vì API key: [`zen-free.md`](zen-free.md).
 
 ```sh

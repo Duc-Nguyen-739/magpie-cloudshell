@@ -187,7 +187,7 @@ Nó tạo (hoặc cập nhật) bốn group và trỏ OpenCode + OpenChamber và
 | Dùng cho | chat thường ngày | việc code |
 | routing / stays | `order` / `session` | `order` / `turn` |
 | levels / effort | `low,high,max` / `auto` | `low,high,max` / `auto` |
-| classifier | `opencode-zen-free/nemotron-3.5-lightning-free` | `opencode-zen-free/nemotron-3.5-lightning-free` |
+| classifier | `workbuddy-ai/hy3` | `workbuddy-ai/hy3` |
 | rule | ảnh → DeepSeek V4.1 Flash; nén → GLM-5.3 Flash | 4 intent (plan, code, test, review) + ảnh |
 
 Ngoài ra `group/glm` (Tester: 7 model GLM, `zaicoding_glm-5.3` đầu, `stays=auto`) và

@@ -14,7 +14,7 @@ magpie group add "Main" \
   routing=order stays=session
 
 magpie group set main levels=low,high,max
-magpie group set main classifier=opencode-zen-free/nemotron-3.5-lightning-free
+magpie group set main classifier=workbuddy-ai/hy3
 magpie group set main effort=auto
 
 magpie group rule add main use=workbuddy-ai/deepseek-v4.1-flash images
@@ -28,7 +28,7 @@ Cùng ladder, nhưng `stays=turn` và 4 rule theo ý định:
 ```sh
 magpie group add "Code" models=<như trên> routing=order stays=turn
 magpie group set code levels=low,high,max
-magpie group set code classifier=opencode-zen-free/nemotron-3.5-lightning-free
+magpie group set code classifier=workbuddy-ai/hy3
 magpie group set code effort=auto
 
 magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash \
@@ -89,7 +89,7 @@ lại Leader — khép vòng `Leader → Coder → Tester → Leader`.
 gửi mức gần nhất. Không đặt `medium` vì các model trong ladder không đồng đều.
 
 **`effort=auto` + `classifier`.** Mỗi lượt, model nhỏ
-`opencode-zen-free/nemotron-3.5-lightning-free` đọc yêu cầu và chọn mức reasoning
+`workbuddy-ai/hy3` đọc yêu cầu và chọn mức reasoning
 (low/high/max) thay vì agent luôn dùng một mức. Rẻ hơn cho câu hỏi ngắn, vẫn sâu cho việc
 khó. Classifier chỉ là model *phụ*: nó không nằm trong ladder, không hiện ra cho agent chọn.
 
@@ -113,7 +113,7 @@ magpie group set main models-=autoclaw/zai_glm-5.3-flash # bỏ
 magpie group set code stays=session                      # đổi cách giữ hội thoại
 magpie group set main levels=low,medium,high,max
 magpie group set main effort=agent                       # tắt classifier, để agent tự chọn
-magpie group set main classifier=opencode-zen-free/nemotron-3.5-lightning-free
+magpie group set main classifier=workbuddy-ai/hy3
 
 magpie group rule main                    # rule đang có, đánh số
 magpie group rule add main use=… tokens=200k

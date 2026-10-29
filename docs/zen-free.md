@@ -93,7 +93,7 @@ thì vào console <https://opencode.ai/console> bằng trình duyệt (Overview 
 
 | id | trạng thái | ghi chú |
 |---|---|---|
-| `opencode-zen-free` | **bật** | 8 model, dùng cho ladder + classifier |
+| `opencode-zen-free` | **bật** | 8 model, dùng cho 2 rung cuối của ladder |
 | `opencode-zen` | **tắt** | key giữ nguyên, không expose model nào |
 
 Tắt bằng `magpie provider off`, **không** `rm`: key còn đó, đổi ý thì
@@ -128,9 +128,10 @@ workbuddy-ai/deepseek-v4.1-flash, workbuddy-ai/deepseek-v4.1-flash-sg,
 opencode-zen-free/deepseek-v4.1-flash-free
 ```
 
-**Classifier** của `group/main` và `group/code`:
-`opencode-zen-free/nemotron-3.5-lightning-free` (403 ms — nhanh nhất trong các model đã
-đo của provider; classifier cũ `opencode-zen/jev-1.13-free` thuộc provider vừa tắt).
+**Classifier** của `group/main` và `group/code`: `workbuddy-ai/hy3` — free, không tốn
+credit WorkBuddy, trả lời 1,1–1,2 s mỗi lượt, và không đụng bể IP dùng chung của Zen Free
+(classifier cũ `opencode-zen/jev-1.13-free` thuộc provider vừa tắt; vì sao classifier
+không nằm trên bể Zen Free, xem mục 6).
 
 **Vì sao hai model OpenCode nằm cuối:** đây là đường miễn phí, phụ thuộc plugin cộng
 đồng — chỉ nên dùng khi các rung chính (WorkBuddy, AutoClaw) đã hỏng hoặc hết quota.
@@ -139,7 +140,34 @@ opencode-zen-free/deepseek-v4.1-flash-free
 Hai file nguồn: `scripts/setup-settings.sh` (bật/tắt provider) và
 `scripts/setup-groups.sh` (ladder + classifier). `bash scripts/finish.sh` gọi cả hai.
 
-## 6. Kiểm tra lại
+## 6. Vì sao classifier không nằm trên Zen Free
+
+Classifier chạy **mỗi lượt** (`effort=auto`), nên nó không được phép phụ thuộc vào bể IP
+dùng chung của Zen Free: bể cạn là mọi lượt đều cõng thời gian chờ.
+
+Số đo trên máy này, ngày 29/10/2026 (magpie `0.1.1955`):
+
+- **Bể Zen Free cạn sau ~20 request** trong bài test. Khi cạn, log ghi **3 lần** classifier
+  không trả lời (2 timeout 8 s, 1 trả chuỗi rỗng) trong khoảng 20 phút, và mỗi lượt chậm
+  thêm tới **8 s**.
+- **`workbuddy-ai/hy3` thay vào:** 10 request mà `magpie accounts` trước/sau đều
+  `used = 12.665714` → **không tốn credit**; 4/4 lượt classifier trả lời (1,06–1,55 s,
+  thường 1,1–1,2 s), **0 dòng** lỗi classifier trong log. Hy3 nằm trên WorkBuddy — provider
+  đã là rung 1–2 của ladder, nên không thêm phụ thuộc mới.
+
+**Phương án dự phòng nếu WorkBuddy hỏng:** `kilo/reflection/beam-free` — 10/10 request
+tuần tự 200 (0,80–0,94 s), 8 request đồng thời đều 200, 4/4 lượt classifier OK, 0 lỗi.
+Đổi bằng:
+
+```sh
+magpie group set main classifier=kilo/reflection/beam-free
+magpie group set code classifier=kilo/reflection/beam-free
+```
+
+và sửa `CLASSIFIER=` trong `scripts/setup-groups.sh` cho khớp. Đánh đổi: thêm provider Kilo
+vào đường bắt buộc của mọi lượt, trong khi Kilo chưa có vai trò nào khác trong pipeline.
+
+## 7. Kiểm tra lại
 
 ```sh
 export PATH="$HOME/.local/bin:$PATH"
@@ -153,7 +181,7 @@ magpie models | grep '^opencode-zen/'
 
 magpie group main
 # 8 rung đúng thứ tự mục 5; dòng classifier:
-#   opencode-zen-free/nemotron-3.5-lightning-free
+#   workbuddy-ai/hy3
 #   effort  auto
 
 magpie group glm
@@ -170,7 +198,7 @@ Lưu ý khi tự đo: model trong ladder là model reasoning, `max_tokens` quá 
 thì toàn bộ token bị tiêu vào `reasoning_content` và `content` trả về `null` — request
 vẫn 200. Dùng `max_tokens` ≥ 64 để thấy nội dung.
 
-## 7. Đường khác: OpenCode trực tiếp
+## 8. Đường khác: OpenCode trực tiếp
 
 Provider `opencode` của chính OpenCode cũng chạy được các model `opencode/*` **mà không
 cần đăng nhập**. Trong OpenChamber, chọn thẳng model:
@@ -185,10 +213,10 @@ Trên máy này, 9 model `opencode/*` đã được bỏ ẩn trong picker của
 `effort=auto`, không chia sẻ với Claude Code hay agent khác. Chỉ dùng khi muốn một model
 free nhanh trong UI, không phải để thay `group/main`.
 
-## 8. Rủi ro
+## 9. Rủi ro
 
 - **Plugin cộng đồng.** `opencode-zen-free` là plugin (`opencode-zen-freex`), không chính
-  thức. `magpie plugin update` lên bản hỏng thì 2 rung cuối và classifier chết. Cách xử:
+  thức. `magpie plugin update` lên bản hỏng thì 2 rung cuối chết. Cách xử:
   ghim lại bản đang chạy: `magpie plugin add opencode-zen-freex@0.5.16`, rồi
   `magpie-headless-stop && magpie-headless-start`.
 - **Free tier có giới hạn riêng.** Zen có thể siết thêm bất cứ lúc nào; khi đó 429 lại
@@ -197,7 +225,7 @@ free nhanh trong UI, không phải để thay `group/main`.
   reasoning; agent tự dùng mức mặc định.
 - **`magpie quota` im lặng với Zen** — không phải lỗi, xem mục 4.
 
-## 9. Hoàn tác
+## 10. Hoàn tác
 
 ```sh
 magpie provider on opencode-zen
@@ -209,7 +237,7 @@ Lệnh thứ ba trả `scripts/setup-groups.sh` và `scripts/setup-settings.sh` 
 `finish.sh` áp lại lên máy. Nếu không muốn revert, sửa tay hai mảng trong
 `scripts/setup-groups.sh` rồi chạy `bash scripts/setup-groups.sh --force`.
 
-## 10. Đo lại sau này
+## 11. Đo lại sau này
 
 So hai provider bằng cùng một model, cùng một lúc:
 
