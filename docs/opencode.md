@@ -64,7 +64,7 @@ magpie để mọi agent dùng chung — xem `docs/providers.md` mục "Thêm re
 
 | File | Vai trò | Model |
 |---|---|---|
-| `leader.md` | primary; viết plan kỹ thuật, giao Coder/Tester, review và duyệt | `magpie/group/main#high` |
+| `leader.md` | primary; viết plan kỹ thuật có `TÌM`/`THAY` + lệnh nghiệm thu, giao Coder/Tester, review và duyệt | `magpie/group/main#high` |
 | `coder.md` | viết code theo plan của Leader, không tự lên plan | `magpie/group/code` |
 | `tester.md` | chạy test, báo lỗi chính xác, không sửa code | `magpie/group/glm` |
 
