@@ -143,14 +143,17 @@ bash scripts/login.sh keys         # OpenCode Zen + Kilo (dán API key)
 Hoặc mở link web UI → **Settings → Providers → Add / Sign in**. Hai cách gọi cùng một
 gateway nên kết quả như nhau.
 
-> **Trên Cloud Shell, đây là cách đã dùng ở máy tham chiếu** (không tunnel, không cài thêm):
-> `openmagpie` → mở link → Settings → Providers → Add provider → **AutoClaw (Zhipu)** →
-> Sign in → chọn Google/z.ai → lấy link preview cho cổng magpie vừa mở bằng
-> `bash scripts/autoclaw-link.sh --watch` → làm slider Aliyun rồi uỷ quyền → trình duyệt
-> dừng ở `http://localhost:<cổng>/auth/callback-…` và trang đó không load được → **copy
-> nguyên địa chỉ trên thanh địa chỉ, dán vào ô `Callback URL`** trong hộp đăng nhập của
-> magpie → Enter. Tài khoản hiện ra trong danh sách, xong.
-> Từng bước + cách xử lý khi cổng bận: [`docs/autoclaw-login.md`](docs/autoclaw-login.md) (Cách A).
+> **Trên Cloud Shell, đây là cách đã dùng ở máy tham chiếu**: chạy
+> `magpie plugin login autoclaw` (chọn `2` = z.ai) trước, hoặc bấm **Sign in** cho AutoClaw
+> trong web UI → chạy `bash scripts/autoclaw-link.sh --relay` → mở link
+> `https://<random>.trycloudflare.com/` vừa in ra trên điện thoại → slider Aliyun → z.ai →
+> đồng ý uỷ quyền → trình duyệt dừng ở `http://localhost:<cổng>/auth/callback-…` và trang
+> đó không load được → **copy nguyên URL** rồi chạy
+> `bash scripts/autoclaw-link.sh --callback '<url>'`.
+> Lý do cần relay (preview trả `403 forbidden origin`) + từng bước + cách xử lý khi cổng
+> bận: [`docs/autoclaw-login.md`](docs/autoclaw-login.md) (Cách A2).
+> Cách cũ — mở preview `https://<cổng>-<WEB_HOST>/` rồi dán `Callback URL` vào hộp đăng
+> nhập — vẫn là phương án thay thế khi `/captcha` không trả 403 (Cách A).
 
 **Mỗi lần đăng nhập xong, `login.sh` tự chạy `finish.sh`** — tạo/cập nhật group và trỏ
 agent, nên bạn không phải làm gì thêm. Thêm `--no-finish` nếu muốn tự chạy sau.
@@ -161,7 +164,7 @@ Nếu bạn đăng nhập **trong web UI** (cách dùng trên Cloud Shell), lầ
 
 | Provider | Cách đăng nhập | Chi tiết |
 |---|---|---|
-| AutoClaw (Zhipu) | OAuth Google/z.ai; trên Cloud Shell đăng nhập qua **web UI + dán Callback URL** | [`docs/autoclaw-login.md`](docs/autoclaw-login.md) |
+| AutoClaw (Zhipu) | OAuth Google/z.ai; trên Cloud Shell dùng **relay + cloudflared, gọi callback local** | [`docs/autoclaw-login.md`](docs/autoclaw-login.md) |
 | WorkBuddy AI | OAuth web (hoặc desktop sign-in / API key) | [`docs/providers.md`](docs/providers.md) |
 | Qoder | OAuth web | [`docs/providers.md`](docs/providers.md) |
 | OpenCode Zen | API key `oc_…` | [`docs/providers.md`](docs/providers.md) |

@@ -64,10 +64,10 @@ Sau khi chọn, plugin:
 
 ## 3. Cloud Shell / máy headless — cách dùng trên máy này
 
-Trên máy tham chiếu, AutoClaw được đăng nhập **qua web UI của magpie** (link Cloud Shell
-preview), không dùng SSH tunnel và không chạy `magpie plugin login` trong terminal.
-Lý do: web UI có sẵn ô **Callback URL** để bạn dán địa chỉ cuối cùng, nên vòng OAuth
-vẫn khép kín dù trình duyệt ở máy khác.
+Trên máy tham chiếu, AutoClaw được đăng nhập **qua web UI của magpie**, không dùng SSH
+tunnel và không chạy `magpie plugin login` trong terminal. Đường đã kiểm chứng là
+**relay + cloudflared rồi gọi callback local** (**Cách A2**); cách cũ — mở link Cloud Shell
+preview rồi dán **Callback URL** — vẫn dùng được khi `/captcha` không trả 403 (**Cách A**).
 
 ### Link localhost trên Cloud Shell — vì sao và làm sao
 
@@ -90,6 +90,8 @@ bash scripts/autoclaw-link.sh                 # link của cổng đang mở + 4
 bash scripts/autoclaw-link.sh --watch         # bấm Sign in trước, script chờ rồi in link
 bash scripts/autoclaw-link.sh --port 18432    # chỉ định cổng
 bash scripts/autoclaw-link.sh --tunnel        # in lệnh ssh -L thay vì link preview
+bash scripts/autoclaw-link.sh --relay         # relay bỏ Origin + cloudflared (Cách A2)
+bash scripts/autoclaw-link.sh --callback '<url>'   # gọi callback localhost (Cách A2)
 ```
 
 Script tự dò cổng đang LISTEN trong 4 cổng trên (dùng `/dev/tcp`, không cần `ss`); nếu
@@ -169,6 +171,72 @@ copy its whole address and paste it here and press Enter."*
 
 > Mẹo: nếu bước 3 bạn mở được link `127.0.0.1` (ví dụ dùng SSH tunnel), thì bước 5
 > thường tự khép kín, không cần dán. Có tunnel hay không đều được.
+
+> **Nếu `/captcha` trả `403 {"error":"forbidden origin"}`** (slider Aliyun không ghi
+> được, `/open-auth` cũng 403) thì đừng mở thẳng preview nữa — chuyển sang **Cách A2**
+> ngay dưới: relay bỏ header `Origin` + cloudflared.
+
+### Cách A2 — relay + cloudflared (z.ai, đã kiểm chứng)
+
+Dùng khi preview trả `403 {"error":"forbidden origin"}` hoặc điện thoại không mở được
+`https://<cổng>-<WEB_HOST>/`.
+
+**Vì sao cần relay:** plugin chỉ nhận `Origin` là `http://127.0.0.1…` /
+`http://localhost…` cho các endpoint ghi (`/captcha`, `/open-auth`, `/abort`). Mở qua
+preview hay tunnel thường thì trình duyệt gửi `Origin: https://…`, nên `/captcha` trả:
+
+```json
+{"error":"forbidden origin"}
+```
+
+→ slider Aliyun không lưu được receipt. Cách chắc chắn: đặt một relay nhỏ ở giữa
+(script `scripts/autoclaw-relay.mjs`, cổng `18080`), **bỏ `Origin`/`Referer`/`Host`**
+rồi mới chuyển vào plugin, và mở relay ra ngoài bằng **cloudflared quick tunnel**.
+Callback vẫn là `http://localhost:<cổng>/auth/callback-…` nên phải copy URL rồi gọi
+lại trên Cloud Shell.
+
+0. Mở phiên đăng nhập trước: chạy `magpie plugin login autoclaw` trong một terminal
+   khác (chọn `2` = z.ai), hoặc bấm **Sign in** cho AutoClaw trong web UI. Plugin mở
+   một cổng trong `18432/19654/19723/53699`.
+1. Trên Cloud Shell:
+
+   ```sh
+   bash scripts/autoclaw-link.sh --relay
+   ```
+
+   → in ra link `https://<random>.trycloudflare.com/`.
+2. Trên điện thoại mở link đó.
+3. Làm slider Aliyun → 继续授权 → đăng nhập z.ai → đồng ý uỷ quyền.
+4. Trình duyệt dừng ở `http://localhost:<cổng>/auth/callback-zai?code=…&state=…`
+   (trang không load được — đúng như vậy). Copy **NGUYÊN URL**.
+5. Trên Cloud Shell:
+
+   ```sh
+   bash scripts/autoclaw-link.sh --callback '<URL vừa copy>'
+   ```
+
+   → in `✓ 授权成功` là xong.
+6. Kiểm tra: `magpie accounts | grep -i autoclaw`.
+7. Nếu báo phiên hết hạn / callback lỗi: chạy lại bước 1 để lấy link mới (đừng dùng
+   lại URL cũ).
+
+Lưu ý:
+
+- Link sống ~5 phút (plugin chờ code 5 phút); hết thì chạy lại bước 1.
+- Cổng `18080` bận: `RELAY_PORT=18081 bash scripts/autoclaw-link.sh --relay`.
+- Plugin mở cổng khác `18432`: `LOGIN_PORT=<cổng> bash scripts/autoclaw-link.sh --relay`
+  (script tự dò cổng đang mở, chỉ cần chỉ định khi chưa có phiên).
+- Chưa có cloudflared: tải bản Linux amd64 vào `~/.local/bin/cloudflared` rồi
+  `chmod +x`:
+
+  ```sh
+  mkdir -p ~/.local/bin
+  curl -L -o ~/.local/bin/cloudflared \
+    https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+  chmod +x ~/.local/bin/cloudflared
+  ```
+
+- Log: `/tmp/autoclaw-relay.log` (relay), `/tmp/autoclaw-cf.log` (cloudflared).
 
 ### Cách B — SSH tunnel (nếu muốn luồng tự khép kín)
 
@@ -283,6 +351,7 @@ AutoClaw cho credit miễn phí mỗi ngày khi điểm danh:
 | Triệu chứng | Nguyên nhân | Cách xử lý |
 |---|---|---|
 | URL `127.0.0.1:<cổng>` không mở được | trình duyệt không ở cùng máy | Cách A (forward cổng) |
+| `403 {"error":"forbidden origin"}` | preview/tunnel ngoài gửi Origin không phải localhost | dùng Cách A2 (`--relay`), đừng mở thẳng preview |
 | `本地端口 18432/19654/19723/53699 均被占用` | có AutoClaw desktop/TokenServer đang giữ cổng | tắt app đó, hoặc dùng máy khác |
 | Trang báo phiên hết hạn | quá 10 phút | chạy lại `magpie plugin login autoclaw` (đừng dùng lại URL cũ) |
 | `406 Not Acceptable` | request sai shape | plugin đã tự vá system prompt/`max_tokens`; cập nhật plugin: `magpie plugin update` |
