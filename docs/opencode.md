@@ -58,19 +58,21 @@ Máy tham chiếu còn 5 provider **gọi thẳng**, không qua magpie:
 Đây là lựa chọn riêng (relay/key riêng), repo không kèm key. Cách gọn hơn là đưa vào
 magpie để mọi agent dùng chung — xem `docs/providers.md` mục "Thêm relay".
 
-## Subagent riêng (coder, tester)
+## Agent tự viết (leader, coder, tester)
 
-`~/.config/opencode/agents/` chứa hai subagent tự viết, mỗi file có frontmatter chọn model:
+`~/.config/opencode/agents/` chứa ba agent tự viết, mỗi file có frontmatter chọn model:
 
 | File | Vai trò | Model |
 |---|---|---|
-| `coder.md` | viết code theo plan của Leader, không tự lên plan | `magpie/kilo/reflection/beam-free` |
-| `tester.md` | chạy test, báo lỗi chính xác, không sửa code | `magpie/workbuddy-ai/glm-5.3` |
+| `leader.md` | primary; viết plan kỹ thuật, giao Coder/Tester, review và duyệt | `magpie/group/main#high` |
+| `coder.md` | viết code theo plan của Leader, không tự lên plan | `magpie/group/code` |
+| `tester.md` | chạy test, báo lỗi chính xác, không sửa code | `magpie/group/glm` |
 
-`scripts/setup-opencode.sh` copy hai file này vào và **tự lùi model về `magpie/group/main`**
-nếu máy chưa có model đó (ví dụ chưa thêm Kilo). Sửa model bằng cách sửa dòng `model:`.
+`scripts/setup-opencode.sh` copy ba file này vào và **tự lùi model về `magpie/group/main`**
+nếu máy chưa có model/group đó. Sửa model bằng cách sửa dòng `model:`.
 
-Cả hai đặt `permissions: subagent resource:"*" effect: deny` — không được tự gọi agent khác.
+Leader chỉ được gọi `coder` và `tester`; Coder/Tester đặt
+`permissions: subagent resource:"*" effect: deny` — không được tự gọi agent khác.
 
 ## Skill dùng chung
 

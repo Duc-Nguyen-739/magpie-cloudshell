@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# setup-opencode.sh — thêm 2 subagent (coder, tester) và skill magpie-setup vào OpenCode.
+# setup-opencode.sh — thêm agent Leader + 2 subagent (coder, tester) và skill magpie-setup vào OpenCode.
 # Không ghi đè file đã có; muốn cập nhật thì xoá file cũ rồi chạy lại.
 set -uo pipefail
 
@@ -28,16 +28,19 @@ install_agent() { # <tên>
     return 0
   fi
   cp "$src" "$dst"
-  # Model riêng của subagent; nếu máy chưa có thì lùi về group/main để không lỗi.
-  local m
+  # Model riêng của agent; nếu máy chưa có thì lùi về group/main để không lỗi.
+  local m mid
   m="$(sed -n 's/^model: *//p' "$dst" | head -1)"
-  if [ -n "$m" ] && [ -z "${m#magpie/}" ] && ! has_model "${m#magpie/}"; then
+  mid="${m#magpie/}"
+  mid="${mid%%#*}"                 # bỏ #low/#high/#max trước khi kiểm tra
+  if [ -n "$m" ] && [ -z "${m#magpie/}" ] && ! has_model "$mid"; then
     sed -i "s|^model: .*|model: magpie/group/main|" "$dst"
-    warn "$name: không có ${m#magpie/}, đã đổi sang magpie/group/main"
+    warn "$name: không có ${mid}, đã đổi sang magpie/group/main"
   fi
   ok "$dst"
 }
 
+install_agent leader
 install_agent coder
 install_agent tester
 

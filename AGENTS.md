@@ -188,7 +188,7 @@ magpie provider test autoclaw zai_auto
 | Cloud Shell restart, không có gì chạy | thiếu hook `.bashrc` | `bash bootstrap.sh` thêm lại |
 | `openchamber` không in link | PATH: binary npm che wrapper | `command -v openchamber` phải là `~/.local/bin/openchamber` |
 | Model list rỗng trong OpenCode | gateway chưa chạy | `openmagpie` rồi `magpie healthcheck` |
-| Subagent `coder` lỗi model | chưa có Kilo | `setup-opencode.sh` đã lùi về `group/main`; hoặc sửa dòng `model:` |
+| Subagent `coder` lỗi model | thiếu `group/code` hoặc model chưa expose | `setup-opencode.sh` đã lùi về `group/main`; hoặc sửa dòng `model:` |
 
 ## Cái gì vẫn thuộc về con người
 

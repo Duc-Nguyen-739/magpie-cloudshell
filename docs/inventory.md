@@ -76,19 +76,19 @@ opencode-zen-freex                          phục vụ opencode-zen-free
 | levels | `low,high,max` | `low,high,max` |
 | effort | `auto` | `auto` |
 | classifier | `opencode-zen/jev-1.13-free` | `opencode-zen/jev-1.13-free` |
-| rule | ảnh → deepseek-v4.1-flash; compact → glm-5.3-flash | 4 intent + ảnh |
-| agent dùng | OpenCode, OpenChamber | (dự phòng cho việc code) |
+| rule | ảnh → deepseek-v4.1-flash; compact → glm-5.3-flash | 4 intent + ảnh (test → zaicoding_glm) |
+| agent dùng | Leader, OpenCode, OpenChamber | Coder |
 
-Thứ tự 8 model trong cả hai group:
+Thứ tự 8 model trong cả hai group (DeepSeek trước, GLM sau):
 
 ```
 1 workbuddy-ai/deepseek-v4.1-flash
-2 workbuddy-ai/glm-5.3
-3 workbuddy-ai/deepseek-v4.1-flash-sg
-4 workbuddy-ai/glm-5.3-flash
-5 autoclaw/zaicoding_glm-5.3
-6 autoclaw/zai_glm-5.3-flash
-7 opencode-zen/deepseek-v4.1-flash-free
+2 workbuddy-ai/deepseek-v4.1-flash-sg
+3 opencode-zen/deepseek-v4.1-flash-free
+4 autoclaw/zaicoding_glm-5.3
+5 autoclaw/zai_glm-5.3-flash
+6 workbuddy-ai/glm-5.3
+7 workbuddy-ai/glm-5.3-flash
 8 opencode-zen/glm-5.3-flash-free
 ```
 
@@ -110,7 +110,8 @@ Thứ tự 8 model trong cả hai group:
   `pendraa`, `amdradeon` — đây là lựa chọn riêng của chủ máy, repo chỉ mô tả cách thêm,
   không kèm key.
 - `disabled_providers`: pendraa, kenari, kira, tokenharbor, tokenhabor, openrouter, kiro, amdradeon.
-- Subagent tự viết: `~/.config/opencode/agents/coder.md` (Beam free), `tester.md` (GLM-5.3).
+- Agent tự viết: `~/.config/opencode/agents/leader.md` (primary, `group/main#high`),
+  `coder.md` (DeepSeek, `group/code`), `tester.md` (GLM zaicoding, `group/glm`).
 - Skill: `~/.config/opencode/skills/magpie-setup` → symlink vào thư viện magpie.
 
 ## Thư viện magpie
@@ -134,7 +135,7 @@ Thứ tự 8 model trong cả hai group:
 ~/.config/magpie/library/               skill dùng chung
 ~/.local/state/magpie/headless.log      log supervisor
 ~/.config/opencode/opencode.jsonc       OpenCode config (magpie ghi)
-~/.config/opencode/agents/              coder.md, tester.md
+~/.config/opencode/agents/              leader.md, coder.md, tester.md
 ~/.npm-global/lib/node_modules/@openchamber/web
 ~/.opencode/bin/opencode
 ```
@@ -168,7 +169,7 @@ Thứ tự 8 model trong cả hai group:
 | settings.json | ✅ | chỉ thêm khoá thiếu |
 | `opencode-zen-free` tắt | ✅ | `setup-settings.sh` |
 | OpenCode + provider `magpie` | ✅ | magpie tự ghi `opencode.jsonc` |
-| 2 subagent `coder`, `tester` | ✅ | `config/agents/` |
+| 3 agent `leader`, `coder`, `tester` | ✅ | `config/agents/` |
 | skill `magpie-setup` | ✅ (OpenCode) | Gemini/Antigravity: thêm qua Library page nếu muốn |
 | OpenChamber + cổng 3000 | ✅ | `install-openchamber.sh` |
 | `openchamber` / `openmagpie` + link kèm key | ✅ | wrapper + supervisor |

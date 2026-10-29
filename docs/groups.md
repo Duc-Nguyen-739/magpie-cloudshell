@@ -10,7 +10,7 @@ hỏng, hết quota hoặc bị chặn.
 
 ```sh
 magpie group add "Main" \
-  models=workbuddy-ai/deepseek-v4.1-flash,workbuddy-ai/glm-5.3,workbuddy-ai/deepseek-v4.1-flash-sg,workbuddy-ai/glm-5.3-flash,autoclaw/zaicoding_glm-5.3,autoclaw/zai_glm-5.3-flash,opencode-zen/deepseek-v4.1-flash-free,opencode-zen/glm-5.3-flash-free \
+  models=workbuddy-ai/deepseek-v4.1-flash,workbuddy-ai/deepseek-v4.1-flash-sg,opencode-zen/deepseek-v4.1-flash-free,autoclaw/zaicoding_glm-5.3,autoclaw/zai_glm-5.3-flash,workbuddy-ai/glm-5.3,workbuddy-ai/glm-5.3-flash,opencode-zen/glm-5.3-flash-free \
   routing=order stays=session
 
 magpie group set main levels=low,high,max
@@ -35,7 +35,7 @@ magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash \
   intent="asking for a detailed plan before any code is written (lên plan, lập kế hoạch chi tiết)"
 magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash \
   intent="writing, implementing or fixing code (viết code, code theo plan, implement, sửa code)"
-magpie group rule add code use=workbuddy-ai/glm-5.3 \
+magpie group rule add code use=autoclaw/zaicoding_glm-5.3 \
   intent="running tests or checking the code just written, before it is finished (kiểm tra, test code vừa viết)"
 magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash \
   intent="final overall review of the finished code and releasing or publishing it (kiểm tra tổng thể lần cuối, duyệt, phát hành, release, ship)"
@@ -44,11 +44,13 @@ magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash images
 
 ## Vì sao như vậy
 
-**Thứ tự model.** Đầu ladder là WorkBuddy AI DeepSeek V4.1 Flash — nhanh, rẻ, đủ tốt cho
-phần lớn lượt. Sau đó là GLM-5.3 (mạnh hơn cho code/review), rồi bản SG của DeepSeek
-(region khác, quota riêng), GLM-5.3 Flash, rồi mới sang AutoClaw (credit điểm, dùng
-tiết kiệm), cuối cùng là hai model free của OpenCode Zen (không giới hạn nhưng chậm hơn).
-`routing=order` nghĩa là: model đầu trả lời; chỉ khi nó không trả lời được mới sang model sau.
+**Thứ tự model.** Ladder đi theo đúng pipeline: DeepSeek trước (Leader + Coder), GLM
+sau (Tester + fallback). Trong khối DeepSeek: WorkBuddy là chính, rồi bản SG (region
+khác, quota riêng), rồi Zen free. Trong khối GLM: `autoclaw/zaicoding_glm-5.3` đứng
+đầu vì đó là model Tester, rồi GLM flash của AutoClaw, rồi WorkBuddy, cuối cùng là
+Zen free. `routing=order` nghĩa là: model đầu trả lời; chỉ khi nó không trả lời được
+mới sang model sau. Hết danh sách quay lại Leader — khép vòng
+`Leader → Coder → Tester → Leader`.
 
 **`stays`.**
 

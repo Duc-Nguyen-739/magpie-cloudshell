@@ -95,8 +95,8 @@ magpie provider add kilo eyJ…
 magpie provider test kilo
 ```
 
-353 model; máy tham chiếu chỉ dùng một model free (`kilo/reflection/beam-free`) cho
-subagent `coder`.
+353 model; repo không đưa model Kilo vào group hay agent nào — key là tuỳ chọn, dùng
+khi muốn thêm model ngoài ladder.
 
 ### OpenCode Zen Free — `opencode-zen-free`
 

@@ -42,14 +42,14 @@ run() {
 # ---------------------------------------------------------------- dữ liệu
 # Thứ tự này là thứ tự fallback: model đầu trả lời, hỏng/hết quota thì sang model sau.
 MODELS=(
-  workbuddy-ai/deepseek-v4.1-flash      # WorkBuddy AI — nhanh, rẻ, đa dụng
-  workbuddy-ai/glm-5.3                  # WorkBuddy AI — mạnh hơn cho code/review
+  workbuddy-ai/deepseek-v4.1-flash      # WorkBuddy AI — Leader + Coder
   workbuddy-ai/deepseek-v4.1-flash-sg   # WorkBuddy AI — cùng model, region SG
-  workbuddy-ai/glm-5.3-flash            # WorkBuddy AI — GLM bản flash
-  autoclaw/zaicoding_glm-5.3            # AutoClaw — GLM-5.3 coding plan
+  opencode-zen/deepseek-v4.1-flash-free # OpenCode Zen — DeepSeek free
+  autoclaw/zaicoding_glm-5.3            # AutoClaw — Tester, GLM ưu tiên số 1
   autoclaw/zai_glm-5.3-flash            # AutoClaw — GLM-5.3 flash
-  opencode-zen/deepseek-v4.1-flash-free # OpenCode Zen — free
-  opencode-zen/glm-5.3-flash-free       # OpenCode Zen — free
+  workbuddy-ai/glm-5.3                  # WorkBuddy AI — GLM dự phòng
+  workbuddy-ai/glm-5.3-flash            # WorkBuddy AI — GLM flash dự phòng
+  opencode-zen/glm-5.3-flash-free       # OpenCode Zen — GLM free
 )
 
 LEVELS=low,high,max                       # mức reasoning agent được chọn
@@ -134,7 +134,7 @@ if create_group "Code" code turn; then
     intent="asking for a detailed plan before any code is written (lên plan, lập kế hoạch chi tiết)"
   add_rule code workbuddy-ai/deepseek-v4.1-flash \
     intent="writing, implementing or fixing code (viết code, code theo plan, implement, sửa code)"
-  add_rule code workbuddy-ai/glm-5.3 \
+  add_rule code autoclaw/zaicoding_glm-5.3 \
     intent="running tests or checking the code just written, before it is finished (kiểm tra, test code vừa viết)"
   add_rule code workbuddy-ai/deepseek-v4.1-flash \
     intent="final overall review of the finished code and releasing or publishing it (kiểm tra tổng thể lần cuối, duyệt, phát hành, release, ship)"
