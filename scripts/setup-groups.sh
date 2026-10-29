@@ -48,12 +48,10 @@ MODELS=(
   autoclaw/zai_glm-5.3-flash                     # AutoClaw — GLM-5.3 flash
   workbuddy-ai/glm-5.3                           # WorkBuddy AI — GLM dự phòng
   workbuddy-ai/glm-5.3-flash                     # WorkBuddy AI — GLM flash dự phòng
-  opencode-zen-free/deepseek-v4.1-flash-free     # OpenCode Zen Free — DeepSeek free
-  opencode-zen-free/glm-5.3-flash-free           # OpenCode Zen Free — GLM free
 )
 
 LEVELS=low,high,max                       # mức reasoning agent được chọn
-CLASSIFIER=workbuddy-ai/hy3              # model nhỏ đọc mỗi lượt khi effort=auto (free, không tốn credit)
+CLASSIFIER=opencode-zen/jev-1.13-free     # model nhỏ đọc mỗi lượt khi effort=auto
 
 # group/glm — Tester. Chỉ GLM, zaicoding đứng đầu; không rule, không classifier.
 GLM_MODELS=(
@@ -63,14 +61,12 @@ GLM_MODELS=(
   autoclaw/zai_auto
   workbuddy-ai/glm-5.3
   workbuddy-ai/glm-5.3-flash
-  opencode-zen-free/glm-5.3-flash-free
 )
 
 # group/deepseek — dự phòng, chỉ endpoint DeepSeek, không bao giờ rơi sang GLM.
 DEEPSEEK_MODELS=(
   workbuddy-ai/deepseek-v4.1-flash
   workbuddy-ai/deepseek-v4.1-flash-sg
-  opencode-zen-free/deepseek-v4.1-flash-free
 )
 
 command -v magpie >/dev/null 2>&1 || die "chưa có magpie trên PATH (~/.local/bin)"

@@ -11,9 +11,9 @@ sửa cấu hình agent** — magpie tự ghi lại danh sách model.
 | `autoclaw` | AutoClaw (Zhipu) | OAuth Google/z.ai (plugin) | tài khoản Google hoặc z.ai | `magpie accounts` |
 | `workbuddy-ai` | WorkBuddy AI | OAuth web (plugin) | tài khoản WorkBuddy | `magpie accounts` |
 | `qoder` | Qoder | OAuth web (plugin) | tài khoản Qoder | `magpie accounts` |
-| `opencode-zen` | OpenCode Zen | API key | key `oc_…` | đang **tắt** — free tier qua API key bị chặn |
+| `opencode-zen` | OpenCode Zen | API key | key `oc_…` | đang **bật**, chỉ expose `jev-1.13-free` (classifier) |
 | `kilo` | Kilo Gateway | API key | key `eyJ…` | `magpie provider test kilo` |
-| `opencode-zen-free` | OpenCode Zen Free | plugin (key công khai) | không | đang **bật**, dùng cho ladder |
+| `opencode-zen-free` | OpenCode Zen Free | plugin (key công khai) | không | đang **tắt** — hạn mức theo IP dùng chung |
 
 ## Provider dùng OAuth (bấm trình duyệt)
 
@@ -76,12 +76,10 @@ Máy tham chiếu có cài nhưng **chưa đăng nhập**; không nằm trong gr
 
 ### OpenCode Zen — `opencode-zen`
 
-**Hiện đang tắt.** Free tier qua API key trả **429** cho mọi model free ("Free usage limit
-reached…"), và hạn mức đó không có cửa sổ reset — chờ vô ích. Vì vậy provider này đã bị
-`magpie provider off` (key vẫn giữ, không xoá) và không còn model nào trong ladder; hai
-rung OpenCode đã chuyển sang `opencode-zen-free`. Đầy đủ bằng chứng và cách hoàn tác:
-[`zen-free.md`](zen-free.md). Muốn xoá hẳn key thì chạy `magpie provider rm opencode-zen`
-(không hoàn lại được).
+**Đang bật, nhưng chỉ expose `jev-1.13-free`** (model phân loại nội bộ, không bị chặn free
+tier, không hiện cho agent); 7 model free còn lại đã **429** nên bỏ khỏi danh sách expose.
+Đầy đủ bằng chứng: [`zen-free.md`](zen-free.md). Muốn xoá hẳn key thì chạy
+`magpie provider rm opencode-zen` (không hoàn lại được).
 
 Phần dưới giữ làm tài liệu tham khảo, dùng lại khi Zen mở free tier cho API key:
 
@@ -92,9 +90,8 @@ magpie provider add opencode-zen oc_…
 magpie provider test opencode-zen
 ```
 
-Máy tham chiếu: 28 model, nhưng 20 model **không expose** cho agent (chỉ dùng nội bộ
-được, ví dụ classifier `opencode-zen/jev-1.13-free`); 8 model hiện ra, tất cả đều là model
-free — và chúng bị 429 khi gọi bằng key (xem trên).
+Máy này: 41 model trong catalog, **1 model expose** (`jev-1.13-free`, dùng làm classifier);
+40 model còn lại không picked, trong đó 7 model free bị 429 khi gọi bằng key (xem trên).
 
 ### Kilo Gateway — `kilo`
 
@@ -108,18 +105,17 @@ khi muốn thêm model ngoài ladder.
 
 ### OpenCode Zen Free — `opencode-zen-free`
 
-Provider đang dùng cho ladder: 8 model free, **bật**, xác thực bằng credential công khai
-dùng chung của client OpenCode (không cần tài khoản, không cần key riêng). Hai rung cuối của
-`group/main`/`group/code` là `opencode-zen-free/deepseek-v4.1-flash-free` và
-`opencode-zen-free/glm-5.3-flash-free`; classifier của hai group là
-`workbuddy-ai/hy3`. `group/glm` và `group/deepseek` cũng để
-model của provider này ở cuối. Vì sao chọn đường này thay vì API key: [`zen-free.md`](zen-free.md).
+**Đang tắt.** Provider này từng giữ hai rung cuối của ladder, nhưng bể free của Zen tính
+theo **IP dùng chung** nên cạn và không hồi lại (429 liên tục sau hơn 40 phút) — không dùng
+làm đường dự phòng được nữa. Đã `magpie provider off`; plugin vẫn cài nên bật lại được bằng
+một lệnh. Xác thực bằng credential công khai dùng chung của client OpenCode (không cần tài
+khoản, không cần key riêng). Bằng chứng và cách bật lại: [`zen-free.md`](zen-free.md).
 
 ```sh
 magpie plugin add @magpie-community/opencode-zen-free-auth
 magpie plugin add opencode-zen-freex
-magpie provider on opencode-zen-free     # scripts/setup-settings.sh làm việc này
-magpie provider off opencode-zen-free    # tắt tạm, giữ cấu hình
+magpie provider on opencode-zen-free     # bật lại (setup-settings.sh đang để tắt)
+magpie provider off opencode-zen-free    # tắt, giữ cấu hình — trạng thái hiện tại
 ```
 
 ## Thêm relay OpenAI-compatible của riêng bạn

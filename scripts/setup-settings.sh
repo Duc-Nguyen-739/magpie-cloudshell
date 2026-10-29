@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # setup-settings.sh — đặt cấu hình magpie giống máy tham chiếu:
 #   - settings.json: theme, ngôn ngữ, vision model, image model, check-in, cỡ chữ…
-#   - provider: bật opencode-zen-free, tắt opencode-zen (free tier qua API key đã bị chặn;
-#     xem docs/zen-free.md)
+#   - provider: opencode-zen bật nhưng chỉ expose jev-1.13-free (classifier); opencode-zen-free tắt
+#     (free tier qua API key bị chặn, đường plugin cạn theo IP dùng chung — xem docs/zen-free.md)
 #
 # Chỉ **thêm khoá còn thiếu**, không ghi đè giá trị bạn đã đặt. Chạy lại vô hại.
 #
@@ -28,20 +28,35 @@ models="$(magpie models 2>/dev/null | awk '{print $1}')"
 has_model() { printf '%s\n' "$models" | grep -Fxq "$1"; }
 
 # ---------------------------------------------------------------- provider
-say "provider opencode-zen-free → bật · opencode-zen → tắt"
+say "provider: opencode-zen bật (chỉ jev-1.13-free) · opencode-zen-free tắt"
+# jev-1.13-free là model phân loại nội bộ, không bị chặn free tier và không hiện cho
+# agent; các model free còn lại của Zen đã 429 nên không expose.
+ZEN_ONLY=(beam-free flint-40b-free mimo-v2.6-flash-free nemotron-3.5-super-vl-free
+          nemotron-3.5-lightning-free deepseek-v4.1-flash-free glm-5.3-flash-free jev-1.13)
 if [ "$DRY" = 1 ]; then
-  printf '  \033[2m[dry-run]\033[0m magpie provider on opencode-zen-free\n'
-  printf '  \033[2m[dry-run]\033[0m magpie provider off opencode-zen\n'
+  printf '  \033[2m[dry-run]\033[0m magpie provider on opencode-zen\n'
+  printf '  \033[2m[dry-run]\033[0m magpie provider models opencode-zen +jev-1.13-free\n'
+  for m in "${ZEN_ONLY[@]}"; do
+    printf '  \033[2m[dry-run]\033[0m magpie provider models opencode-zen -%s\n' "$m"
+  done
+  printf '  \033[2m[dry-run]\033[0m magpie provider off opencode-zen-free\n'
 else
-  if magpie provider on opencode-zen-free >/dev/null 2>&1; then
-    ok "opencode-zen-free đang bật"
+  if magpie provider on opencode-zen >/dev/null 2>&1; then
+    ok "opencode-zen đang bật"
   else
-    warn "không bật được opencode-zen-free (có thể chưa cài plugin) — bỏ qua"
+    warn "không bật được opencode-zen (chưa thêm key?) — bỏ qua"
   fi
-  if magpie provider off opencode-zen >/dev/null 2>&1; then
-    ok "opencode-zen đang tắt (giữ key, không xoá)"
+  magpie provider models opencode-zen +jev-1.13-free >/dev/null 2>&1 \
+    && ok "opencode-zen expose jev-1.13-free" \
+    || warn "không expose được jev-1.13-free — classifier sẽ không đặt được"
+  for m in "${ZEN_ONLY[@]}"; do
+    magpie provider models opencode-zen -"$m" >/dev/null 2>&1
+  done
+  ok "opencode-zen chỉ còn jev-1.13-free"
+  if magpie provider off opencode-zen-free >/dev/null 2>&1; then
+    ok "opencode-zen-free đang tắt (plugin vẫn cài, bật lại được)"
   else
-    warn "không tắt được opencode-zen (chưa từng thêm?) — bỏ qua"
+    warn "không tắt được opencode-zen-free (chưa cài plugin?) — bỏ qua"
   fi
 fi
 

@@ -57,10 +57,10 @@ không (xem [Cảnh báo](#cảnh-báo)).
 
 | Group | Dùng cho | Model | Cấu hình |
 |---|---|---|---|
-| `group/main` | Leader / phiên chính (OpenCode + OpenChamber) | DeepSeek trước, GLM sau, Zen Free cuối (8 model) | `order`, `stays=session`, `effort=auto` + classifier, 2 rule |
-| `group/code` | Coder | DeepSeek trước, GLM sau, Zen Free cuối (8 model) | `order`, `stays=turn`, `effort=auto` + classifier, 5 rule |
-| `group/glm` | Tester | GLM 5.3 (7 model) | `order`, `stays=auto`, không rule |
-| `group/deepseek` | Dự phòng, không agent nào trỏ trực tiếp | DeepSeek V4.1 (3 model) | `order`, `stays=turn`, không rule |
+| `group/main` | Leader / phiên chính (OpenCode + OpenChamber) | DeepSeek trước, GLM sau (6 model) | `order`, `stays=session`, `effort=auto` + classifier, 2 rule |
+| `group/code` | Coder | DeepSeek trước, GLM sau (6 model) | `order`, `stays=turn`, `effort=auto` + classifier, 5 rule |
+| `group/glm` | Tester | GLM 5.3 (6 model) | `order`, `stays=auto`, không rule |
+| `group/deepseek` | Dự phòng, không agent nào trỏ trực tiếp | DeepSeek V4.1 (2 model) | `order`, `stays=turn`, không rule |
 
 Cả OpenCode và OpenChamber đều trỏ `group/main`, nên phiên chính chạy DeepSeek.
 
@@ -71,7 +71,7 @@ magpie group main
 ```
 
 - `routing=order`, `stays=session`, `levels=low,high,max`
-- `effort=auto` + classifier `workbuddy-ai/hy3`
+- `effort=auto` + classifier `opencode-zen/jev-1.13-free`
 - Rule `images` → `workbuddy-ai/deepseek-v4.1-flash`
 - Rule `compacting` → `workbuddy-ai/glm-5.3-flash`
 
@@ -83,8 +83,6 @@ magpie group main
 | 4 | `autoclaw/zai_glm-5.3-flash` | GLM-5.3 Flash |
 | 5 | `workbuddy-ai/glm-5.3` | WorkBuddy GLM |
 | 6 | `workbuddy-ai/glm-5.3-flash` | WorkBuddy GLM Flash |
-| 7 | `opencode-zen-free/deepseek-v4.1-flash-free` | Zen Free — DeepSeek free, dự phòng |
-| 8 | `opencode-zen-free/glm-5.3-flash-free` | Zen Free — GLM free, dự phòng |
 
 Ý đồ: **DeepSeek là mặc định** cho Leader và Coder. GLM chỉ vào cuộc khi mọi
 endpoint DeepSeek không trả lời được, và khi đó `zaicoding_glm` đứng đầu — đúng
@@ -97,7 +95,7 @@ magpie group code
 ```
 
 - `routing=order`, `stays=turn`, `levels=low,high,max`
-- `effort=auto` + classifier `workbuddy-ai/hy3`
+- `effort=auto` + classifier `opencode-zen/jev-1.13-free`
 - 5 rule theo ý định:
 
 | # | Rule | Model |
@@ -108,7 +106,7 @@ magpie group code
 | 4 | `intent` review cuối / release | `workbuddy-ai/deepseek-v4.1-flash` |
 | 5 | `images` | `workbuddy-ai/deepseek-v4.1-flash` |
 
-Ladder 8 model giống hệt `group/main`:
+Ladder 6 model giống hệt `group/main`:
 
 | # | Model |
 |---|---|
@@ -118,8 +116,6 @@ Ladder 8 model giống hệt `group/main`:
 | 4 | `autoclaw/zai_glm-5.3-flash` |
 | 5 | `workbuddy-ai/glm-5.3` |
 | 6 | `workbuddy-ai/glm-5.3-flash` |
-| 7 | `opencode-zen-free/deepseek-v4.1-flash-free` |
-| 8 | `opencode-zen-free/glm-5.3-flash-free` |
 
 `group/code` và `group/main` **cùng một ladder**, chỉ khác `stays` và rule.
 Nhờ vậy thứ tự pipeline chỉ cần nhớ một lần: DeepSeek (Leader/Coder) → GLM
@@ -142,7 +138,6 @@ magpie group glm
 | 4 | `autoclaw/zai_auto` |
 | 5 | `workbuddy-ai/glm-5.3` |
 | 6 | `workbuddy-ai/glm-5.3-flash` |
-| 7 | `opencode-zen-free/glm-5.3-flash-free` |
 
 Tester dùng group riêng thay vì dựa vào rule intent của `group/code`: classifier
 có thể đoán sai, còn group riêng thì **luôn** bắt đầu bằng `zaicoding_glm`.
@@ -160,7 +155,6 @@ magpie group deepseek
 |---|---|
 | 1 | `workbuddy-ai/deepseek-v4.1-flash` |
 | 2 | `workbuddy-ai/deepseek-v4.1-flash-sg` |
-| 3 | `opencode-zen-free/deepseek-v4.1-flash-free` |
 
 Hiện không agent nào trỏ trực tiếp; giữ lại làm group dự phòng khi cần ép một
 phiên chỉ chạy DeepSeek.
@@ -180,7 +174,7 @@ phiên chỉ chạy DeepSeek.
   trả lời để prompt cache còn giá trị; Code đổi model theo từng bước nên chọn
   lại mỗi lượt.
 - **Classifier điều chỉnh reasoning.** Main và Code dùng `effort=auto` + classifier
-  `workbuddy-ai/hy3`: mỗi lượt model nhỏ này đọc yêu cầu
+  `opencode-zen/jev-1.13-free`: mỗi lượt model nhỏ này đọc yêu cầu
   và chọn low/high/max thay vì cố định. `glm` và `deepseek` không gắn classifier để
   giữ hành vi đơn giản.
 
@@ -196,17 +190,17 @@ magpie provider models workbuddy-ai +glm-5.3-flash
 
 # 1) Main — Leader / phiên chính
 magpie group add "Main" \
-  models=workbuddy-ai/deepseek-v4.1-flash,workbuddy-ai/deepseek-v4.1-flash-sg,autoclaw/zaicoding_glm-5.3,autoclaw/zai_glm-5.3-flash,workbuddy-ai/glm-5.3,workbuddy-ai/glm-5.3-flash,opencode-zen-free/deepseek-v4.1-flash-free,opencode-zen-free/glm-5.3-flash-free \
+  models=workbuddy-ai/deepseek-v4.1-flash,workbuddy-ai/deepseek-v4.1-flash-sg,autoclaw/zaicoding_glm-5.3,autoclaw/zai_glm-5.3-flash,workbuddy-ai/glm-5.3,workbuddy-ai/glm-5.3-flash \
   routing=order stays=session
-magpie group set main levels=low,high,max classifier=workbuddy-ai/hy3 effort=auto
+magpie group set main levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 magpie group rule add main use=workbuddy-ai/deepseek-v4.1-flash images
 magpie group rule add main use=workbuddy-ai/glm-5.3-flash compact
 
 # 2) Code — Coder, cùng ladder Main + rule intent
 magpie group add "Code" \
-  models=workbuddy-ai/deepseek-v4.1-flash,workbuddy-ai/deepseek-v4.1-flash-sg,autoclaw/zaicoding_glm-5.3,autoclaw/zai_glm-5.3-flash,workbuddy-ai/glm-5.3,workbuddy-ai/glm-5.3-flash,opencode-zen-free/deepseek-v4.1-flash-free,opencode-zen-free/glm-5.3-flash-free \
+  models=workbuddy-ai/deepseek-v4.1-flash,workbuddy-ai/deepseek-v4.1-flash-sg,autoclaw/zaicoding_glm-5.3,autoclaw/zai_glm-5.3-flash,workbuddy-ai/glm-5.3,workbuddy-ai/glm-5.3-flash \
   routing=order stays=turn
-magpie group set code levels=low,high,max classifier=workbuddy-ai/hy3 effort=auto
+magpie group set code levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash \
   intent="asking for a detailed plan before any code is written (lên plan, lập kế hoạch chi tiết)"
 magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash \
@@ -219,13 +213,13 @@ magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash images
 
 # 3) GLM — group riêng của agent Tester
 magpie group add "GLM" \
-  models=autoclaw/zaicoding_glm-5.3,autoclaw/zai_glm-5.3-flash,autoclaw/zai_auto-fast,autoclaw/zai_auto,workbuddy-ai/glm-5.3,workbuddy-ai/glm-5.3-flash,opencode-zen-free/glm-5.3-flash-free \
+  models=autoclaw/zaicoding_glm-5.3,autoclaw/zai_glm-5.3-flash,autoclaw/zai_auto-fast,autoclaw/zai_auto,workbuddy-ai/glm-5.3,workbuddy-ai/glm-5.3-flash \
   routing=order stays=auto
 magpie group set glm levels=low,high,max
 
 # 4) DeepSeek — dự phòng; id phải là `deepseek`, tên hiển thị đổi sau
 magpie group add deepseek \
-  models=workbuddy-ai/deepseek-v4.1-flash,workbuddy-ai/deepseek-v4.1-flash-sg,opencode-zen-free/deepseek-v4.1-flash-free \
+  models=workbuddy-ai/deepseek-v4.1-flash,workbuddy-ai/deepseek-v4.1-flash-sg \
   routing=order stays=turn
 magpie group set deepseek name="DeepSeek V4.1 Flash"
 
@@ -241,10 +235,10 @@ phải khớp bảng [Agent](#agent).
 ## Kiểm tra
 
 ```sh
-magpie group main          # 8 model: DeepSeek → GLM, 2 rule
-magpie group code          # 8 model giống Main, 5 rule
-magpie group glm           # 7 model GLM, zaicoding đầu
-magpie group deepseek      # 3 model DeepSeek, dự phòng
+magpie group main          # 6 model: DeepSeek → GLM, 2 rule
+magpie group code          # 6 model giống Main, 5 rule
+magpie group glm           # 6 model GLM, zaicoding đầu
+magpie group deepseek      # 2 model DeepSeek, dự phòng
 magpie groups              # tổng hợp + agent nào dùng
 
 grep -H '^model:' ~/.config/opencode/agents/{leader,coder,tester}.md
