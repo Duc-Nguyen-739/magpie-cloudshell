@@ -197,9 +197,28 @@ magpie provider test autoclaw zai_auto
 
 Đăng nhập AutoClaw bằng z.ai đã kiểm chứng trên máy này với **plugin
 `@magpie-community/opencode-autoclaw-auth@0.2.9`** (magpie `0.1.1955`). Bản này
-đăng nhập được, giữ được 4 model `autoclaw/…`, và `magpie provider test autoclaw
-zai_auto` trả lời trong ~1s. Coi **0.2.9 là bản vàng**: nếu lên bản mới mà không
-gọi được, quay về đúng số này.
+đăng nhập được, giữ được 4 model `autoclaw/…`, và gọi thật thì trả lời. Coi
+**0.2.9 là bản vàng**: nếu lên bản mới mà không gọi được, quay về đúng số này.
+
+Kết quả test lúc **2026-10-29 02:54 UTC** (tài khoản đang hoạt động:
+`Đức Nguyễn Văn (9m00x9)`), `magpie provider test autoclaw <model>`:
+
+| Model | Kết quả |
+|---|---|
+| `zai_auto` | ✓ chat 694 ms |
+| `zai_auto-fast` | ✓ chat 706 ms |
+| `zai_glm-5.3-flash` | ✓ chat 685 ms |
+| `zaicoding_glm-5.3` | ✗ 429 — `GLM-5.3 free quota used up. Subscribe to a membership` |
+
+`zaicoding_glm-5.3` hỏng **không phải do plugin**: đó là quota miễn phí của gói
+coding đã hết ở tài khoản này, upstream trả 429. Group vẫn chạy vì rơi xuống model
+kế tiếp. Gọi qua gateway cùng lúc đó: `group/glm` → trả lời, `group/code` →
+`deepseek-v4.1-flash`, `group/main` → `deepseek-v4.1-flash`, cả ba đều `ok`.
+
+Khi thử bản plugin mới, chạy lại đúng bốn dòng `provider test` trên để so: 0.2.9
+cho 3 ✓ và một 429 quota; bản mới phải tương đương hoặc tốt hơn, còn nếu ra 401,
+`invalid_request_error` hay `exports no OpenCode plugin function` thì đó là bản
+hỏng — hạ về 0.2.9.
 
 Kiểm tra đang chạy bản nào:
 
