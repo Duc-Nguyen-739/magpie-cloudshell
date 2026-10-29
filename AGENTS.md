@@ -185,12 +185,57 @@ magpie provider test autoclaw zai_auto
 | `本地端口 … 均被占用` | AutoClaw desktop/TokenServer giữ cổng | tắt app đó |
 | AutoClaw `406 Not Acceptable` | shape request | plugin tự vá; `magpie plugin update` |
 | AutoClaw bị "kicked" | cùng tài khoản đăng nhập ở desktop | chỉ dùng một nơi |
+| AutoClaw hỏng sau khi update plugin | bản mới lỗi | quay về `@magpie-community/opencode-autoclaw-auth@0.2.9` — mục dưới |
 | Web hỏi key | mở link không có `?k=` | dùng link đã in, hoặc `magpie-headless-status` |
 | Gateway chết theo terminal | chạy foreground | `magpie-headless-start` (setsid + supervisor) |
 | Cloud Shell restart, không có gì chạy | thiếu hook `.bashrc` | `bash bootstrap.sh` thêm lại |
 | `openchamber` không in link | PATH: binary npm che wrapper | `command -v openchamber` phải là `~/.local/bin/openchamber` |
 | Model list rỗng trong OpenCode | gateway chưa chạy | `openmagpie` rồi `magpie healthcheck` |
 | Subagent `coder` lỗi model | thiếu `group/code` hoặc model chưa expose | `setup-opencode.sh` đã lùi về `group/main`; hoặc sửa dòng `model:` |
+
+## Plugin AutoClaw — bản đang chạy tốt (chốt 2026-10-29)
+
+Đăng nhập AutoClaw bằng z.ai đã kiểm chứng trên máy này với **plugin
+`@magpie-community/opencode-autoclaw-auth@0.2.9`** (magpie `0.1.1955`). Bản này
+đăng nhập được, giữ được 4 model `autoclaw/…`, và `magpie provider test autoclaw
+zai_auto` trả lời trong ~1s. Coi **0.2.9 là bản vàng**: nếu lên bản mới mà không
+gọi được, quay về đúng số này.
+
+Kiểm tra đang chạy bản nào:
+
+```sh
+magpie plugin list | head -3            # @magpie-community/opencode-autoclaw-auth@0.2.9  on
+magpie plugin list --json | grep autoclaw
+magpie provider test autoclaw zai_auto  # ✓ chat  (gọi thật, tốn 1 request nhỏ)
+```
+
+Lên bản mới (khi muốn thử):
+
+```sh
+magpie plugin update
+# hoặc ghim một số cụ thể:
+magpie plugin add @magpie-community/opencode-autoclaw-auth@<số>
+```
+
+Quay về 0.2.9 khi bản mới lỗi:
+
+```sh
+magpie plugin add @magpie-community/opencode-autoclaw-auth@0.2.9
+magpie-headless-stop && magpie-headless-start    # plugin chỉ nạp lại khi gateway khởi động
+magpie plugin list | head -3                     # phải thấy @0.2.9  on
+magpie provider test autoclaw zai_auto           # phải có ✓ chat
+```
+
+Đăng nhập **không** mất khi nâng/hạ cấp: token nằm ở
+`~/.config/magpie/plugin-auth.json`, tách khỏi mã plugin. Nếu sau khi hạ bản mà
+provider báo chưa đăng nhập thì đăng nhập lại bằng
+`bash scripts/autoclaw-link.sh --relay` (xem `docs/autoclaw-login.md`, Cách A2).
+
+Đừng dùng file `.tgz` trong `~/.config/magpie/plugins/dist/` để cài lại: bản
+`…-0.2.9.tgz` ở đó **không** export hàm plugin, `magpie plugin add <file>.tgz`
+báo `exports no OpenCode plugin function` và còn để lại một entry hỏng trong
+`plugins.json` (dọn bằng `magpie plugin rm <đường-dẫn>.tgz`). Chỉ cài theo spec
+`@magpie-community/opencode-autoclaw-auth@<số>` như trên.
 
 ## Cái gì vẫn thuộc về con người
 
