@@ -24,10 +24,14 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
 
 - magpie bản terminal trong `~/.local/bin` (không desktop, không systemd).
 - 6 plugin provider: AutoClaw (Zhipu), WorkBuddy, Qoder, ZCode, OpenCode Zen Free.
-- `settings.json` giống máy tham chiếu (theme dark, vision/imageGen, check-in AutoClaw),
-  `opencode-zen-free` tắt.
+- `settings.json` giống máy tham chiếu (theme dark, vision/imageGen, check-in AutoClaw);
+  `opencode-zen-free` **bật**, `opencode-zen` (API key) **tắt** — free tier qua API key đã
+  bị chặn ở upstream, xem [`docs/zen-free.md`](docs/zen-free.md).
 - Bốn routing group: `group/main`, `group/code` (cùng một ladder 8 model), `group/glm`
   (Tester, GLM đứng đầu), `group/deepseek` (dự phòng, chỉ DeepSeek).
+- Ladder 8 model: DeepSeek (WorkBuddy) → GLM (AutoClaw, WorkBuddy) → 2 rung cuối
+  `opencode-zen-free` (`deepseek-v4.1-flash-free`, `glm-5.3-flash-free`) làm đường miễn
+  phí dự phòng; classifier `opencode-zen-free/nemotron-3.5-lightning-free`.
 - OpenCode + OpenChamber trỏ `group/main`; agent `leader` + 2 subagent `coder`, `tester`;
   skill `magpie-setup`.
 - Supervisor bash giữ gateway + web UI sống; hai lệnh `openchamber` / `openmagpie` in
@@ -105,7 +109,9 @@ Thêm `--no-finish` nếu muốn tách ra. Trên máy headless, `login.sh autocl
 rồi thoát (không treo chờ callback); thêm `--cli` nếu bạn đã mở tunnel.
 
 Không hỏi mật khẩu. Không ghi key vào file trong repo. Key người dùng đưa thì chỉ dùng
-trên dòng lệnh: `magpie provider add opencode-zen <key>`.
+trên dòng lệnh: `magpie provider add opencode-zen <key>`. Đường API key này hiện **bị chặn
+ở upstream** cho mọi model free (429, không có cửa sổ reset) — chỉ dùng lại khi Zen mở lại
+free tier cho key; xem [`docs/zen-free.md`](docs/zen-free.md).
 
 ### 3. Xem cái gì đã về
 

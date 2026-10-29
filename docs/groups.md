@@ -10,11 +10,11 @@ hỏng, hết quota hoặc bị chặn.
 
 ```sh
 magpie group add "Main" \
-  models=workbuddy-ai/deepseek-v4.1-flash,workbuddy-ai/deepseek-v4.1-flash-sg,opencode-zen/deepseek-v4.1-flash-free,autoclaw/zaicoding_glm-5.3,autoclaw/zai_glm-5.3-flash,workbuddy-ai/glm-5.3,workbuddy-ai/glm-5.3-flash,opencode-zen/glm-5.3-flash-free \
+  models=workbuddy-ai/deepseek-v4.1-flash,workbuddy-ai/deepseek-v4.1-flash-sg,autoclaw/zaicoding_glm-5.3,autoclaw/zai_glm-5.3-flash,workbuddy-ai/glm-5.3,workbuddy-ai/glm-5.3-flash,opencode-zen-free/deepseek-v4.1-flash-free,opencode-zen-free/glm-5.3-flash-free \
   routing=order stays=session
 
 magpie group set main levels=low,high,max
-magpie group set main classifier=opencode-zen/jev-1.13-free
+magpie group set main classifier=opencode-zen-free/nemotron-3.5-lightning-free
 magpie group set main effort=auto
 
 magpie group rule add main use=workbuddy-ai/deepseek-v4.1-flash images
@@ -28,7 +28,7 @@ Cùng ladder, nhưng `stays=turn` và 4 rule theo ý định:
 ```sh
 magpie group add "Code" models=<như trên> routing=order stays=turn
 magpie group set code levels=low,high,max
-magpie group set code classifier=opencode-zen/jev-1.13-free
+magpie group set code classifier=opencode-zen-free/nemotron-3.5-lightning-free
 magpie group set code effort=auto
 
 magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash \
@@ -49,7 +49,7 @@ classifier đoán đúng ý định. Không rule, không classifier:
 
 ```sh
 magpie group add "GLM" \
-  models=autoclaw/zaicoding_glm-5.3,autoclaw/zai_glm-5.3-flash,autoclaw/zai_auto-fast,autoclaw/zai_auto,opencode-zen/glm-5.3-flash-free,workbuddy-ai/glm-5.3,workbuddy-ai/glm-5.3-flash \
+  models=autoclaw/zaicoding_glm-5.3,autoclaw/zai_glm-5.3-flash,autoclaw/zai_auto-fast,autoclaw/zai_auto,workbuddy-ai/glm-5.3,workbuddy-ai/glm-5.3-flash,opencode-zen-free/glm-5.3-flash-free \
   routing=order stays=auto
 magpie group set glm levels=low,high,max
 ```
@@ -61,7 +61,7 @@ tiếp; giữ để ép một phiên chạy thuần DeepSeek:
 
 ```sh
 magpie group add deepseek \
-  models=workbuddy-ai/deepseek-v4.1-flash,opencode-zen/deepseek-v4.1-flash-free,workbuddy-ai/deepseek-v4.1-flash-sg \
+  models=workbuddy-ai/deepseek-v4.1-flash,workbuddy-ai/deepseek-v4.1-flash-sg,opencode-zen-free/deepseek-v4.1-flash-free \
   routing=order stays=turn
 magpie group set deepseek name="DeepSeek V4.1 Flash"
 magpie group set deepseek levels=low,high,max
@@ -70,12 +70,13 @@ magpie group set deepseek levels=low,high,max
 ## Vì sao như vậy
 
 **Thứ tự model.** Ladder đi theo đúng pipeline: DeepSeek trước (Leader + Coder), GLM
-sau (Tester + fallback). Trong khối DeepSeek: WorkBuddy là chính, rồi bản SG (region
-khác, quota riêng), rồi Zen free. Trong khối GLM: `autoclaw/zaicoding_glm-5.3` đứng
-đầu vì đó là model Tester, rồi GLM flash của AutoClaw, rồi WorkBuddy, cuối cùng là
-Zen free. `routing=order` nghĩa là: model đầu trả lời; chỉ khi nó không trả lời được
-mới sang model sau. Hết danh sách quay lại Leader — khép vòng
-`Leader → Coder → Tester → Leader`.
+sau (Tester + fallback), cuối cùng là hai rung miễn phí của `opencode-zen-free` (đường
+dự phòng, phụ thuộc plugin cộng đồng — chỉ dùng khi các rung chính hỏng hoặc hết quota;
+xem [`zen-free.md`](zen-free.md)). Trong khối DeepSeek: WorkBuddy là chính, rồi bản SG
+(region khác, quota riêng). Trong khối GLM: `autoclaw/zaicoding_glm-5.3` đứng đầu vì đó
+là model Tester, rồi GLM flash của AutoClaw, rồi WorkBuddy. `routing=order` nghĩa là:
+model đầu trả lời; chỉ khi nó không trả lời được mới sang model sau. Hết danh sách quay
+lại Leader — khép vòng `Leader → Coder → Tester → Leader`.
 
 **`stays`.**
 
@@ -87,10 +88,10 @@ mới sang model sau. Hết danh sách quay lại Leader — khép vòng
 **`levels`.** Agent được chọn `low`, `high`, `max`; model nào không có mức đó thì magpie
 gửi mức gần nhất. Không đặt `medium` vì các model trong ladder không đồng đều.
 
-**`effort=auto` + `classifier`.** Mỗi lượt, model nhỏ `opencode-zen/jev-1.13-free` đọc
-yêu cầu và chọn mức reasoning (low/high/max) thay vì agent luôn dùng một mức. Rẻ hơn
-cho câu hỏi ngắn, vẫn sâu cho việc khó. Classifier chỉ là model *phụ*: nó không nằm
-trong ladder, không hiện ra cho agent chọn.
+**`effort=auto` + `classifier`.** Mỗi lượt, model nhỏ
+`opencode-zen-free/nemotron-3.5-lightning-free` đọc yêu cầu và chọn mức reasoning
+(low/high/max) thay vì agent luôn dùng một mức. Rẻ hơn cho câu hỏi ngắn, vẫn sâu cho việc
+khó. Classifier chỉ là model *phụ*: nó không nằm trong ladder, không hiện ra cho agent chọn.
 
 **Rule.** Rule đầu tiên khớp sẽ đưa model của nó lên đầu lượt đó; các model còn lại
 vẫn ở sau làm fallback.
@@ -112,7 +113,7 @@ magpie group set main models-=autoclaw/zai_glm-5.3-flash # bỏ
 magpie group set code stays=session                      # đổi cách giữ hội thoại
 magpie group set main levels=low,medium,high,max
 magpie group set main effort=agent                       # tắt classifier, để agent tự chọn
-magpie group set main classifier=opencode-zen/jev-1.13-free
+magpie group set main classifier=opencode-zen-free/nemotron-3.5-lightning-free
 
 magpie group rule main                    # rule đang có, đánh số
 magpie group rule add main use=… tokens=200k

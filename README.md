@@ -121,7 +121,7 @@ bash bootstrap.sh
 5. Cài OpenCode (script curl chính thức) và OpenChamber (`npm -g @openchamber/web`).
 6. Bật gateway + web UI, in link đã kèm key.
 7. Cấu hình magpie giống máy tham chiếu: `settings.json` (theme dark, vision, imageGen,
-   check-in AutoClaw, cỡ chữ…), tắt provider `opencode-zen-free`.
+   check-in AutoClaw, cỡ chữ…), bật `opencode-zen-free`, tắt `opencode-zen`.
 8. Tạo group + trỏ agent nếu đã có model (chưa có thì đăng nhập xong sẽ tự tạo).
 9. In việc còn lại: đăng nhập.
 
@@ -167,9 +167,9 @@ Nếu bạn đăng nhập **trong web UI** (cách dùng trên Cloud Shell), lầ
 | AutoClaw (Zhipu) | OAuth Google/z.ai; trên Cloud Shell dùng **relay + cloudflared, gọi callback local** | [`docs/autoclaw-login.md`](docs/autoclaw-login.md) |
 | WorkBuddy AI | OAuth web (hoặc desktop sign-in / API key) | [`docs/providers.md`](docs/providers.md) |
 | Qoder | OAuth web | [`docs/providers.md`](docs/providers.md) |
-| OpenCode Zen | API key `oc_…` | [`docs/providers.md`](docs/providers.md) |
+| OpenCode Zen | API key `oc_…` — **tắt** (free tier qua API key bị chặn) | [`docs/zen-free.md`](docs/zen-free.md) |
 | Kilo | API key `eyJ…` | [`docs/providers.md`](docs/providers.md) |
-| OpenCode Zen Free | plugin, key công khai (mặc định tắt) | [`docs/providers.md`](docs/providers.md) |
+| OpenCode Zen Free | plugin, key công khai — **bật, dùng cho ladder** | [`docs/providers.md`](docs/providers.md) |
 
 ## Group + agent (tự động sau khi đăng nhập)
 
@@ -187,14 +187,15 @@ Nó tạo (hoặc cập nhật) bốn group và trỏ OpenCode + OpenChamber và
 | Dùng cho | chat thường ngày | việc code |
 | routing / stays | `order` / `session` | `order` / `turn` |
 | levels / effort | `low,high,max` / `auto` | `low,high,max` / `auto` |
-| classifier | `opencode-zen/jev-1.13-free` | `opencode-zen/jev-1.13-free` |
+| classifier | `opencode-zen-free/nemotron-3.5-lightning-free` | `opencode-zen-free/nemotron-3.5-lightning-free` |
 | rule | ảnh → DeepSeek V4.1 Flash; nén → GLM-5.3 Flash | 4 intent (plan, code, test, review) + ảnh |
 
 Ngoài ra `group/glm` (Tester: 7 model GLM, `zaicoding_glm-5.3` đầu, `stays=auto`) và
 `group/deepseek` (dự phòng: 3 endpoint DeepSeek, `stays=turn`), cả hai không rule,
 không classifier.
 
-Ladder 8 model (thứ tự fallback) và lý do: [`docs/groups.md`](docs/groups.md).
+Ladder 8 model (thứ tự fallback), lý do và hai rung `opencode-zen-free` ở cuối:
+[`docs/groups.md`](docs/groups.md) · [`docs/zen-free.md`](docs/zen-free.md).
 
 Chạy lại `finish.sh` sau khi đăng nhập thêm provider để lấp đủ model vào group —
 script chỉ đưa vào group những model thật sự có.
@@ -231,7 +232,7 @@ scripts/
   install-opencode.sh       OpenCode (opencode.ai/install)
   install-openchamber.sh    @openchamber/web vào ~/.npm-global
   setup-opencode.sh         2 subagent + skill magpie-setup
-  setup-settings.sh         settings.json + tắt provider (chỉ thêm khoá thiếu)
+  setup-settings.sh         settings.json + trạng thái provider (chỉ thêm khoá thiếu)
   autoclaw-link.sh          in link localhost/preview để đăng nhập AutoClaw
   login.sh                  trạng thái + đăng nhập từng provider
   setup-groups.sh           group/main, code, glm, deepseek (--force, --dry-run)
@@ -246,6 +247,7 @@ docs/
   autoclaw-login.md         AutoClaw: 3 cách đăng nhập, lỗi thường gặp
   providers.md              từng provider: id, xác thực, kiểm tra
   groups.md                 hai group: model, rule, classifier, cách sửa
+  zen-free.md               vì sao bỏ opencode-zen (API key), ladder dùng opencode-zen-free
   opencode.md               OpenCode nối magpie thế nào, subagent, skill
   cloudshell.md             headless: cổng, key, preview, PATH, autostart
 ```

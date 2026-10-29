@@ -51,9 +51,9 @@ Lệnh tiện dụng tự viết trong `~/.local/bin`:
 | `autoclaw` | AutoClaw (Zhipu) | OAuth Google/z.ai (plugin) | 4 | 3 tài khoản đã đăng nhập |
 | `workbuddy-ai` | WorkBuddy AI | OAuth web (plugin) | 26 | 3 tài khoản, 1 đang dùng |
 | `qoder` | Qoder | OAuth web (plugin) | 2 | đã đăng nhập |
-| `opencode-zen` | OpenCode Zen | API key | 28 (20 không expose) | đã có key |
+| `opencode-zen` | OpenCode Zen | API key | 28 (20 không expose) | tắt (`magpie provider off opencode-zen`); free tier qua API key bị chặn |
 | `kilo` | Kilo Gateway | API key | 353 | đã có key |
-| `opencode-zen-free` | OpenCode Zen Free | plugin, key công khai | 8 | **đang tắt** (`magpie provider off opencode-zen-free`) |
+| `opencode-zen-free` | OpenCode Zen Free | plugin, key công khai | 8 | **đang bật** |
 
 ## Plugin (6)
 
@@ -75,7 +75,7 @@ opencode-zen-freex                          phục vụ opencode-zen-free
 | stays | `session` | `turn` |
 | levels | `low,high,max` | `low,high,max` |
 | effort | `auto` | `auto` |
-| classifier | `opencode-zen/jev-1.13-free` | `opencode-zen/jev-1.13-free` |
+| classifier | `opencode-zen-free/nemotron-3.5-lightning-free` | `opencode-zen-free/nemotron-3.5-lightning-free` |
 | rule | ảnh → deepseek-v4.1-flash; compact → glm-5.3-flash | 4 intent + ảnh (test → zaicoding_glm) |
 | agent dùng | Leader, OpenCode, OpenChamber | Coder |
 
@@ -88,17 +88,17 @@ Hai group còn lại không rule, không classifier:
 | levels | `low,high,max` | `low,high,max` |
 | model | 7 model GLM, `zaicoding_glm-5.3` đầu | 3 endpoint DeepSeek |
 
-Thứ tự 8 model trong `main` và `code` (DeepSeek trước, GLM sau):
+Thứ tự 8 model trong `main` và `code` (DeepSeek trước, GLM sau, OpenCode Zen Free cuối):
 
 ```
 1 workbuddy-ai/deepseek-v4.1-flash
 2 workbuddy-ai/deepseek-v4.1-flash-sg
-3 opencode-zen/deepseek-v4.1-flash-free
-4 autoclaw/zaicoding_glm-5.3
-5 autoclaw/zai_glm-5.3-flash
-6 workbuddy-ai/glm-5.3
-7 workbuddy-ai/glm-5.3-flash
-8 opencode-zen/glm-5.3-flash-free
+3 autoclaw/zaicoding_glm-5.3
+4 autoclaw/zai_glm-5.3-flash
+5 workbuddy-ai/glm-5.3
+6 workbuddy-ai/glm-5.3-flash
+7 opencode-zen-free/deepseek-v4.1-flash-free
+8 opencode-zen-free/glm-5.3-flash-free
 ```
 
 ## Agent được magpie quản lý
@@ -176,7 +176,7 @@ Thứ tự 8 model trong `main` và `code` (DeepSeek trước, GLM sau):
 | 6 plugin provider | ✅ | `scripts/plugins.sh` |
 | 2 routing group | ✅ | **giống hệt** cấu hình máy này (đã so JSON) |
 | settings.json | ✅ | chỉ thêm khoá thiếu |
-| `opencode-zen-free` tắt | ✅ | `setup-settings.sh` |
+| `opencode-zen-free` bật, `opencode-zen` tắt | ✅ | `setup-settings.sh` |
 | OpenCode + provider `magpie` | ✅ | magpie tự ghi `opencode.jsonc` |
 | 3 agent `leader`, `coder`, `tester` | ✅ | `config/agents/` |
 | skill `magpie-setup` | ✅ (OpenCode) | Gemini/Antigravity: thêm qua Library page nếu muốn |
@@ -197,6 +197,9 @@ OpenCode ─┐
 OpenChamber┘                                              ├─→ autoclaw     (OAuth)
                                                           ├─→ qoder        (OAuth)
 Gemini CLI ─→ (magpie đặt auth) ──────────────────────────┤
-                                                          ├─→ opencode-zen (API key)
+                                                          ├─→ opencode-zen-free (plugin)
                                                           └─→ kilo         (API key)
 ```
+
+`opencode-zen` (API key) **đang tắt**: free tier qua API key bị chặn — xem
+[`zen-free.md`](zen-free.md).

@@ -10,7 +10,7 @@ set -uo pipefail
 
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
-printf '\n\033[1m1/4 · cấu hình magpie (settings, provider tắt)\033[0m\n'
+printf '\n\033[1m1/4 · cấu hình magpie (settings, trạng thái provider)\033[0m\n'
 bash "$REPO_DIR/scripts/setup-settings.sh"
 
 printf '\n\033[1m2/4 · routing group\033[0m\n'

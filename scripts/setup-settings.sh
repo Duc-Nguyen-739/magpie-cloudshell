@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # setup-settings.sh — đặt cấu hình magpie giống máy tham chiếu:
 #   - settings.json: theme, ngôn ngữ, vision model, image model, check-in, cỡ chữ…
-#   - tắt provider opencode-zen-free (máy tham chiếu để tắt)
+#   - provider: bật opencode-zen-free, tắt opencode-zen (free tier qua API key đã bị chặn;
+#     xem docs/zen-free.md)
 #
 # Chỉ **thêm khoá còn thiếu**, không ghi đè giá trị bạn đã đặt. Chạy lại vô hại.
 #
@@ -27,14 +28,20 @@ models="$(magpie models 2>/dev/null | awk '{print $1}')"
 has_model() { printf '%s\n' "$models" | grep -Fxq "$1"; }
 
 # ---------------------------------------------------------------- provider
-say "provider opencode-zen-free → tắt (như máy tham chiếu)"
+say "provider opencode-zen-free → bật · opencode-zen → tắt"
 if [ "$DRY" = 1 ]; then
-  printf '  \033[2m[dry-run]\033[0m magpie provider off opencode-zen-free\n'
+  printf '  \033[2m[dry-run]\033[0m magpie provider on opencode-zen-free\n'
+  printf '  \033[2m[dry-run]\033[0m magpie provider off opencode-zen\n'
 else
-  if magpie provider off opencode-zen-free >/dev/null 2>&1; then
-    ok "opencode-zen-free đang tắt"
+  if magpie provider on opencode-zen-free >/dev/null 2>&1; then
+    ok "opencode-zen-free đang bật"
   else
-    warn "không tắt được opencode-zen-free (có thể chưa cài plugin) — bỏ qua"
+    warn "không bật được opencode-zen-free (có thể chưa cài plugin) — bỏ qua"
+  fi
+  if magpie provider off opencode-zen >/dev/null 2>&1; then
+    ok "opencode-zen đang tắt (giữ key, không xoá)"
+  else
+    warn "không tắt được opencode-zen (chưa từng thêm?) — bỏ qua"
   fi
 fi
 
