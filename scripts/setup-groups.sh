@@ -73,6 +73,7 @@ command -v magpie >/dev/null 2>&1 || die "chưa có magpie trên PATH (~/.local/
 
 # ------------------------------------------------------- model nào đang có
 models_now="$(magpie models 2>/dev/null | awk '{print $1}')"
+groups_now="$(magpie groups 2>/dev/null || true)"
 [ -n "$models_now" ] || die "magpie chưa có model nào — đăng nhập provider trước (bash scripts/login.sh)"
 
 PRESENT=()
@@ -98,7 +99,7 @@ create_group() { # <tên> <id> <stays>; trả 1 nếu bỏ qua (đã có, không
   local name=$1 id=$2 stays=$3
   local list; list="$(join "${PRESENT[@]}")"
 
-  if magpie groups 2>/dev/null | grep -q "group/$id"; then
+  if printf '%s\n' "$groups_now" | grep -q "group/$id"; then
     if [ "$FORCE" != 1 ]; then
       say "group/$id đã có — bỏ qua (dùng --force để tạo lại)"
       return 1
@@ -135,7 +136,7 @@ make_simple() { # <tên> <id> <stays> <model…>
   local name=$1 id=$2 stays=$3; shift 3
   local list; list="$(join "$@")"
 
-  if magpie groups 2>/dev/null | grep -q "group/$id"; then
+  if printf '%s\n' "$groups_now" | grep -q "group/$id"; then
     if [ "$FORCE" != 1 ]; then
       say "group/$id đã có — bỏ qua (dùng --force để tạo lại)"
       return 1

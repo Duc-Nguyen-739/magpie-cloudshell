@@ -66,8 +66,9 @@ signed="$(magpie accounts 2>/dev/null | grep -c '^●' || true)"
 [ "$signed" -gt 0 ] && ok "$signed tài khoản đang dùng" || warn "chưa đăng nhập tài khoản nào (bash scripts/login.sh)"
 
 head_ "Routing group"
+groups_now="$(magpie groups 2>/dev/null || true)"
 for g in main code; do
-  if magpie groups 2>/dev/null | grep -q "group/$g"; then
+  if printf '%s\n' "$groups_now" | grep -q "group/$g"; then
     n="$(magpie group "$g" 2>/dev/null | awk '
       /^  models / {inm = 1; c = 1; next}
       /^  [a-z]/   {inm = 0}
