@@ -10,11 +10,15 @@ Ba group. `deepseek-v4.1-flash` (bản thường) và `workbuddy-ai/glm-5.3` đ�
 khỏi danh sách, nên không còn trong định nghĩa; `deepseek-v4.1-flash-sg` là bản duy nhất
 còn serve và đứng đầu ladder.
 
+`autoclaw/zai_auto` và `autoclaw/zai_auto-fast` đã bị bỏ khỏi mọi group: chúng chỉ có
+**200K context** trong khi phần còn lại là 1M, nên giữ lại thì khai báo context của group
+thành sai và một request dài rơi xuống chúng sẽ lỗi. Bỏ đi thì cả ba group đều 1M thật.
+
 ### `group/main` — chat thường ngày
 
 ```sh
 magpie group add "Main" \
-  models=workbuddy-ai/deepseek-v4.1-flash-sg,autoclaw/zaicoding_glm-5.3,autoclaw/zai_glm-5.3-flash,workbuddy-ai/glm-5.3-flash,workbuddy-ai/hy4free \
+  models=workbuddy-ai/deepseek-v4.1-flash-sg,autoclaw/zai_glm-5.3-flash,autoclaw/zaicoding_glm-5.3,workbuddy-ai/glm-5.3-flash,workbuddy-ai/hy4free \
   routing=order stays=session
 
 magpie group set main levels=low,high,max
@@ -22,24 +26,30 @@ magpie group set main classifier=opencode-zen/jev-1.13-free
 magpie group set main effort=auto
 
 magpie group rule add main use=workbuddy-ai/hy4free images
-magpie group rule add main use=workbuddy-ai/glm-5.3-flash compact
+magpie group rule add main use=workbuddy-ai/hy4free compact
 ```
 
 ### `group/code` — công việc code
 
-Cùng ladder, nhưng `stays=turn` và 5 rule theo ý định:
+Cùng ladder, `stays=turn` và 6 rule (nén hội thoại đứng đầu):
 
 ```sh
-magpie group add "Code" models=<như trên> routing=order stays=turn
+magpie group add "Code" \
+  models=workbuddy-ai/deepseek-v4.1-flash-sg,autoclaw/zai_glm-5.3-flash,autoclaw/zaicoding_glm-5.3,workbuddy-ai/glm-5.3-flash,workbuddy-ai/hy4free \
+  routing=order stays=turn
 magpie group set code levels=low,high,max
 magpie group set code classifier=opencode-zen/jev-1.13-free
 magpie group set code effort=auto
+
+# Đứng đầu để bước nén không bị rule intent giành mất. Chỉ hy4free: nó 1M và free;
+# hy3 cũng free nhưng chỉ 192K nên không nhận được hội thoại dài.
+magpie group rule add code use=workbuddy-ai/hy4free compact
 
 magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash-sg \
   intent="asking for a detailed plan before any code is written (lên plan, lập kế hoạch chi tiết)"
 magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash-sg \
   intent="writing, implementing or fixing code (viết code, code theo plan, implement, sửa code)"
-magpie group rule add code use=autoclaw/zaicoding_glm-5.3 \
+magpie group rule add code use=autoclaw/zai_glm-5.3-flash,autoclaw/zaicoding_glm-5.3,workbuddy-ai/glm-5.3-flash \
   intent="running tests or checking the code just written, before it is finished (kiểm tra, test code vừa viết)"
 magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash-sg \
   intent="final overall review of the finished code and releasing or publishing it (kiểm tra tổng thể lần cuối, duyệt, phát hành, release, ship)"
@@ -49,14 +59,18 @@ magpie group rule add code use=workbuddy-ai/hy4free images
 ### `group/glm` — Tester
 
 Group riêng cho Tester để lượt test **luôn** bắt đầu bằng GLM, không phụ thuộc
-classifier đoán đúng ý định. Đúng 5 model, không rule, không classifier:
+classifier đoán đúng ý định. Đúng 3 model GLM 1M, không rule, không classifier:
 
 ```sh
 magpie group add "GLM" \
-  models=autoclaw/zaicoding_glm-5.3,autoclaw/zai_glm-5.3-flash,autoclaw/zai_auto-fast,autoclaw/zai_auto,workbuddy-ai/glm-5.3-flash \
+  models=autoclaw/zai_glm-5.3-flash,autoclaw/zaicoding_glm-5.3,workbuddy-ai/glm-5.3-flash \
   routing=order stays=auto
 magpie group set glm levels=low,high,max
 ```
+
+`zaicoding_glm-5.3` đứng sau `zai_glm-5.3-flash` vì quota free của gói coding hay cạn
+(upstream trả 429); để nó đầu ladder thì mỗi lượt Tester phải thử nó, ăn 429 rồi mới rơi
+xuống model kế tiếp, tốn thêm một vòng mạng.
 
 ### Provider đang tắt
 
@@ -98,7 +112,7 @@ khó. Classifier chỉ là model *phụ*: nó không nằm trong ladder, không 
 vẫn ở sau làm fallback.
 
 - `images` → `workbuddy-ai/hy4free`: đây là model đọc ảnh trong ladder hiện tại.
-- `compact` → GLM-5.3 Flash: nén hội thoại chỉ cần model rẻ, nhanh.
+- `compact` → `workbuddy-ai/hy4free`: nén hội thoại chỉ cần model free 1M, không tốn credit.
 - `intent=…` → 4 kiểu việc code, chia theo bước: lên plan → viết code → test → review.
   Riêng bước test/review dùng GLM-5.3 vì nó kỹ hơn ở việc đọc lỗi.
 

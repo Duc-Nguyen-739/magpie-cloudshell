@@ -189,13 +189,13 @@ Nó tạo (hoặc cập nhật) ba group và trỏ OpenCode + OpenChamber vào `
 | routing / stays | `order` / `session` | `order` / `turn` |
 | levels / effort | `low,high,max` / `auto` | `low,high,max` / `auto` |
 | classifier | `opencode-zen/jev-1.13-free` | `opencode-zen/jev-1.13-free` |
-| rule | ảnh → Hy4; nén → GLM-5.3 Flash | 4 intent (plan, code, test, review) + ảnh → Hy4 |
+| rule | ảnh → Hy4; nén → Hy4 | nén → Hy4 (free); 4 intent (plan, code, test, review) + ảnh → Hy4 |
 
-Ngoài ra `group/glm` (Tester: 5 model GLM, `zaicoding_glm-5.3` đầu, `stays=auto`),
+Ngoài ra `group/glm` (Tester: 3 model GLM, `zai_glm-5.3-flash` đầu, `stays=auto`),
 không rule, không classifier.
 
-Ladder 5 model (thứ tự fallback, WorkBuddy + AutoClaw):
-[`docs/groups.md`](docs/groups.md) · [`docs/zen-free.md`](docs/zen-free.md).
+Ladder 5 model cho cả `main` và `code`; thứ tự fallback
+WorkBuddy + AutoClaw: [`docs/groups.md`](docs/groups.md) · [`docs/zen-free.md`](docs/zen-free.md).
 
 Chạy lại `finish.sh` sau khi đăng nhập thêm provider để lấp đủ model vào group —
 script chỉ đưa vào group những model thật sự có.

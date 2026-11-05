@@ -45,8 +45,8 @@ run() {
 # bỏ khỏi danh sách provider nên không đưa vào đây (script cũng tự lọc theo thực tế).
 MODELS=(
   workbuddy-ai/deepseek-v4.1-flash-sg            # WorkBuddy AI — Leader + Coder
-  autoclaw/zaicoding_glm-5.3                     # AutoClaw — GLM-5.3 coding
   autoclaw/zai_glm-5.3-flash                     # AutoClaw — GLM-5.3 flash
+  autoclaw/zaicoding_glm-5.3                     # AutoClaw — GLM-5.3 coding (quota free hay cạn)
   workbuddy-ai/glm-5.3-flash                     # WorkBuddy AI — GLM flash dự phòng
   workbuddy-ai/hy4free                           # WorkBuddy AI — đọc ảnh (rule images)
 )
@@ -54,12 +54,10 @@ MODELS=(
 LEVELS=low,high,max                       # mức reasoning agent được chọn
 CLASSIFIER=opencode-zen/jev-1.13-free     # model nhỏ đọc mỗi lượt khi effort=auto
 
-# group/glm — Tester. Đúng 5 model, zaicoding đứng đầu; không rule, không classifier.
+# group/glm — Tester. Đúng 3 model GLM 1M, flash đứng đầu; không rule, không classifier.
 GLM_MODELS=(
-  autoclaw/zaicoding_glm-5.3
   autoclaw/zai_glm-5.3-flash
-  autoclaw/zai_auto-fast
-  autoclaw/zai_auto
+  autoclaw/zaicoding_glm-5.3
   workbuddy-ai/glm-5.3-flash
 )
 
@@ -135,10 +133,11 @@ create_group() { # <tên> <id> <stays>; trả 1 nếu bỏ qua (đã có, không
   fi
 }
 
-add_rule() { # <id> <model> <cờ…>
+add_rule() { # <id> <model[,model…]> <cờ…>
   local id=$1 model=$2; shift 2
-  if ! in_present "$model"; then
-    warn "bỏ rule cho $id: $model không có trong group"
+  local first="${model%%,*}"
+  if ! in_present "$first"; then
+    warn "bỏ rule cho $id: $first không có trong group"
     return 0
   fi
   run magpie group rule add "$id" "use=$model" "$@" >/dev/null || warn "rule lỗi: $*"
@@ -178,26 +177,40 @@ present_of() {
   done
 }
 
+# Như present_of nhưng trả về một danh sách ngăn bằng dấu phẩy, cho use=a,b của rule.
+use_present() {
+  local m out=()
+  for m in "$@"; do in_present "$m" && out+=("$m"); done
+  [ ${#out[@]} -gt 0 ] || return 1
+  join "${out[@]}"
+}
+
 # ------------------------------------------------------------- group/main
 # Chat thường ngày: giữ hội thoại trên một account (session) để prompt cache còn giá trị.
 say ""
 say "group/main — chat thường ngày, stays=session"
 if create_group "Main" main session; then
   add_rule main workbuddy-ai/hy4free images                  # ảnh → model đọc được ảnh
-  add_rule main workbuddy-ai/glm-5.3-flash compact           # nén hội thoại → model rẻ
+  add_rule main workbuddy-ai/hy4free compact                 # nén hội thoại → model free 1M
 fi
 
 # ------------------------------------------------------------- group/code
 # Việc code: đổi model theo từng lượt (turn) vì mỗi bước cần model khác nhau.
+# Leader và Coder cùng dùng group này.
 say ""
-say "group/code — công việc code, stays=turn, 5 rule theo ý định"
+say "group/code — Leader + Coder, stays=turn, 6 rule"
 if create_group "Code" code turn; then
+  add_rule code workbuddy-ai/hy4free compact
   add_rule code workbuddy-ai/deepseek-v4.1-flash-sg \
     intent="asking for a detailed plan before any code is written (lên plan, lập kế hoạch chi tiết)"
   add_rule code workbuddy-ai/deepseek-v4.1-flash-sg \
     intent="writing, implementing or fixing code (viết code, code theo plan, implement, sửa code)"
-  add_rule code autoclaw/zaicoding_glm-5.3 \
-    intent="running tests or checking the code just written, before it is finished (kiểm tra, test code vừa viết)"
+  if test_use="$(use_present autoclaw/zai_glm-5.3-flash autoclaw/zaicoding_glm-5.3 workbuddy-ai/glm-5.3-flash)"; then
+    add_rule code "$test_use" \
+      intent="running tests or checking the code just written, before it is finished (kiểm tra, test code vừa viết)"
+  else
+    warn "bỏ rule test của code: không có model GLM nào"
+  fi
   add_rule code workbuddy-ai/deepseek-v4.1-flash-sg \
     intent="final overall review of the finished code and releasing or publishing it (kiểm tra tổng thể lần cuối, duyệt, phát hành, release, ship)"
   add_rule code workbuddy-ai/hy4free images

@@ -40,8 +40,8 @@ fi
 
 # --------------------------------------------------------------- OpenChamber
 if have_agent "OpenChamber"; then
-  say "OpenChamber → group/main"
-  run magpie openchamber group/main && ok "OpenChamber xong"
+  say "OpenChamber → group/code"
+  run magpie openchamber group/code && ok "OpenChamber xong"
 else
   warn "không thấy OpenChamber (cài bằng bash scripts/install-openchamber.sh)"
 fi

@@ -76,8 +76,8 @@ opencode-zen-freex                          phục vụ opencode-zen-free
 | levels | `low,high,max` | `low,high,max` |
 | effort | `auto` | `auto` |
 | classifier | `opencode-zen/jev-1.13-free` | `opencode-zen/jev-1.13-free` |
-| rule | ảnh → hy4free; compact → glm-5.3-flash | 4 intent + ảnh → hy4free (test → zaicoding_glm) |
-| agent dùng | Leader, OpenCode, OpenChamber | Coder |
+| rule | ảnh → hy4free; compact → hy4free | compact → hy4free; 4 intent + ảnh → hy4free (test → GLM, flash đầu) |
+| agent dùng | OpenCode (chat) | Leader, Coder, OpenChamber |
 
 Group còn lại không rule, không classifier:
 
@@ -86,24 +86,29 @@ Group còn lại không rule, không classifier:
 | Dùng cho | Tester |
 | routing / stays | `order` / `auto` |
 | levels | `low,high,max` |
-| model | 5 model GLM, `zaicoding_glm-5.3` đầu |
+| model | 3 model GLM 1M, `zai_glm-5.3-flash` đầu, `zaicoding` sau, `workbuddy` cuối |
 
-Thứ tự 5 model trong `main` và `code` (DeepSeek trước, GLM sau, ảnh cuối):
+Thứ tự fallback 5 model cho cả `main` và `code`:
 
 ```
 1 workbuddy-ai/deepseek-v4.1-flash-sg
-2 autoclaw/zaicoding_glm-5.3
-3 autoclaw/zai_glm-5.3-flash
+2 autoclaw/zai_glm-5.3-flash
+3 autoclaw/zaicoding_glm-5.3
 4 workbuddy-ai/glm-5.3-flash
 5 workbuddy-ai/hy4free
 ```
+
+`autoclaw/zai_auto` và `autoclaw/zai_auto-fast` đã bị bỏ khỏi mọi group vì chỉ có 200K
+context; bỏ đi thì cả ba group đều khai 1M đúng với mọi member. `workbuddy-ai/hy3` cũng
+chỉ 192K nên không đưa vào group nào — nó chỉ hợp làm model phụ, không hợp làm đích nén
+hội thoại dài.
 
 ## Agent được magpie quản lý
 
 | Agent | Model | File magpie sửa |
 |---|---|---|
 | OpenCode | `magpie/group/main` | `~/.config/opencode/opencode.jsonc` |
-| OpenChamber | `magpie/group/main` | `~/.config/openchamber/preferences.json` |
+| OpenChamber | `magpie/group/code` | `~/.config/openchamber/preferences.json` |
 | Gemini CLI | (auth google, không đặt model) | `~/.gemini/settings.json` |
 | Antigravity CLI | — | `~/.gemini/antigravity-cli/settings.json` |
 | Pi | CLI không có | `~/.pi/agent/settings.json` |

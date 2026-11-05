@@ -14,9 +14,27 @@ if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
   exit 0
 fi
 
-# setsid: ra khỏi process group của shell này, đóng terminal vẫn sống.
-setsid nohup "$HOME/.local/bin/magpie-headless" >/dev/null 2>&1 </dev/null &
-disown 2>/dev/null || true
+# Hai shell mở cùng lúc cùng thấy "chưa chạy" rồi cùng bật supervisor; bản thứ hai
+# khi đó chỉ quay vòng vì cổng 3430 đã bị chiếm. Khoá lại để chỉ một bản vào, và
+# chờ nó ghi pid xong rồi mới thả khoá — shell sau thấy pid ngay.
+(
+  flock -w 10 9 || exit 0
+  if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+    echo "đã chạy (pid $(cat "$PID_FILE"))"
+    exit 0
+  fi
+  rm -f "$PID_FILE"
+
+  # setsid: ra khỏi process group của shell này, đóng terminal vẫn sống.
+  # 9>&-: không để supervisor thừa hưởng khoá khởi động.
+  setsid nohup "$HOME/.local/bin/magpie-headless" >/dev/null 2>&1 </dev/null 9>&- &
+  disown 2>/dev/null || true
+
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    [ -s "$PID_FILE" ] && break
+    sleep 0.2
+  done
+) 9>"$STATE/start.lock"
 
 if [ "${MAGPIE_HEADLESS_VERBOSE:-}" = 1 ]; then
   echo "đang bật ở nền; log: $STATE/headless.log"

@@ -16,6 +16,14 @@ GW_ADDR="${MAGPIE_ADDR:-127.0.0.1:3425}"
 
 mkdir -p "$STATE" "$CONF"
 
+# Chỉ một supervisor. Khoá giữ suốt đời tiến trình (fd 9 được con thừa hưởng),
+# nên bản thứ hai thoát ngay thay vì quay vòng bind cổng 3430 rồi restart mỗi 3s.
+exec 9>"$STATE/headless.lock"
+if ! flock -n 9; then
+  printf '[%s] supervisor khác đang giữ lock — thoát\n' "$(date -Is)" >> "$LOG"
+  exit 0
+fi
+
 if [ ! -s "$KEY_FILE" ]; then
   head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n' > "$KEY_FILE"
   chmod 600 "$KEY_FILE"
