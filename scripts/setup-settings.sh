@@ -2,7 +2,8 @@
 # setup-settings.sh — đặt cấu hình magpie giống máy tham chiếu:
 #   - settings.json: theme, ngôn ngữ, vision model, image model, check-in, cỡ chữ…
 #   - provider: opencode-zen bật nhưng chỉ expose jev-1.13-free (classifier); opencode-zen-free tắt
-#     (free tier qua API key bị chặn, đường plugin cạn theo IP dùng chung — xem docs/zen-free.md)
+#     (free tier qua API key bị chặn, đường plugin cạn theo IP dùng chung — xem docs/zen-free.md);
+#     kilo và qoder tắt hẳn; workbuddy-ai bỏ model hy3 (không group nào dùng)
 #
 # Chỉ **thêm khoá còn thiếu**, không ghi đè giá trị bạn đã đặt. Chạy lại vô hại.
 #
@@ -30,16 +31,27 @@ has_model() { printf '%s\n' "$models" | grep -Fxq "$1"; }
 # ---------------------------------------------------------------- provider
 say "provider: opencode-zen bật (chỉ jev-1.13-free) · opencode-zen-free tắt"
 # jev-1.13-free là model phân loại nội bộ, không bị chặn free tier và không hiện cho
-# agent; các model free còn lại của Zen đã 429 nên không expose.
-ZEN_ONLY=(beam-free flint-40b-free mimo-v2.6-flash-free nemotron-3.5-super-vl-free
-          nemotron-3.5-lightning-free deepseek-v4.1-flash-free glm-5.3-flash-free jev-1.13)
+# agent; các model free còn lại của Zen đã 429 nên không expose. Catalog đổi liên tục
+# (model mới tự được expose), nên không dùng danh sách trừ cố định: đọc danh sách đang
+# expose rồi bỏ hết trừ jev-1.13-free.
+ZEN_KEEP="jev-1.13-free"
+zen_drop_list() { # in ra từng model đang expose, trừ ZEN_KEEP
+  magpie provider opencode-zen 2>/dev/null \
+    | awk '/opencode-zen\// {print $1}' \
+    | sed 's|^opencode-zen/||' \
+    | grep -vx "$ZEN_KEEP" || true
+}
 if [ "$DRY" = 1 ]; then
   printf '  \033[2m[dry-run]\033[0m magpie provider on opencode-zen\n'
   printf '  \033[2m[dry-run]\033[0m magpie provider models opencode-zen +jev-1.13-free\n'
-  for m in "${ZEN_ONLY[@]}"; do
+  while IFS= read -r m; do
+    [ -n "$m" ] || continue
     printf '  \033[2m[dry-run]\033[0m magpie provider models opencode-zen -%s\n' "$m"
-  done
+  done < <(zen_drop_list)
   printf '  \033[2m[dry-run]\033[0m magpie provider off opencode-zen-free\n'
+  printf '  \033[2m[dry-run]\033[0m magpie provider off kilo\n'
+  printf '  \033[2m[dry-run]\033[0m magpie provider off qoder\n'
+  printf '  \033[2m[dry-run]\033[0m magpie provider models workbuddy-ai -hy3\n'
 else
   if magpie provider on opencode-zen >/dev/null 2>&1; then
     ok "opencode-zen đang bật"
@@ -49,21 +61,34 @@ else
   magpie provider models opencode-zen +jev-1.13-free >/dev/null 2>&1 \
     && ok "opencode-zen expose jev-1.13-free" \
     || warn "không expose được jev-1.13-free — classifier sẽ không đặt được"
-  for m in "${ZEN_ONLY[@]}"; do
+  while IFS= read -r m; do
+    [ -n "$m" ] || continue
     magpie provider models opencode-zen -"$m" >/dev/null 2>&1
-  done
+  done < <(zen_drop_list)
   ok "opencode-zen chỉ còn jev-1.13-free"
   if magpie provider off opencode-zen-free >/dev/null 2>&1; then
     ok "opencode-zen-free đang tắt (plugin vẫn cài, bật lại được)"
   else
     warn "không tắt được opencode-zen-free (chưa cài plugin?) — bỏ qua"
   fi
+
+  # Không nằm trong ladder nào: tắt hẳn để danh sách model chỉ còn thứ đang dùng.
+  for p in kilo qoder; do
+    if magpie provider off "$p" >/dev/null 2>&1; then
+      ok "provider $p đang tắt"
+    else
+      warn "không tắt được $p (chưa thêm?) — bỏ qua"
+    fi
+  done
+  # WorkBuddy: chỉ giữ model có trong group; hy3 không dùng ở đâu.
+  magpie provider models workbuddy-ai -hy3 >/dev/null 2>&1 \
+    && ok "workbuddy-ai: bỏ hy3 khỏi danh sách expose"
 fi
 
 # ---------------------------------------------------------------- settings
 # Giá trị lấy từ máy tham chiếu (magpie 0.1.1763). vision/imageGen chỉ đặt khi
 # model tương ứng đã có, để UI không trỏ vào model không tồn tại.
-VISION="workbuddy-ai/deepseek-v4.1-flash"
+VISION="workbuddy-ai/hy4free"
 IMAGE="workbuddy-ai/hy-image-3.5"
 
 seed='{

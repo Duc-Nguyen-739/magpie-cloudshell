@@ -1,7 +1,7 @@
 # magpie trên Cloud Shell — cài một lần, chỉ còn đăng nhập
 
 Dựng lại **đúng** cấu hình magpie đang chạy trên một máy Cloud Shell thật: 6 provider,
-2 routing group (`Main`, `Code`), OpenCode + OpenChamber trỏ vào `group/main`, chạy
+3 routing group (`Main`, `Code`, `GLM`), OpenCode + OpenChamber trỏ vào `group/main`, chạy
 headless không cần systemd, và hai lệnh `openchamber` / `openmagpie` in ra **link web đã
 kèm key** — bấm là vào, không phải dán gì.
 
@@ -181,7 +181,7 @@ Nếu bạn đăng nhập **trong web UI** (cách dùng trên Cloud Shell), lầ
 bash scripts/finish.sh
 ```
 
-Nó tạo (hoặc cập nhật) bốn group và trỏ OpenCode + OpenChamber vào `group/main`:
+Nó tạo (hoặc cập nhật) ba group và trỏ OpenCode + OpenChamber vào `group/main`:
 
 | | `group/main` | `group/code` |
 |---|---|---|
@@ -189,13 +189,12 @@ Nó tạo (hoặc cập nhật) bốn group và trỏ OpenCode + OpenChamber và
 | routing / stays | `order` / `session` | `order` / `turn` |
 | levels / effort | `low,high,max` / `auto` | `low,high,max` / `auto` |
 | classifier | `opencode-zen/jev-1.13-free` | `opencode-zen/jev-1.13-free` |
-| rule | ảnh → DeepSeek V4.1 Flash; nén → GLM-5.3 Flash | 4 intent (plan, code, test, review) + ảnh |
+| rule | ảnh → Hy4; nén → GLM-5.3 Flash | 4 intent (plan, code, test, review) + ảnh → Hy4 |
 
-Ngoài ra `group/glm` (Tester: 6 model GLM, `zaicoding_glm-5.3` đầu, `stays=auto`) và
-`group/deepseek` (dự phòng: 2 endpoint DeepSeek, `stays=turn`), cả hai không rule,
-không classifier.
+Ngoài ra `group/glm` (Tester: 5 model GLM, `zaicoding_glm-5.3` đầu, `stays=auto`),
+không rule, không classifier.
 
-Ladder 6 model (thứ tự fallback, WorkBuddy + AutoClaw):
+Ladder 5 model (thứ tự fallback, WorkBuddy + AutoClaw):
 [`docs/groups.md`](docs/groups.md) · [`docs/zen-free.md`](docs/zen-free.md).
 
 Chạy lại `finish.sh` sau khi đăng nhập thêm provider để lấp đủ model vào group —
@@ -236,7 +235,7 @@ scripts/
   setup-settings.sh         settings.json + trạng thái provider (chỉ thêm khoá thiếu)
   autoclaw-link.sh          in link localhost/preview để đăng nhập AutoClaw
   login.sh                  trạng thái + đăng nhập từng provider
-  setup-groups.sh           group/main, code, glm, deepseek (--force, --dry-run)
+  setup-groups.sh           group/main, code, glm (--force, --dry-run)
   setup-agents.sh           trỏ agent vào group/main
   finish.sh                 setup-groups + setup-agents + doctor
   doctor.sh                 kiểm tra sức khoẻ toàn bộ

@@ -28,11 +28,12 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   `opencode-zen-free` **tắt**, `opencode-zen` (API key) **bật nhưng chỉ mở
   `jev-1.13-free`** làm classifier — free tier qua API key bị chặn ở upstream, đường
   plugin cũng cạn theo IP dùng chung; xem [`docs/zen-free.md`](docs/zen-free.md).
-- Bốn routing group: `group/main`, `group/code` (cùng một ladder 6 model), `group/glm`
-  (Tester, GLM đứng đầu), `group/deepseek` (dự phòng, chỉ DeepSeek).
-- Ladder 6 model: DeepSeek (WorkBuddy) → GLM (AutoClaw, WorkBuddy), dừng ở WorkBuddy GLM;
-  không còn rung OpenCode Zen nào (xem [`docs/zen-free.md`](docs/zen-free.md));
-  classifier `opencode-zen/jev-1.13-free`.
+- Ba routing group: `group/main`, `group/code` (cùng một ladder 5 model), `group/glm`
+  (Tester, GLM đứng đầu). `group/deepseek` đã bỏ.
+- Ladder 5 model: `workbuddy-ai/deepseek-v4.1-flash-sg` → GLM (AutoClaw, WorkBuddy) →
+  `workbuddy-ai/hy4free` (đọc ảnh); classifier `opencode-zen/jev-1.13-free`.
+- Provider đang tắt: `kilo`, `qoder`, `opencode-zen-free`. WorkBuddy chỉ expose
+  `deepseek-v4.1-flash-sg`, `glm-5.3-flash`, `hy4free`.
 - OpenCode + OpenChamber trỏ `group/main`; agent `leader` + 2 subagent `coder`, `tester`;
   skill `magpie-setup`.
 - Supervisor bash giữ gateway + web UI sống; hai lệnh `openchamber` / `openmagpie` in

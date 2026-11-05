@@ -101,7 +101,8 @@ magpie provider test kilo
 ```
 
 353 model; repo không đưa model Kilo vào group hay agent nào — key là tuỳ chọn, dùng
-khi muốn thêm model ngoài ladder.
+khi muốn thêm model ngoài ladder. **Đang tắt** (`magpie provider off kilo`) để danh sách
+model chỉ còn thứ ladder dùng; bật lại bằng `magpie provider on kilo`.
 
 ### OpenCode Zen Free — `opencode-zen-free`
 

@@ -66,7 +66,7 @@ Lệnh tiện dụng tự viết trong `~/.local/bin`:
 opencode-zen-freex                          phục vụ opencode-zen-free
 ```
 
-## Routing group (4)
+## Routing group (3)
 
 | | `group/main` | `group/code` |
 |---|---|---|
@@ -76,27 +76,26 @@ opencode-zen-freex                          phục vụ opencode-zen-free
 | levels | `low,high,max` | `low,high,max` |
 | effort | `auto` | `auto` |
 | classifier | `opencode-zen/jev-1.13-free` | `opencode-zen/jev-1.13-free` |
-| rule | ảnh → deepseek-v4.1-flash; compact → glm-5.3-flash | 4 intent + ảnh (test → zaicoding_glm) |
+| rule | ảnh → hy4free; compact → glm-5.3-flash | 4 intent + ảnh → hy4free (test → zaicoding_glm) |
 | agent dùng | Leader, OpenCode, OpenChamber | Coder |
 
-Hai group còn lại không rule, không classifier:
+Group còn lại không rule, không classifier:
 
-| | `group/glm` | `group/deepseek` |
-|---|---|---|
-| Dùng cho | Tester | dự phòng (không agent nào trỏ) |
-| routing / stays | `order` / `auto` | `order` / `turn` |
-| levels | `low,high,max` | `low,high,max` |
-| model | 6 model GLM, `zaicoding_glm-5.3` đầu | 2 endpoint DeepSeek |
+| | `group/glm` |
+|---|---|
+| Dùng cho | Tester |
+| routing / stays | `order` / `auto` |
+| levels | `low,high,max` |
+| model | 5 model GLM, `zaicoding_glm-5.3` đầu |
 
-Thứ tự 6 model trong `main` và `code` (DeepSeek trước, GLM sau):
+Thứ tự 5 model trong `main` và `code` (DeepSeek trước, GLM sau, ảnh cuối):
 
 ```
-1 workbuddy-ai/deepseek-v4.1-flash
-2 workbuddy-ai/deepseek-v4.1-flash-sg
-3 autoclaw/zaicoding_glm-5.3
-4 autoclaw/zai_glm-5.3-flash
-5 workbuddy-ai/glm-5.3
-6 workbuddy-ai/glm-5.3-flash
+1 workbuddy-ai/deepseek-v4.1-flash-sg
+2 autoclaw/zaicoding_glm-5.3
+3 autoclaw/zai_glm-5.3-flash
+4 workbuddy-ai/glm-5.3-flash
+5 workbuddy-ai/hy4free
 ```
 
 ## Agent được magpie quản lý
@@ -156,7 +155,7 @@ Thứ tự 6 model trong `main` và `code` (DeepSeek trước, GLM sau):
 | `tray` | `panel` | menu bar mở panel |
 | `currency` | `usd` | giá hiển thị bằng USD |
 | `updateEvery` | `360` | kiểm tra cập nhật mỗi 360 phút |
-| `vision` | `workbuddy-ai/deepseek-v4.1-flash` | model đọc ảnh cho tool vision |
+| `vision` | `workbuddy-ai/hy4free` | model đọc ảnh cho tool vision |
 | `visionEffort` | `max` | mức reasoning cho vision |
 | `imageGen` | `workbuddy-ai/hy-image-3.5` | model tạo ảnh |
 | `trayUsageEvery` | `3` | nhịp cập nhật usage trên tray |
@@ -172,7 +171,7 @@ Thứ tự 6 model trong `main` và `code` (DeepSeek trước, GLM sau):
 |---|---|---|
 | magpie binary | ✅ | installer chính thức hoặc `--from-source` (clone yetone/magpie) |
 | 6 plugin provider | ✅ | `scripts/plugins.sh` |
-| 2 routing group | ✅ | **giống hệt** cấu hình máy này (đã so JSON) |
+| 3 routing group | ✅ | **giống hệt** cấu hình máy này (đã so JSON) |
 | settings.json | ✅ | chỉ thêm khoá thiếu |
 | `opencode-zen` bật, chỉ expose `jev-1.13-free`; `opencode-zen-free` tắt | ✅ | `setup-settings.sh` |
 | OpenCode + provider `magpie` | ✅ | magpie tự ghi `opencode.jsonc` |
@@ -193,9 +192,9 @@ Thứ tự 6 model trong `main` và `code` (DeepSeek trước, GLM sau):
 OpenCode ─┐
           ├─→ magpie gateway 127.0.0.1:3425 ─→ group/main ─┬─→ workbuddy-ai (OAuth)
 OpenChamber┘                                              ├─→ autoclaw     (OAuth)
-                                                          ├─→ qoder        (OAuth)
+                                                          ├─→ qoder        (OAuth, đang tắt)
 Gemini CLI ─→ (magpie đặt auth) ──────────────────────────┤
-                                                          └─→ kilo         (API key)
+                                                          └─→ kilo         (API key, đang tắt)
 
 group/main · classifier ─→ opencode-zen/jev-1.13-free  (chỉ model này, không vào ladder)
 ```

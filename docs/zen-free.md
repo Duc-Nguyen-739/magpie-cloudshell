@@ -4,7 +4,7 @@ Tóm tắt: **kết cục** — `opencode-zen-free` (plugin, không cần key) *
 tính theo **IP dùng chung** đã cạn và không hồi lại. `opencode-zen` (API key) **bật** nhưng
 **chỉ expose đúng `jev-1.13-free`**, dùng làm **classifier** cho `group/main`/`group/code`;
 7 model free còn lại bị **429** ở upstream cho toàn bộ model free nên bỏ khỏi danh sách
-expose. Ladder của `group/main`/`group/code` còn **6 rung** (WorkBuddy + AutoClaw), không
+expose. Ladder của `group/main`/`group/code` còn **5 rung** (WorkBuddy + AutoClaw), không
 còn rung OpenCode nào. File này giữ lại làm **bản ghi bằng chứng** đo được, cùng cách kiểm
 tra và cách bật lại nếu sau này muốn thử.
 
@@ -114,28 +114,21 @@ Tắt `opencode-zen-free` bằng `magpie provider off`, **không** `rm`: plugin 
 `magpie provider on opencode-zen-free` là xong. Muốn xoá hẳn key thì mới chạy
 `magpie provider rm opencode-zen` (không hoàn lại được).
 
-**`group/main` và `group/code` — 6 rung, thứ tự = thứ tự fallback:**
+**`group/main` và `group/code` — 5 rung, thứ tự = thứ tự fallback:**
 
 ```
-1 workbuddy-ai/deepseek-v4.1-flash
-2 workbuddy-ai/deepseek-v4.1-flash-sg
-3 autoclaw/zaicoding_glm-5.3
-4 autoclaw/zai_glm-5.3-flash
-5 workbuddy-ai/glm-5.3
-6 workbuddy-ai/glm-5.3-flash
+1 workbuddy-ai/deepseek-v4.1-flash-sg
+2 autoclaw/zaicoding_glm-5.3
+3 autoclaw/zai_glm-5.3-flash
+4 workbuddy-ai/glm-5.3-flash
+5 workbuddy-ai/hy4free
 ```
 
-**`group/glm` — 6 model:**
+**`group/glm` — 5 model:**
 
 ```
 autoclaw/zaicoding_glm-5.3, autoclaw/zai_glm-5.3-flash, autoclaw/zai_auto-fast,
-autoclaw/zai_auto, workbuddy-ai/glm-5.3, workbuddy-ai/glm-5.3-flash
-```
-
-**`group/deepseek` — 2 model:**
-
-```
-workbuddy-ai/deepseek-v4.1-flash, workbuddy-ai/deepseek-v4.1-flash-sg
+autoclaw/zai_auto, workbuddy-ai/glm-5.3-flash
 ```
 
 **Classifier** của `group/main` và `group/code`: `opencode-zen/jev-1.13-free` — model phân
@@ -199,13 +192,12 @@ magpie models | grep -E '^[[:space:]]+opencode-zen/'
 # "magpie provider models opencode-zen +<model> exposes one" — đó không phải model.
 
 magpie group main
-# 6 rung đúng thứ tự mục 5, dòng cuối: workbuddy-ai/glm-5.3-flash
+# 5 rung đúng thứ tự mục 5, dòng cuối: workbuddy-ai/hy4free
 # dòng classifier:
 #   opencode-zen/jev-1.13-free
 #   effort  auto
 
-magpie group glm           # 6 model
-magpie group deepseek      # 2 model
+magpie group glm           # 5 model
 # không còn model opencode-zen nào trong group
 
 curl -s -m 90 http://127.0.0.1:3425/v1/chat/completions \
@@ -260,8 +252,9 @@ git revert <commit> && bash scripts/finish.sh
 ```
 
 `git revert` trả `scripts/setup-groups.sh` và `scripts/setup-settings.sh` về trạng thái
-trước (classifier `workbuddy-ai/hy3`, `opencode-zen` tắt); ladder vẫn **6 rung** vì vòng
-trước đã bỏ hai rung OpenCode. `finish.sh` áp lại lên máy. Nếu không muốn revert, thêm tay
+trước (classifier `workbuddy-ai/hy3`, `opencode-zen` tắt); ladder trở lại **6 rung** vì
+bản đó còn hai rung OpenCode đã bị bỏ sau này. `finish.sh` áp lại lên máy. Nếu không muốn
+revert, thêm tay
 hai model vào group:
 
 ```sh

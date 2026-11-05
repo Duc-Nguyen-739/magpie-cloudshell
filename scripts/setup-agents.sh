@@ -20,12 +20,15 @@ run() {
 
 command -v magpie >/dev/null 2>&1 || { echo "chưa có magpie trên PATH" >&2; exit 1; }
 
-# group/main phải tồn tại trước
-if ! magpie groups 2>/dev/null | grep -q "group/main"; then
+# group/main phải tồn tại trước. Đọc vào biến rồi mới grep: grep -q trên pipe làm grep
+# thoát sớm, magpie ăn SIGPIPE (141) và với pipefail cả pipeline báo lỗi oan.
+groups_now="$(magpie groups 2>/dev/null || true)"
+if ! printf '%s\n' "$groups_now" | grep -q "group/main"; then
   warn "chưa có group/main — chạy bash scripts/setup-groups.sh trước"
 fi
 
-have_agent() { magpie ls 2>/dev/null | grep -qiE "^[[:space:]]*$1[[:space:]]"; }
+agents_now="$(magpie ls 2>/dev/null || true)"
+have_agent() { printf '%s\n' "$agents_now" | grep -qiE "^[[:space:]]*$1[[:space:]]"; }
 
 # ------------------------------------------------------------------ OpenCode
 if have_agent "OpenCode"; then

@@ -67,7 +67,7 @@ signed="$(magpie accounts 2>/dev/null | grep -c '^●' || true)"
 
 head_ "Routing group"
 groups_now="$(magpie groups 2>/dev/null || true)"
-for g in main code; do
+for g in main code glm; do
   if printf '%s\n' "$groups_now" | grep -q "group/$g"; then
     n="$(magpie group "$g" 2>/dev/null | awk '
       /^  models / {inm = 1; c = 1; next}
@@ -81,8 +81,9 @@ for g in main code; do
 done
 
 head_ "Agent"
+agents_now="$(magpie ls 2>/dev/null || true)"
 for a in opencode openchamber; do
-  if magpie ls 2>/dev/null | grep -qiE "^[[:space:]]*$a[[:space:]]"; then
+  if printf '%s\n' "$agents_now" | grep -qiE "^[[:space:]]*$a[[:space:]]"; then
     line="$(magpie "$a" 2>/dev/null | head -2 | tr -s ' ')"
     case "$line" in
       *group/main*) ok "$a → group/main" ;;
