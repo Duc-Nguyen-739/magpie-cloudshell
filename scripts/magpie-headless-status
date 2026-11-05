@@ -11,10 +11,10 @@ PORT="${MAGPIE_WEB_PORT:-3430}"
 
 running=no
 [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null && running=yes
-pgrep -f '^magpie serve' >/dev/null 2>&1 && gw=yes || gw=no
+pgrep -f '^(.*/)?magpie serve' >/dev/null 2>&1 && gw=yes || gw=no
 
 echo "supervisor : $running  (pid $(cat "$PID_FILE" 2>/dev/null || echo '-'))"
-echo "gateway    : $gw  http://127.0.0.1:${MAGPIE_ADDR##*:}"
+echo "gateway    : $gw  http://${MAGPIE_ADDR:-127.0.0.1:3425}"
 if magpie healthcheck >/dev/null 2>&1; then echo "health     : ok"; else echo "health     : không trả lời"; fi
 echo
 echo "link local : http://127.0.0.1:$PORT/?k=$KEY"

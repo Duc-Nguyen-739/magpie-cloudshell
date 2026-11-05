@@ -14,9 +14,16 @@ else
   echo "supervisor không chạy"
 fi
 
-# Khớp neo ở argv[0]: một shell đang gõ "magpie serve" không bị giết nhầm.
-for pid in $(pgrep -f '^magpie serve' 2>/dev/null); do
+# Khớp theo argv[0]: đường dẫn đầy đủ (~/.local/bin/magpie serve) hoặc tên trần.
+# Một shell đang gõ "magpie serve" có argv[0] là bash nên không bị giết nhầm.
+for pid in $(pgrep -f '^(.*/)?magpie serve' 2>/dev/null); do
   kill "$pid" 2>/dev/null && echo "đã dừng gateway (pid $pid)"
+done
+
+# Chờ gateway thoát hẳn; start ngay sau đó sẽ đụng cổng nếu tiến trình còn sống.
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+  pgrep -f '^(.*/)?magpie serve' >/dev/null 2>&1 || break
+  sleep 0.5
 done
 
 exit 0
