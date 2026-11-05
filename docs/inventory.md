@@ -76,7 +76,7 @@ opencode-zen-freex                          phục vụ opencode-zen-free
 | levels | `low,high,max` | `low,high,max` |
 | effort | `auto` | `auto` |
 | classifier | `opencode-zen/jev-1.13-free` | `opencode-zen/jev-1.13-free` |
-| rule | ảnh → hy4free; compact → hy4free | compact → hy4free; 4 intent + ảnh → hy4free (test → GLM, flash đầu) |
+| rule | ảnh → hy4free; compact → hy4free, glm-5.3-flash | compact → hy4free, glm-5.3-flash; 4 intent + ảnh → hy4free (test → GLM, flash đầu) |
 | agent dùng | OpenCode (chat) | Leader, Coder, OpenChamber |
 
 Group còn lại không rule, không classifier:

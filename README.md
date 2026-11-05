@@ -189,7 +189,7 @@ Nó tạo (hoặc cập nhật) ba group và trỏ OpenCode + OpenChamber vào `
 | routing / stays | `order` / `session` | `order` / `turn` |
 | levels / effort | `low,high,max` / `auto` | `low,high,max` / `auto` |
 | classifier | `opencode-zen/jev-1.13-free` | `opencode-zen/jev-1.13-free` |
-| rule | ảnh → Hy4; nén → Hy4 | nén → Hy4 (free); 4 intent (plan, code, test, review) + ảnh → Hy4 |
+| rule | ảnh → Hy4; nén → Hy4, GLM Flash | nén → Hy4, GLM Flash; 4 intent (plan, code, test, review) + ảnh → Hy4 |
 
 Ngoài ra `group/glm` (Tester: 3 model GLM, `zai_glm-5.3-flash` đầu, `stays=auto`),
 không rule, không classifier.

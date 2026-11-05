@@ -26,7 +26,7 @@ magpie group set main classifier=opencode-zen/jev-1.13-free
 magpie group set main effort=auto
 
 magpie group rule add main use=workbuddy-ai/hy4free images
-magpie group rule add main use=workbuddy-ai/hy4free compact
+magpie group rule add main use=workbuddy-ai/hy4free,workbuddy-ai/glm-5.3-flash compact
 ```
 
 ### `group/code` — công việc code
@@ -41,9 +41,9 @@ magpie group set code levels=low,high,max
 magpie group set code classifier=opencode-zen/jev-1.13-free
 magpie group set code effort=auto
 
-# Đứng đầu để bước nén không bị rule intent giành mất. Chỉ hy4free: nó 1M và free;
-# hy3 cũng free nhưng chỉ 192K nên không nhận được hội thoại dài.
-magpie group rule add code use=workbuddy-ai/hy4free compact
+# Đứng đầu để bước nén không bị rule intent giành mất. hy4free trước (free, 1M);
+# hy4free lỗi hoặc bị limit thì nhảy sang GLM-5.3 Flash (cũng 1M, rẻ).
+magpie group rule add code use=workbuddy-ai/hy4free,workbuddy-ai/glm-5.3-flash compact
 
 magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash-sg \
   intent="asking for a detailed plan before any code is written (lên plan, lập kế hoạch chi tiết)"
@@ -112,7 +112,7 @@ khó. Classifier chỉ là model *phụ*: nó không nằm trong ladder, không 
 vẫn ở sau làm fallback.
 
 - `images` → `workbuddy-ai/hy4free`: đây là model đọc ảnh trong ladder hiện tại.
-- `compact` → `workbuddy-ai/hy4free`: nén hội thoại chỉ cần model free 1M, không tốn credit.
+- `compact` → `workbuddy-ai/hy4free` rồi `workbuddy-ai/glm-5.3-flash`: nén hội thoại chỉ cần model free 1M; hy4free lỗi hoặc bị limit thì GLM flash nhận.
 - `intent=…` → 4 kiểu việc code, chia theo bước: lên plan → viết code → test → review.
   Riêng bước test/review dùng GLM-5.3 vì nó kỹ hơn ở việc đọc lỗi.
 

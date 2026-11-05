@@ -90,7 +90,7 @@ magpie group main
 - `routing=order`, `stays=session`, `levels=low,high,max`
 - `effort=auto` + classifier `opencode-zen/jev-1.13-free`
 - Rule `images` → `workbuddy-ai/hy4free`
-- Rule `compacting` → `workbuddy-ai/hy4free`
+- Rule `compacting` → `workbuddy-ai/hy4free`, `workbuddy-ai/glm-5.3-flash`
 
 | # | Model | Ghi chú |
 |---|---|---|
@@ -116,7 +116,7 @@ magpie group code
 
 | # | Rule | Model |
 |---|---|---|
-| 1 | `compacting` | `workbuddy-ai/hy4free` |
+| 1 | `compacting` | `workbuddy-ai/hy4free`, `workbuddy-ai/glm-5.3-flash` |
 | 2 | `intent` lên plan chi tiết | `workbuddy-ai/deepseek-v4.1-flash-sg` |
 | 3 | `intent` viết/sửa code | `workbuddy-ai/deepseek-v4.1-flash-sg` |
 | 4 | `intent` chạy test / kiểm tra code vừa viết | `autoclaw/zai_glm-5.3-flash`, `autoclaw/zaicoding_glm-5.3`, `workbuddy-ai/glm-5.3-flash` |
@@ -196,14 +196,14 @@ magpie group add "Main" \
   routing=order stays=session
 magpie group set main levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 magpie group rule add main use=workbuddy-ai/hy4free images
-magpie group rule add main use=workbuddy-ai/hy4free compact
+magpie group rule add main use=workbuddy-ai/hy4free,workbuddy-ai/glm-5.3-flash compact
 
 # 2) Code — Leader + Coder, cùng ladder Main, rule intent + compact
 magpie group add "Code" \
   models=workbuddy-ai/deepseek-v4.1-flash-sg,autoclaw/zai_glm-5.3-flash,autoclaw/zaicoding_glm-5.3,workbuddy-ai/glm-5.3-flash,workbuddy-ai/hy4free \
   routing=order stays=turn
 magpie group set code levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
-magpie group rule add code use=workbuddy-ai/hy4free compact
+magpie group rule add code use=workbuddy-ai/hy4free,workbuddy-ai/glm-5.3-flash compact
 magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash-sg \
   intent="asking for a detailed plan before any code is written (lên plan, lập kế hoạch chi tiết)"
 magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash-sg \
