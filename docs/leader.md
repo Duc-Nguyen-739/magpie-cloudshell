@@ -238,7 +238,7 @@ magpie group glm           # 3 model GLM, zai_glm-5.3-flash đầu
 magpie groups              # tổng hợp + agent nào dùng
 
 grep -H '^model:' ~/.config/opencode/agents/{leader,coder,tester}.md
-magpie opencode            # magpie/group/main (chat), small magpie/workbuddy-ai/hy4free
+magpie opencode            # magpie/group/main (chat), small magpie/workbuddy-ai/hy3
 magpie openchamber         # model chọn trong UI, mặc định group/code
 ```
 
