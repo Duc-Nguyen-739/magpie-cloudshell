@@ -4,30 +4,32 @@ OpenCode không gọi thẳng WorkBuddy/AutoClaw. Nó gọi **một** provider t
 trỏ vào gateway local; magpie mới là chỗ biết model nào thuộc provider nào.
 
 ```
-opencode  ──HTTP──▶  http://127.0.0.1:3425/v1  ──▶  group/main  ──▶  provider thật
+opencode    ──HTTP──▶  http://127.0.0.1:3425/v1  ──▶  group/main    ──▶  provider thật
+openchamber ──HTTP──▶  http://127.0.0.1:3425/v1  ──▶  group/leader  ──▶  provider thật
 ```
 
-## magpie ghi gì vào `opencode.jsonc`
+## magpie ghi gì vào `opencode.json`
 
-Khi bạn chạy `magpie opencode group/main`, magpie sửa `~/.config/opencode/opencode.jsonc`
-(giữ nguyên comment, thứ tự, định dạng) và thêm/cập nhật:
+Khi bạn chạy `magpie opencode group/main`, magpie sửa
+`~/.config/opencode/opencode.json` (giữ nguyên phần còn lại) và thêm/cập nhật:
 
-```jsonc
+```json
 {
   "model": "magpie/group/main",
-  "provider": {
+  "providers": {
     "magpie": {
       "name": "magpie",
-      "npm": "@ai-sdk/openai-compatible",
-      "options": {
+      "package": "aisdk:@ai-sdk/openai-compatible",
+      "compatibility": { "supportsPromptCacheKey": true },
+      "settings": {
         "baseURL": "http://127.0.0.1:3425/v1",
         "apiKey": "magpie"
       },
       "models": {
-        "group/main": { "name": "Main", ... },
-        "group/code": { "name": "Code", ... },
-        "autoclaw/zai_auto": { ... },
-        "...": {}
+        "group/main":   { "name": "Main · routing group",   "limit": { "context": 1000000, "output": 128000 }, "variants": [ … ] },
+        "group/leader": { "name": "Leader · routing group", … },
+        "autoclaw/zai_glm-5.3-flash": { … },
+        "…": {}
       }
     }
   }
@@ -35,56 +37,64 @@ Khi bạn chạy `magpie opencode group/main`, magpie sửa `~/.config/opencode/
 ```
 
 - `apiKey: "magpie"` là chuỗi giả — gateway local không kiểm tra key. Đừng đổi thành key thật.
-- Danh sách `models` do magpie sinh từ provider đang có: thêm provider mới là model mới
-  tự hiện ra (máy tham chiếu: **70 model**).
-- **Đừng sửa tay khối `provider.magpie`**: lần sau magpie ghi đè. Muốn đổi thì đổi ở magpie
-  (`magpie provider …`, `magpie group …`, `magpie model name …`) rồi chạy lại lệnh `magpie opencode …`.
+- Danh sách `models` do magpie sinh từ provider đang có: máy này **16 model** = 6
+  `group/*` + 10 model lẻ. Thêm provider mới là model mới tự hiện ra.
+- Mỗi group có `variants` `low`/`high`/`max` đúng bằng levels của group; gọi
+  `magpie/group/main#high` là chọn mức đó.
+- **Đừng sửa tay khối `providers.magpie`**: lần sau magpie ghi đè. Muốn đổi thì đổi ở
+  magpie (`magpie provider …`, `magpie group …`, `magpie model name …`) rồi chạy lại
+  `magpie opencode …`.
 
 OpenCode V2 tự nạp lại cấu hình khi file đổi; agent đang chạy vẫn giữ model của phiên
 hiện tại — mở phiên mới.
 
 ## Provider khác trong cùng file
 
-Máy tham chiếu còn 5 provider **gọi thẳng**, không qua magpie:
+Máy này còn ba provider khai báo nhưng **đều tắt** trong `disabled_providers`:
 
-```jsonc
-"bynara":    { "npm": "@ai-sdk/openai-compatible", "options": { "baseURL": "https://router.bynara.id/v1" },  "models": { … } },
-"kiraai":    { … "https://kiraai.vn/api/v1" },
-"kiro":      { … "https://api.xkiro.com/v1" },
-"pendraa":   { … "https://api.pendra.ai/api/v1" },
-"amdradeon": { … "https://developer.amd.com.cn/radeon/api/v1" }
+```json
+"kiraai":      { "package": "aisdk:@ai-sdk/openai-compatible", "settings": { "baseURL": "https://kiraai.vn/api/v1" } },
+"takenbarbor": { … },
+"dsh":         { … }
 ```
 
-Đây là lựa chọn riêng (relay/key riêng), repo không kèm key. Cách gọn hơn là đưa vào
-magpie để mọi agent dùng chung — xem `docs/providers.md` mục "Thêm relay".
+`kilo` cũng nằm trong `disabled_providers` vì đã dùng `kilo/reflection/beam-free` qua
+magpie, không cần gọi thẳng. Đây là lựa chọn riêng (relay/key riêng), repo không kèm
+key. Cách gọn hơn là đưa vào magpie để mọi agent dùng chung — xem `docs/providers.md`
+mục "Thêm relay".
 
-## Agent tự viết (leader, coder, tester)
+## Agent tự viết (leader + 4 subagent)
 
-`~/.config/opencode/agents/` chứa ba agent tự viết, mỗi file có frontmatter chọn model:
+`~/.config/opencode/agents/` chứa năm agent, mỗi file có frontmatter chọn model:
 
 | File | Vai trò | Model |
 |---|---|---|
-| `leader.md` | primary; viết plan kỹ thuật có `TÌM`/`THAY` + lệnh nghiệm thu, giao Coder/Tester, review và duyệt | `magpie/group/main#high` |
-| `coder.md` | viết code theo plan của Leader, không tự lên plan | `magpie/group/code` |
-| `tester.md` | chạy test, báo lỗi chính xác, không sửa code | `magpie/group/glm` |
+| `leader.md` | primary; viết plan kỹ thuật có `TÌM`/`THAY` + lệnh nghiệm thu, giao Coder/Tester, review và duyệt | `magpie/group/leader#max` |
+| `coder.md` | viết code theo plan của Leader, không tự lên plan | `magpie/group/coder` |
+| `tester.md` | chạy test, báo lỗi chính xác, không sửa code | `magpie/group/tester` |
+| `tester2.md` | tester độc lập chạy song song; soi test rỗng, case biên, regression | `magpie/group/tester-2` |
+| `tester3.md` | tester thứ ba; soi hợp đồng dữ liệu, hành vi runtime, tác dụng phụ | `magpie/group/tester-3` |
 
-`scripts/setup-opencode.sh` copy ba file này vào và **tự lùi model về `magpie/group/main`**
-nếu máy chưa có model/group đó. Sửa model bằng cách sửa dòng `model:`.
+`scripts/setup-opencode.sh` copy năm file này vào và **tự lùi model về
+`magpie/group/main`** nếu máy chưa có group/model đó. Sửa model bằng cách sửa dòng
+`model:`.
 
-Leader chỉ được gọi `coder` và `tester`; Coder/Tester đặt
+Leader chỉ được gọi `coder`, `tester`, `tester2`, `tester3`; các subagent đặt
 `permissions: subagent resource:"*" effect: deny` — không được tự gọi agent khác.
 
 ## Skill dùng chung
 
-`~/.config/opencode/skills/magpie-setup` — skill hướng dẫn agent thao tác magpie đúng cách
-(nguồn: [magpie-community/plugins](https://github.com/magpie-community/plugins/tree/main/skills/magpie-setup)).
-Trên máy tham chiếu nó là symlink vào `~/.config/magpie/library/skills/magpie-setup` do
-magpie quản lý; `scripts/setup-opencode.sh` copy bản tương đương nếu bạn không dùng Library.
+`~/.config/opencode/skills/magpie-skills` — bundle skill do magpie quản lý (symlink vào
+`~/.config/magpie/skill-router/<hash>`), trong đó có `magpie-setup`: hướng dẫn agent thao
+tác magpie đúng cách. Nguồn:
+[magpie-community/plugins](https://github.com/magpie-community/plugins/tree/main/skills/magpie-setup).
+`scripts/setup-opencode.sh` clone bản tương đương nếu máy chưa có.
 
 ## Kiểm tra
 
 ```sh
-magpie opencode                 # model + file config
+magpie opencode                 # model + small model + file config
+magpie opencode small           # model phụ cho title/tóm tắt
 opencode --version
 opencode debug paths config     # nơi OpenCode đọc cấu hình
 ```
@@ -99,6 +109,7 @@ Trong OpenCode: `/models` phải thấy `magpie/group/main` và các model `magp
 | `ECONNREFUSED 127.0.0.1:3425` | magpie tắt | `magpie-headless-start` |
 | Model không có trong `/models` | magpie chưa ghi lại config | `magpie opencode group/main` |
 | Đổi model mà agent không đổi | agent đọc model lúc khởi động | mở phiên mới / restart OpenCode |
-| Subagent lỗi "model not found" | model riêng chưa có provider | sửa `model:` trong file agent, hoặc thêm provider |
+| Subagent lỗi "model not found" | group riêng chưa có | chạy `bash scripts/setup-groups.sh`, rồi mở phiên mới |
+| Title/tóm tắt chậm hoặc lỗi | small model trỏ model không tồn tại | `magpie opencode small magpie/workbuddy-ai/hy4flash-free` |
 
 Tài liệu OpenCode V2: <https://opencode.ai/v2/docs/>

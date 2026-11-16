@@ -2,10 +2,9 @@
 
 Tóm tắt: **kết cục** — `opencode-zen-free` (plugin, không cần key) **tắt hẳn** vì bể free
 tính theo **IP dùng chung** đã cạn và không hồi lại. `opencode-zen` (API key) **bật** nhưng
-**chỉ expose đúng `jev-1.13-free`**, dùng làm **classifier** cho `group/main`/`group/code`;
+**chỉ expose đúng `jev-1.13-free`**, dùng làm **classifier** cho cả sáu routing group;
 7 model free còn lại bị **429** ở upstream cho toàn bộ model free nên bỏ khỏi danh sách
-expose. Ladder của `group/main`/`group/code` còn **5 rung** (WorkBuddy + AutoClaw), không
-còn rung OpenCode nào. File này giữ lại làm **bản ghi bằng chứng** đo được, cùng cách kiểm
+expose. Ladder của sáu group không còn rung OpenCode nào (xem [`groups.md`](groups.md)). File này giữ lại làm **bản ghi bằng chứng** đo được, cùng cách kiểm
 tra và cách bật lại nếu sau này muốn thử.
 
 ## 1. Chuyện gì xảy ra
@@ -114,24 +113,18 @@ Tắt `opencode-zen-free` bằng `magpie provider off`, **không** `rm`: plugin 
 `magpie provider on opencode-zen-free` là xong. Muốn xoá hẳn key thì mới chạy
 `magpie provider rm opencode-zen` (không hoàn lại được).
 
-**`group/main` và `group/code` — 5 rung, thứ tự = thứ tự fallback:**
+**Sáu group — không rung OpenCode nào.** Định nghĩa đầy đủ ở [`groups.md`](groups.md);
+ladder `group/main`:
 
 ```
-1 workbuddy-ai/deepseek-v4.1-flash-sg
-2 autoclaw/zaicoding_glm-5.3
-3 autoclaw/zai_glm-5.3-flash
-4 workbuddy-ai/glm-5.3-flash
-5 workbuddy-ai/hy4flash-free
+1 freepi/deepseek-v4.1-flash
+2 workbuddy-ai/hy4flash-free
+3 agy-cli/gemini-3.8-flash
+4 autoclaw/zai_glm-5.3-flash
+5 workbuddy-ai/glm-5.3-flash
 ```
 
-**`group/glm` — 5 model:**
-
-```
-autoclaw/zaicoding_glm-5.3, autoclaw/zai_glm-5.3-flash, autoclaw/zai_auto-fast,
-autoclaw/zai_auto, workbuddy-ai/glm-5.3-flash
-```
-
-**Classifier** của `group/main` và `group/code`: `opencode-zen/jev-1.13-free` — model phân
+**Classifier** của cả sáu group: `opencode-zen/jev-1.13-free` — model phân
 loại nội bộ của Zen, **không** bị chặn free tier (đo 582–768 ms mỗi lượt), không hiện cho
 agent chọn, và **không** đụng bể IP dùng chung của `opencode-zen-free` (vì sao, xem mục 6).
 
@@ -162,18 +155,18 @@ Số đo lịch sử, để thấy vì sao **không** dùng đường free:
   `used = 12.665714` → **không tốn credit**; 4/4 lượt classifier trả lời (1,06–1,55 s,
   thường 1,1–1,2 s), **0 dòng** lỗi classifier trong log.
 
-**Nếu `jev` bị Zen gỡ hoặc bắt đầu tính tiền:** đổi classifier về `workbuddy-ai/hy3` —
-model này đã đo là chạy tốt, không tốn credit:
+**Nếu `jev` bị Zen gỡ hoặc bắt đầu tính tiền:** đổi classifier sang
+`kilo/reflection/beam-free` — đo 10/10 request tuần tự 200 (0,80–0,94 s), 8 request đồng
+thời đều 200, 4/4 lượt classifier OK, 0 lỗi:
 
 ```sh
-magpie group set main classifier=workbuddy-ai/hy3
-magpie group set code classifier=workbuddy-ai/hy3
+for g in main leader coder tester tester-2 tester-3; do
+  magpie group set "$g" classifier=kilo/reflection/beam-free
+done
 ```
 
-và sửa `CLASSIFIER=` trong `scripts/setup-groups.sh` cho khớp. Phương án hai:
-`kilo/reflection/beam-free` — 10/10 request tuần tự 200 (0,80–0,94 s), 8 request đồng thời
-đều 200, 4/4 lượt classifier OK, 0 lỗi; đánh đổi là thêm provider Kilo vào đường bắt buộc
-của mọi lượt.
+và sửa `CLASSIFIER=` trong `scripts/setup-groups.sh` cho khớp. Đánh đổi: thêm Kilo vào
+đường bắt buộc của mọi lượt.
 
 ## 7. Kiểm tra lại
 
@@ -236,7 +229,7 @@ free nhanh trong UI, không phải để thay `group/main`.
   lúc nào — đó chính là lý do `opencode-zen-free` đã bị tắt thay vì giữ làm rung cuối.
 - **`jev-1.13-free` là model nội bộ của Zen:** nó có thể bị gỡ hoặc bị tính tiền bất cứ
   lúc nào. Khi đó classifier đặt được nhưng gọi lỗi → log `couldn't say`, request vẫn 200.
-  Cách xử: đổi classifier về `workbuddy-ai/hy3` (mục 6).
+  Cách xử: đổi classifier sang `kilo/reflection/beam-free` (mục 6).
 - **Classifier lỗi giữa phiên.** Request vẫn 200 (đã đo), chỉ mất tác dụng chọn mức
   reasoning; agent tự dùng mức mặc định.
 - **`magpie quota` im lặng với Zen** — không phải lỗi, xem mục 4.
@@ -248,21 +241,12 @@ Trạng thái hiện tại: `opencode-zen-free` **tắt**, `opencode-zen` **bậ
 
 ```sh
 magpie provider on opencode-zen-free     # plugin vẫn cài, chỉ cần bật provider
-git revert <commit> && bash scripts/finish.sh
-```
-
-`git revert` trả `scripts/setup-groups.sh` và `scripts/setup-settings.sh` về trạng thái
-trước (classifier `workbuddy-ai/hy3`, `opencode-zen` tắt); ladder trở lại **6 rung** vì
-bản đó còn hai rung OpenCode đã bị bỏ sau này. `finish.sh` áp lại lên máy. Nếu không muốn
-revert, thêm tay
-hai model vào group:
-
-```sh
 magpie group set main models+=opencode-zen-free/deepseek-v4.1-flash-free,opencode-zen-free/glm-5.3-flash-free
-magpie group set code models+=opencode-zen-free/deepseek-v4.1-flash-free,opencode-zen-free/glm-5.3-flash-free
 ```
 
-Nhớ rằng hạn mức tính theo IP dùng chung: bể cạn thì bật lại cũng không giúp gì.
+`setup-groups.sh` hiện định nghĩa sáu group; thêm model free vào đúng group bạn muốn thử
+(thường là `main`). `code`/`glm` không còn — đừng thêm vào đó. Nhớ rằng hạn mức tính theo
+IP dùng chung: bể cạn thì bật lại cũng không giúp gì.
 
 Muốn **trả classifier về WorkBuddy** (khi `jev` bị Zen gỡ): xem lệnh ở mục 6, rồi sửa
 `CLASSIFIER=` trong `scripts/setup-groups.sh` cho khớp.

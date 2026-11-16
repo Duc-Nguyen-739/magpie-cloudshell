@@ -1,7 +1,7 @@
 # magpie trên Cloud Shell — cài một lần, chỉ còn đăng nhập
 
 Dựng lại **đúng** cấu hình magpie đang chạy trên một máy Cloud Shell thật: 6 provider,
-3 routing group (`Main`, `Code`, `GLM`), OpenCode + OpenChamber trỏ vào `group/main`, chạy
+6 routing group, OpenCode → `group/main`, OpenChamber → `group/leader`, chạy
 headless không cần systemd, và hai lệnh `openchamber` / `openmagpie` in ra **link web đã
 kèm key** — bấm là vào, không phải dán gì.
 
@@ -67,8 +67,8 @@ see [`AGENTS.md`](AGENTS.md). The exact setup reproduced: [`docs/inventory.md`](
 | 6 plugin provider | `~/.config/magpie/plugins/` | AutoClaw, WorkBuddy, Qoder, ZCode, OpenCode Zen Free |
 | OpenCode v2 | `~/.opencode/bin/opencode` | agent code trong terminal |
 | OpenChamber | `~/.npm-global/bin/openchamber` | web UI cho OpenCode (cổng 3000) |
-| 2 subagent | `~/.config/opencode/agents/` | `coder`, `tester` |
-| skill | `~/.config/opencode/skills/magpie-setup` | hướng dẫn agent thao tác magpie |
+| 5 agent | `~/.config/opencode/agents/` | `leader` + `coder`, `tester`, `tester2`, `tester3` |
+| skill | `~/.config/opencode/skills/magpie-skills` | bundle skill, có `magpie-setup` |
 | wrapper | `~/.local/bin/openchamber`, `openmagpie`, `magpie-headless-*` | bật + in link kèm key |
 | dữ liệu magpie | `~/.config/magpie/` (600) | provider, group, auth, web-key |
 | log | `~/.local/state/magpie/headless.log` | log supervisor |
@@ -181,21 +181,21 @@ Nếu bạn đăng nhập **trong web UI** (cách dùng trên Cloud Shell), lầ
 bash scripts/finish.sh
 ```
 
-Nó tạo (hoặc cập nhật) ba group và trỏ OpenCode + OpenChamber vào `group/main`:
+Nó tạo (hoặc cập nhật) sáu group, rồi trỏ OpenCode → `group/main` và
+OpenChamber → `group/leader`:
 
-| | `group/main` | `group/code` |
+| Group | Dùng cho | Model (thứ tự fallback) |
 |---|---|---|
-| Dùng cho | chat thường ngày | việc code |
-| routing / stays | `order` / `session` | `order` / `turn` |
-| levels / effort | `low,high,max` / `auto` | `low,high,max` / `auto` |
-| classifier | `opencode-zen/jev-1.13-free` | `opencode-zen/jev-1.13-free` |
-| rule | ảnh → Hy4; nén → Hy4, GLM Flash | nén → Hy4, GLM Flash; 4 intent (plan, code, test, review) + ảnh → Hy4 |
+| `main` | chat thường ngày, `stays=session` | `freepi/deepseek-v4.1-flash` → `workbuddy-ai/hy4flash-free` → `agy-cli/gemini-3.8-flash` → `autoclaw/zai_glm-5.3-flash` → `workbuddy-ai/glm-5.3-flash` |
+| `leader` | OpenChamber: plan + điều phối, `stays=turn` | `workbuddy-ai/deepseek-v4.1-flash-sg:max` → `agy-cli/claude-opus-4-6-thinking` |
+| `coder` | viết code theo plan | `freepi/deepseek-v4.1-flash:high` |
+| `tester` | chạy test, báo lỗi | `freepi/deepseek-v4.1-flash:high` → `agnes/agnes-3.0-flash:high` → `autoclaw/zai_glm-5.3-flash` |
+| `tester-2` | tester độc lập | `workbuddy-ai/hy4flash-free:high` → `kilo/reflection/beam-free:high` → `agy-cli/gemini-3.8-flash:high` → `agnes/agnes-3.0-flash:high` → `autoclaw/zai_glm-5.3-flash` |
+| `tester-3` | tester thứ ba | `agy-cli/gemini-3.8-flash:high` → `autoclaw/zai_glm-5.3-flash` → `workbuddy-ai/hy4flash-free:high` |
 
-Ngoài ra `group/glm` (Tester: 3 model GLM, `zai_glm-5.3-flash` đầu, `stays=auto`),
-không rule, không classifier.
-
-Ladder 5 model cho cả `main` và `code`; thứ tự fallback
-WorkBuddy + AutoClaw: [`docs/groups.md`](docs/groups.md) · [`docs/zen-free.md`](docs/zen-free.md).
+Cả sáu dùng `routing=order`, `effort=auto`, classifier `opencode-zen/jev-1.13-free`;
+không group nào có rule. `main`/`leader`/`coder` mở levels `low,high,max`; ba tester
+chỉ `high`. Chi tiết: [`docs/groups.md`](docs/groups.md).
 
 Chạy lại `finish.sh` sau khi đăng nhập thêm provider để lấp đủ model vào group —
 script chỉ đưa vào group những model thật sự có.
@@ -232,14 +232,14 @@ scripts/
   plugins.sh                6 plugin provider
   install-opencode.sh       OpenCode (opencode.ai/install)
   install-openchamber.sh    @openchamber/web vào ~/.npm-global
-  setup-opencode.sh         2 subagent + skill magpie-setup
+  setup-opencode.sh         agent leader + 4 subagent + skill magpie-setup
   setup-settings.sh         settings.json + trạng thái provider (chỉ thêm khoá thiếu)
   autoclaw-link.sh          in link localhost/preview để đăng nhập AutoClaw
   agnes-link.sh             trang local để đăng nhập Agnes (dán API key)
   agnes-login.mjs           server của trang đó
   login.sh                  trạng thái + đăng nhập từng provider
-  setup-groups.sh           group/main, code, glm (--force, --dry-run)
-  setup-agents.sh           trỏ agent vào group/main
+  setup-groups.sh           sáu group: main, leader, coder, tester, tester-2, tester-3
+  setup-agents.sh           OpenCode → group/main, OpenChamber → group/leader, small model
   finish.sh                 setup-groups + setup-agents + doctor
   doctor.sh                 kiểm tra sức khoẻ toàn bộ
   magpie-headless*          supervisor không cần systemd
@@ -249,7 +249,7 @@ docs/
   inventory.md              kiểm kê chính xác máy tham chiếu
   autoclaw-login.md         AutoClaw: 3 cách đăng nhập, lỗi thường gặp
   providers.md              từng provider: id, xác thực, kiểm tra
-  groups.md                 hai group: model, rule, classifier, cách sửa
+  groups.md                 sáu group: model, level, classifier, cách sửa
   zen-free.md               vì sao tắt OpenCode Zen Free; vì sao chỉ giữ jev làm classifier
   opencode.md               OpenCode nối magpie thế nào, subagent, skill
   billion-context.md        nén hội thoại: budget, target, lỗi target-timeout

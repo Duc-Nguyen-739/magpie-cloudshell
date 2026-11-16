@@ -1,32 +1,36 @@
-# Leader + routing hiện tại (cập nhật 2026-11-05)
+# Leader + routing hiện tại (cập nhật 2026-11-16)
 
-Tài liệu này ghi lại **cấu hình đang chạy trên máy này**: pipeline 3 agent
-`Leader → Coder → Tester`, model của từng agent, và các routing group phía sau.
+Tài liệu này ghi lại **cấu hình đang chạy trên máy này**: pipeline 5 agent
+`Leader → Coder → Tester ∥ Tester 2 ∥ Tester 3`, model của từng agent, và các
+routing group phía sau.
 Từ bản này, `scripts/setup-groups.sh` tạo đúng thứ tự dưới đây; chạy `--force`
 vẫn thay group hiện có nên đọc [Cảnh báo](#cảnh-báo) trước.
 
-Môi trường: magpie `0.1.1931`, OpenCode + OpenChamber, Linux headless.
+Môi trường: magpie `0.1.4291`, OpenCode + OpenChamber, Linux headless.
 
 ## Pipeline
 
 ```
-User → Leader (plan, DeepSeek V4.1 Flash)
+User → Leader (plan, group/leader)
           │
           ▼
-       Coder (code, DeepSeek V4.1 Flash)
+       Coder (code, group/coder)
           │
-          ▼
-       Tester (test, GLM 5.3 — zai_glm-5.3-flash trước)
-          │
-          ├─ KHÔNG ĐẠT ─→ Coder (tối đa 3 vòng)
-          │
-          └─ ĐẠT ─→ Leader (review cuối) → Duyệt
+          ├───────────────┬───────────────┐
+          ▼               ▼               ▼
+       Tester          Tester 2        Tester 3
+    (group/tester)  (group/tester-2) (group/tester-3)
+          │               │               │
+          └───────┬───────┴───────────────┘
+                  ├─ KHÔNG ĐẠT ─→ Coder (tối đa 3 vòng)
+                  └─ ĐẠT ─→ Leader (review cuối) → Duyệt
 ```
 
-- Leader viết plan kỹ thuật chi tiết, giao Coder, giao Tester, kiểm tra cuối và duyệt.
+- Leader viết plan kỹ thuật chi tiết, giao Coder, giao ba Tester song song, kiểm tra
+  cuối và duyệt.
 - Tester báo **KHÔNG ĐẠT** → quay lại Coder, tối đa 3 vòng.
-- Leader chỉ được gọi `coder` và `tester`; Coder/Tester không được gọi subagent
-  hay hỏi người dùng.
+- Leader chỉ được gọi `coder`, `tester`, `tester2`, `tester3`; các subagent không được
+  gọi agent khác hay hỏi người dùng.
 
 ### Plan của Leader phải chứa gì
 
@@ -48,198 +52,139 @@ mục 10 với manifest/CI. Plan trượt cổng thì viết lại, không giao.
 
 | Agent | File | Mode | Model | Quyền |
 |---|---|---|---|---|
-| Leader | `~/.config/opencode/agents/leader.md` | `primary` | `magpie/group/code#high` | Chỉ gọi `coder`, `tester` |
-| Coder | `~/.config/opencode/agents/coder.md` | `subagent` | `magpie/group/code` | Không gọi subagent, không hỏi |
-| Tester | `~/.config/opencode/agents/tester.md` | `subagent` | `magpie/group/glm` | Không gọi subagent, không hỏi |
+| Leader | `~/.config/opencode/agents/leader.md` | `primary` | `magpie/group/leader#max` | Chỉ gọi `coder`, `tester`, `tester2`, `tester3` |
+| Coder | `~/.config/opencode/agents/coder.md` | `subagent` | `magpie/group/coder` | Không gọi subagent, không hỏi |
+| Tester | `~/.config/opencode/agents/tester.md` | `subagent` | `magpie/group/tester` | Không gọi subagent, không hỏi |
+| Tester 2 | `~/.config/opencode/agents/tester2.md` | `subagent` | `magpie/group/tester-2` | Không gọi subagent, không hỏi |
+| Tester 3 | `~/.config/opencode/agents/tester3.md` | `subagent` | `magpie/group/tester-3` | Không gọi subagent, không hỏi |
 
 Dòng `model:` chính xác:
 
 ```yaml
 # leader.md
-model: magpie/group/code#high
+model: magpie/group/leader#max
 
 # coder.md
-model: magpie/group/code
+model: magpie/group/coder
 
 # tester.md
-model: magpie/group/glm
+model: magpie/group/tester
+
+# tester2.md
+model: magpie/group/tester-2
+
+# tester3.md
+model: magpie/group/tester-3
 ```
 
-`#high` là mức reasoning gửi cho model đang phục vụ; model nào không có `high`
-thì magpie gửi mức gần nhất. OpenCode CLI dùng được `#high`; OpenChamber thì
+`#max` là mức reasoning gửi cho model đang phục vụ; model nào không có `max`
+thì magpie gửi mức gần nhất. OpenCode CLI dùng được `#max`; OpenChamber thì
 không (xem [Cảnh báo](#cảnh-báo)).
 
 ## Kiến trúc group
 
+Sáu group, mỗi vai một group:
+
 | Group | Dùng cho | Model | Cấu hình |
 |---|---|---|---|
-| `group/main` | chat thường ngày (OpenCode `build`, phiên OpenChamber chọn tay) | DeepSeek trước, GLM sau (5 model) | `order`, `stays=session`, `effort=auto` + classifier, 2 rule |
-| `group/code` | Leader + Coder | DeepSeek trước, GLM sau, Hy4/Hy3 free (6 model) | `order`, `stays=turn`, `effort=auto` + classifier, 6 rule |
-| `group/glm` | Tester | GLM (3 model) | `order`, `stays=auto`, không rule |
+| `group/leader` | OpenChamber + Leader (OpenCode CLI) | DeepSeek SG `max` → Opus (2) | `order`, `stays=turn`, `effort=auto` + classifier |
+| `group/main` | chat thường ngày (OpenCode) | FreePi → Hy4 → Gemini → GLM AutoClaw → GLM WorkBuddy (5) | `order`, `stays=session`, `effort=auto` + classifier |
+| `group/coder` | Coder | FreePi `high` (1) | `order`, `stays=turn`, `effort=auto` + classifier |
+| `group/tester` | Tester | FreePi → Agnes → GLM AutoClaw (3) | `order`, `stays=turn`, levels `high` |
+| `group/tester-2` | Tester 2 | Hy4 → Kilo → Gemini → Agnes → GLM (5) | `order`, `stays=turn`, levels `high` |
+| `group/tester-3` | Tester 3 | Gemini → GLM → Hy4 (3) | `order`, `stays=turn`, levels `high` |
 
-Leader và Coder cùng trỏ `group/code`; `group/main` giữ cho chat thường ngày. OpenChamber
-gửi model của phiên (mặc định `group/code`) nên model trong `leader.md` chỉ áp dụng ở
-OpenCode CLI/TUI.
+Leader và Coder trỏ group riêng; không còn `group/code` dùng chung. OpenChamber gửi
+model của phiên (`group/leader`), nên model trong `leader.md` chỉ áp dụng ở OpenCode
+CLI/TUI. Định nghĩa đầy đủ từng group: [`groups.md`](groups.md).
 
-### `group/main` — chat thường ngày
-
-```sh
-magpie group main
-```
-
-- `routing=order`, `stays=session`, `levels=low,high,max`
-- `effort=auto` + classifier `opencode-zen/jev-1.13-free`
-- Rule `images` → `workbuddy-ai/hy4flash-free`
-- Rule `compacting` → `workbuddy-ai/hy4flash-free`, `workbuddy-ai/glm-5.3-flash`
-
-| # | Model | Ghi chú |
-|---|---|---|
-| 1 | `workbuddy-ai/deepseek-v4.1-flash-sg` | DeepSeek V4.1 Flash (bản duy nhất còn serve) — mặc định |
-| 2 | `autoclaw/zai_glm-5.3-flash` | GLM-5.3 Flash — fallback đầu, cũng là model test |
-| 3 | `autoclaw/zaicoding_glm-5.3` | GLM-5.3 Coding — quota free hay cạn, để sau flash |
-| 4 | `workbuddy-ai/glm-5.3-flash` | WorkBuddy GLM Flash |
-| 5 | `workbuddy-ai/hy4flash-free` | WorkBuddy Hy4 — đọc ảnh |
-
-Ý đồ: **DeepSeek là mặc định**. GLM chỉ vào cuộc khi mọi endpoint DeepSeek không
-trả lời được, và khi đó `zai_glm-5.3-flash` đứng đầu vì `zaicoding_glm` thường hết
-quota free (upstream trả 429).
-
-### `group/code` — Leader + Coder
+### `group/leader` — plan + điều phối
 
 ```sh
-magpie group code
+magpie group leader
 ```
 
 - `routing=order`, `stays=turn`, `levels=low,high,max`
 - `effort=auto` + classifier `opencode-zen/jev-1.13-free`
-- 6 rule, rule `compact` đứng đầu để bước nén hội thoại không bị rule intent giành mất:
+- `workbuddy-ai/deepseek-v4.1-flash-sg:max` → `agy-cli/claude-opus-4-6-thinking`
+- không rule
 
-| # | Rule | Model |
-|---|---|---|
-| 1 | `compacting` | `workbuddy-ai/hy4flash-free`, `workbuddy-ai/glm-5.3-flash` |
-| 2 | `intent` lên plan chi tiết | `workbuddy-ai/deepseek-v4.1-flash-sg` |
-| 3 | `intent` viết/sửa code | `workbuddy-ai/deepseek-v4.1-flash-sg` |
-| 4 | `intent` chạy test / kiểm tra code vừa viết | `autoclaw/zai_glm-5.3-flash`, `autoclaw/zaicoding_glm-5.3`, `workbuddy-ai/glm-5.3-flash` |
-| 5 | `intent` review cuối / release | `workbuddy-ai/deepseek-v4.1-flash-sg` |
-| 6 | `images` | `workbuddy-ai/hy4flash-free` |
+Ý đồ: DeepSeek SG ở `max` viết plan; Opus dự phòng khi WorkBuddy hết quota.
+`stays=turn` để mỗi bước pipeline có thể đổi model.
 
-Ladder 5 model, giống hệt `group/main`:
+### `group/coder` — Coder
 
-| # | Model |
-|---|---|
-| 1 | `workbuddy-ai/deepseek-v4.1-flash-sg` |
-| 2 | `autoclaw/zai_glm-5.3-flash` |
-| 3 | `autoclaw/zaicoding_glm-5.3` |
-| 4 | `workbuddy-ai/glm-5.3-flash` |
-| 5 | `workbuddy-ai/hy4flash-free` |
+- `freepi/deepseek-v4.1-flash:high`, `stays=turn`, levels `low,high,max`, không rule.
+- FreePi free 15k token/ngày; cạn thì group không còn rung — Coder báo lỗi, Leader
+  chuyển việc sang Tester hoặc chờ reset.
 
-`group/code` và `group/main` cùng ladder, khác `stays` và rule.
-Nhờ vậy thứ tự pipeline chỉ cần nhớ một lần: DeepSeek (Leader/Coder) → GLM
-(Tester) → quay lại DeepSeek.
+### `group/tester`, `group/tester-2`, `group/tester-3`
 
-### `group/glm` — Tester
-
-```sh
-magpie group glm
-```
-
-- `routing=order`, `stays=auto`, `levels=low,high,max`
-- Không rule, không classifier: mọi lượt bắt đầu từ model đầu tiên còn dùng được.
-
-| # | Model |
-|---|---|
-| 1 | `autoclaw/zai_glm-5.3-flash` |
-| 2 | `autoclaw/zaicoding_glm-5.3` |
-| 3 | `workbuddy-ai/glm-5.3-flash` |
-
-Tester dùng group riêng thay vì dựa vào rule intent của `group/code`: classifier
-có thể đoán sai, còn group riêng thì **luôn** bắt đầu bằng `zai_glm-5.3-flash`.
-`zaicoding_glm-5.3` xuống thứ hai vì quota free của gói coding hay cạn; để nó đầu
-ladder thì mỗi lượt Tester phải thử, ăn 429 rồi mới rơi xuống model kế tiếp.
+Ba group độc lập để ba tester chạy song song không tranh quota. Levels chỉ `high`.
+Ladder xem bảng trên hoặc [`groups.md`](groups.md).
 
 ## Vì sao cấu hình như vậy
 
-- **Leader = DeepSeek V4.1 Flash.** Leader là người viết plan và review, không
-  phải người code nặng; DeepSeek Flash rẻ, nhanh, đủ mạnh cho khảo sát code và
-  viết plan. Trước đây Leader chạy GLM, nay đổi để cả Leader và Coder cùng một
-  họ model, giảm số lần đổi provider giữa các bước.
-- **Main và Code cùng ladder.** Một thứ tự duy nhất, dễ kiểm tra, dễ dựng lại.
-  `group/code` thêm rule intent để lượt test nhảy sang GLM, và rule `compact` để
-  bước nén hội thoại đi model free; `group/main` giữ tối giản cho chat.
-- **Leader dùng `group/code`.** Leader và Coder cùng một group nên chỉ cần một
-  ladder cho cả pipeline; `group/main` để riêng cho chat thường ngày.
-- **GLM đứng sau DeepSeek.** GLM chỉ là fallback cho Leader/Coder, nhưng là model
-  chính của Tester. Trong họ GLM, `autoclaw/zai_glm-5.3-flash` đứng đầu vì
-  `zaicoding_glm` hay hết quota free.
-- **`stays=session` cho Main, `stays=turn` cho Code.** Main giữ account/key đã
-  trả lời để prompt cache còn giá trị; Code đổi model theo từng bước nên chọn
-  lại mỗi lượt.
-- **Classifier điều chỉnh reasoning.** Main và Code dùng `effort=auto` + classifier
-  `opencode-zen/jev-1.13-free`: mỗi lượt model nhỏ này đọc yêu cầu
-  và chọn low/high/max thay vì cố định. `glm` không gắn classifier để
-  giữ hành vi đơn giản.
+- **Mỗi vai một group** thay vì rule `intent`: classifier có thể đoán sai, group
+  riêng thì lượt nào cũng bắt đầu đúng model.
+- **`stays=session` cho main** để prompt cache còn giá trị; **`stays=turn`** cho
+  pipeline vì mỗi bước cần model khác.
+- **`effort=auto` + classifier jev** chọn low/high/max theo yêu cầu; classifier là
+  model phụ, không vào ladder.
+- **Không rule**: ảnh do agent gửi thẳng model đọc ảnh; nén hội thoại do
+  billion-context lo ([`billion-context.md`](billion-context.md)).
+- **Levels**: main/leader/coder mở `low,high,max`; tester chỉ `high`.
 
 ## Dựng lại
 
-Chạy trên máy đã đăng nhập provider. Các lệnh `group add` **thay** group cùng
-id nếu đã tồn tại.
+Chạy `bash scripts/setup-groups.sh` (thêm `--force` để tạo lại cả sáu). Script tự bỏ
+model chưa có, nên chạy được sau khi đăng nhập 1–2 provider. Tương đương thủ công:
 
 ```sh
-# 0) expose đúng model WorkBuddy mà ladder dùng
-magpie provider models workbuddy-ai +deepseek-v4.1-flash-sg
-magpie provider models workbuddy-ai +glm-5.3-flash
-magpie provider models workbuddy-ai +hy4flash-free
+magpie group add "Leader" \
+  models=workbuddy-ai/deepseek-v4.1-flash-sg:max,agy-cli/claude-opus-4-6-thinking \
+  routing=order stays=turn
+magpie group set leader levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 
-# 1) Main — chat thường ngày
+magpie group add "Coder" models=freepi/deepseek-v4.1-flash:high routing=order stays=turn
+magpie group set coder levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
+
+magpie group add "Tester" \
+  models=freepi/deepseek-v4.1-flash:high,agnes/agnes-3.0-flash:high,autoclaw/zai_glm-5.3-flash \
+  routing=order stays=turn
+magpie group set tester levels=high classifier=opencode-zen/jev-1.13-free effort=auto
+
+magpie group add "Tester 2" \
+  models=workbuddy-ai/hy4flash-free:high,kilo/reflection/beam-free:high,agy-cli/gemini-3.8-flash:high,agnes/agnes-3.0-flash:high,autoclaw/zai_glm-5.3-flash \
+  routing=order stays=turn
+magpie group set tester-2 levels=high classifier=opencode-zen/jev-1.13-free effort=auto
+
+magpie group add "Tester 3" \
+  models=agy-cli/gemini-3.8-flash:high,autoclaw/zai_glm-5.3-flash,workbuddy-ai/hy4flash-free:high \
+  routing=order stays=turn
+magpie group set tester-3 levels=high classifier=opencode-zen/jev-1.13-free effort=auto
+
 magpie group add "Main" \
-  models=workbuddy-ai/deepseek-v4.1-flash-sg,autoclaw/zai_glm-5.3-flash,autoclaw/zaicoding_glm-5.3,workbuddy-ai/glm-5.3-flash,workbuddy-ai/hy4flash-free \
+  models=freepi/deepseek-v4.1-flash,workbuddy-ai/hy4flash-free,agy-cli/gemini-3.8-flash,autoclaw/zai_glm-5.3-flash,workbuddy-ai/glm-5.3-flash \
   routing=order stays=session
 magpie group set main levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
-magpie group rule add main use=workbuddy-ai/hy4flash-free images
-magpie group rule add main use=workbuddy-ai/hy4flash-free,workbuddy-ai/glm-5.3-flash compact
-
-# 2) Code — Leader + Coder, cùng ladder Main, rule intent + compact
-magpie group add "Code" \
-  models=workbuddy-ai/deepseek-v4.1-flash-sg,autoclaw/zai_glm-5.3-flash,autoclaw/zaicoding_glm-5.3,workbuddy-ai/glm-5.3-flash,workbuddy-ai/hy4flash-free \
-  routing=order stays=turn
-magpie group set code levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
-magpie group rule add code use=workbuddy-ai/hy4flash-free,workbuddy-ai/glm-5.3-flash compact
-magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash-sg \
-  intent="asking for a detailed plan before any code is written (lên plan, lập kế hoạch chi tiết)"
-magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash-sg \
-  intent="writing, implementing or fixing code (viết code, code theo plan, implement, sửa code)"
-magpie group rule add code use=autoclaw/zai_glm-5.3-flash,autoclaw/zaicoding_glm-5.3,workbuddy-ai/glm-5.3-flash \
-  intent="running tests or checking the code just written, before it is finished (kiểm tra, test code vừa viết)"
-magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash-sg \
-  intent="final overall review of the finished code and releasing or publishing it (kiểm tra tổng thể lần cuối, duyệt, phát hành, release, ship)"
-magpie group rule add code use=workbuddy-ai/hy4flash-free images
-
-# 3) GLM — group riêng của agent Tester
-magpie group add "GLM" \
-  models=autoclaw/zai_glm-5.3-flash,autoclaw/zaicoding_glm-5.3,workbuddy-ai/glm-5.3-flash \
-  routing=order stays=auto
-magpie group set glm levels=low,high,max
-
-# 4) trỏ agent: OpenCode chung về Main (chat), Leader ép Code trong leader.md
-magpie opencode group/main
-# OpenChamber: chọn model trong UI; mặc định group/code
 ```
 
-Agent: chép `config/agents/leader.md`, `coder.md`, `tester.md` vào
-`~/.config/opencode/agents/`. Ba file trong repo là bản đang chạy; dòng `model:`
-phải khớp bảng [Agent](#agent).
+Trỏ agent: `magpie opencode group/main`, `magpie openchamber group/leader`,
+`magpie opencode small magpie/workbuddy-ai/hy4flash-free`.
 
 ## Kiểm tra
 
 ```sh
-magpie group main          # 5 model: DeepSeek → GLM → Hy4, 2 rule
-magpie group code          # 5 model, 6 rule, compact đầu
-magpie group glm           # 3 model GLM, zai_glm-5.3-flash đầu
+magpie group leader
+magpie group main
+magpie group coder
+magpie group tester
 magpie groups              # tổng hợp + agent nào dùng
 
-grep -H '^model:' ~/.config/opencode/agents/{leader,coder,tester}.md
-magpie opencode            # magpie/group/main (chat), small magpie/workbuddy-ai/hy4flash-free
-magpie openchamber         # model chọn trong UI, mặc định group/code
+grep -H '^model:' ~/.config/opencode/agents/{leader,coder,tester,tester2,tester3}.md
+magpie opencode            # magpie/group/main, small magpie/workbuddy-ai/hy4flash-free
+magpie openchamber         # magpie/group/leader
 ```
 
 Agent đọc model lúc khởi động: **mở phiên mới** sau khi sửa `model:`. Thay đổi
@@ -248,458 +193,24 @@ group có hiệu lực ngay ở lượt kế tiếp, không cần restart gatewa
 ## Cảnh báo
 
 - `scripts/setup-groups.sh --force` (và `finish.sh`, vì nó gọi `--force`) sẽ
-  **tạo lại cả ba group** (`main`, `code`, `glm`) theo ladder trong
-  script. Từ bản này ladder đó khớp tài liệu, nhưng nó vẫn xoá rule tự thêm tay.
-  Muốn giữ thì đừng chạy `--force`, hoặc chạy lại mục [Dựng lại](#dựng-lại).
+  **tạo lại cả sáu group** theo ladder trong script và xoá `code`/`glm`/`deepseek`
+  còn sót. Muốn giữ group tự thêm tay thì đừng chạy `--force`, hoặc chạy lại mục
+  [Dựng lại](#dựng-lại).
 - `scripts/setup-opencode.sh` không ghi đè file agent đã có, nên `leader.md`,
-  `coder.md`, `tester.md` đang chỉnh tay sẽ được giữ nguyên.
+  `coder.md`, `tester.md`, `tester2.md`, `tester3.md` đang chỉnh tay sẽ được giữ nguyên.
 - **Mức reasoning của OpenChamber chọn trong model picker**, lưu ở
   `defaultVariant` / `lastUsedEfforts` của
   `~/.config/openchamber/preferences.json`. Đặt mặc định `high`; `max` chỉ dùng
   cho việc khó vì nó sinh gấp ~2.7 lần token output. Agent `leader.md` giữ
-  `group/code#high` cho OpenCode CLI.
+  `group/leader#max` cho OpenCode CLI.
 - Không commit `~/.config/magpie/plugin-auth.json`, `web-key`, hay bất kỳ key
   nào. Tài liệu này chỉ chứa tên model và thứ tự routing.
 
 ## Phụ lục: `leader.md`
 
-Chép nguyên khối dưới vào `~/.config/opencode/agents/leader.md`. Bản đầy đủ của
-`coder.md` và `tester.md` nằm trong [`config/agents/`](../config/agents/).
-
-`````markdown
----
-description: Leader — DeepSeek V4.1 Flash (group/code), toàn quyền như Build. Viết plan kỹ thuật đủ chi tiết để Coder không phải đoán một dòng nào, điều phối Coder (DeepSeek) và Tester (GLM), review cuối và duyệt
-mode: primary
-model: magpie/group/code#high
-color: "#4f8cff"
-permissions:
-  - action: subagent
-    resource: "*"
-    effect: deny
-  - action: subagent
-    resource: "coder"
-    effect: allow
-  - action: subagent
-    resource: "tester"
-    effect: allow
----
-
-Bạn là **Leader**. Bạn dùng DeepSeek V4.1 Flash qua group `main` (WorkBuddy trước,
-rồi bản SG, rồi Zen free; GLM chỉ là fallback khi DeepSeek chết). Bạn là người duy nhất trong
-pipeline được quyền quyết định: viết plan, giao việc, kiểm tra cuối và duyệt.
-
-## Quyền hạn
-
-Bạn có **toàn quyền công cụ như agent Build**: đọc/ghi/sửa/xoá file, chạy shell,
-tìm kiếm, web, ... (chỉ bị chặn gọi subagent ngoài `coder` và `tester`).
-
-Quyền đầy đủ để bạn khảo sát code, viết plan, kiểm tra cuối, dọn dẹp và xử lý sự
-cố — **không phải để làm thay pipeline**.
-
-## Pipeline bắt buộc
-
-Với mọi task code, luôn chạy đúng thứ tự:
-
-```
-Leader (plan) → Coder (code) → Tester (test) → Leader (review + duyệt)
-```
-
-- Không tự code thay Coder.
-- Không tự test thay Tester.
-- Chỉ tự làm khi user yêu cầu rõ ràng. Nếu Coder/Tester không hoạt động, báo
-  user trước rồi mới quyết định.
-
-Bạn **không tự viết code** trong pipeline. Mọi thay đổi code do **Coder** (DeepSeek)
-làm. Việc kiểm tra do **Tester** (GLM, ưu tiên `zai_glm-5.3-flash`) làm. Bạn ghi plan trong
-`.opencode/plans/`.
-
-## Sơ đồ pipeline
-
-```
-User → Leader (plan) → Coder (code) → Tester (test)
-                          ↑               │
-                          └── lỗi ────────┘
-                                          │ đạt
-                                          ▼
-                                   Leader (review cuối) → Duyệt
-```
-
-## Các bước
-
-### 1. Nhận yêu cầu
-
-- Đọc kỹ yêu cầu của user. Nếu thiếu thông tin **quan trọng** mà không thể tự
-  tìm ra (mục tiêu, phạm vi, ràng buộc, hành vi mong muốn), hỏi lại ngắn gọn.
-- Đừng hỏi những thứ đọc code là biết. Chi tiết kỹ thuật (đặt tên, chia file, kiểu
-  dữ liệu, thư viện) là **bạn tự quyết trong plan**, không đẩy lại cho user.
-
-### 2. Khảo sát code
-
-- Đọc README, cấu trúc thư mục, `package.json` / `pyproject.toml` / `go.mod` /
-  `Cargo.toml`, các file liên quan, test hiện có.
-- Dùng `read`, `glob`, `grep`, `shell` (chỉ lệnh đọc: `git status`, `git log`,
-  `ls`, ...). Không sửa gì ở bước này.
-- Xác định: project đang làm gì, code liên quan nằm ở đâu, test chạy bằng lệnh gì,
-  có convention gì phải giữ.
-- **Ghi bằng chứng, không ghi trí nhớ.** Mỗi file đọc được ghi lại `file:line` +
-  điều tìm thấy, và đưa vào mục 3 của plan. Không có `file:line` vừa đọc trong
-  phiên này thì không được viết khẳng định đó vào plan.
-- Chạy `git status --short` và `git rev-parse --short HEAD` trước khi viết plan.
-  Working tree bẩn thì ghi rõ file nào bẩn vào plan để Coder không đụng và không
-  nhầm với thay đổi của mình.
-- Lấy **lệnh thật** của project từ manifest/CI (`.github/workflows`, `Makefile`,
-  `package.json` scripts, `tox.ini`, ...), không đoán `npm test` nếu project chạy
-  `pnpm test:unit`.
-- Đọc cả test hiện có gần vùng sửa để biết convention test (framework, cách mock,
-  cách đặt tên file test).
-
-### 3. Viết plan
-
-Ghi plan vào `.opencode/plans/<slug>/plan.md` (slug ngắn, không dấu, ví dụ
-`.opencode/plans/them-api-loc-san-pham/plan.md`). Mỗi task một thư mục riêng để
-không lẫn với plan cũ. **Một file duy nhất** — không tách nhỏ, không tạo
-`PLAN.md`, `TODO.md`, `notes.md` đi kèm.
-
-Nếu chưa đọc đủ để viết được khối `TÌM` nguyên văn cho từng chỗ sửa, **quay lại
-bước 2**. Không viết plan bằng cách đoán code.
-
-#### 3.1 Ba luật cứng
-
-1. **Plan chứa code, không chỉ mô tả code.** Chỗ nào phải viết code thì trong plan
-   có code đó: hàm mới là code hoàn chỉnh; file mới là toàn bộ nội dung; chỗ sửa
-   là cặp khối `TÌM` (nguyên văn hiện tại) / `THAY` (văn bản sau khi sửa).
-2. **Mọi khẳng định về code hiện tại phải kèm `file:line` + trích nguyên văn.**
-   Không diễn giải lại code bằng lời.
-3. **Không để lại chỗ nào Coder phải quyết định.** Nếu plan có thể hiểu hai cách,
-   chọn một cách và ghi rõ "chọn cách này, không chọn cách kia vì ...".
-
-Coder là subagent có context mới, chỉ đọc đúng file plan này. Plan phải
-**tự chứa**: một dev không biết gì về cuộc trò chuyện vẫn đọc là làm được, không
-phải hỏi lại, không phải mở file nào ngoài những file plan chỉ định.
-
-#### 3.2 Bộ khung bắt buộc
-
-Chép khung này rồi điền, đúng thứ tự, không bỏ mục, không đổi số mục:
-
-````markdown
-# <Tên task>
-
-- Slug: <slug>
-- Ngày: <YYYY-MM-DD>
-- Repo: <đường dẫn tuyệt đối> · Nhánh: <nhánh> · HEAD: <rev>
-- Working tree lúc khảo sát: sạch | bẩn (<danh sách file>)
-
-## 1. Mục tiêu
-
-## 2. Phạm vi
-
-## 3. Hiện trạng kỹ thuật
-
-### 3.1 Môi trường
-### 3.2 Đã đọc
-### 3.3 Đơn vị liên quan
-
-## 4. Thiết kế
-
-## 5. Hợp đồng dữ liệu
-
-## 6. Các bước thay đổi
-
-### Bước 1 — <động từ>: <đối tượng>
-
-## 7. Xử lý lỗi & trường hợp biên
-
-## 8. Test plan
-
-## 9. Tiêu chí nghiệm thu
-
-## 10. Lệnh kiểm tra
-
-## 11. Rủi ro & rollback
-
-## 12. Ngoài phạm vi
-
-## 13. Câu hỏi mở
-````
-
-#### 3.3 Chuẩn chi tiết cho từng mục
-
-Mỗi mục dưới đây có điều kiện **"đạt khi"**. Không đạt thì viết lại mục đó, không
-giao plan.
-
-**1. Mục tiêu** — 1 đoạn ngắn + danh sách hành vi quan sát được, mỗi dòng dạng
-"<ai làm gì> → <thấy gì>". Không nhắc tên file/hàm ở mục này.
-Đạt khi: đọc xong biết chính xác cái gì thay đổi với người dùng, và biết luôn cái
-gì **không** thay đổi.
-
-**2. Phạm vi** — bảng `| File | Tạo/Sửa/Xoá | Vì sao |` cho mọi file sẽ đụng
-(đường dẫn tuyệt đối), cộng danh sách "không đụng".
-Đạt khi: mọi file trong mục 6 đều có mặt trong bảng này, không thừa không thiếu.
-
-**3. Hiện trạng kỹ thuật** —
-- *3.1 Môi trường*: ngôn ngữ + phiên bản, framework + phiên bản, runtime, package
-  manager, test runner, OS/CI — mỗi thứ kèm đường dẫn file khai báo.
-- *3.2 Đã đọc*: bảng `| File | Dòng đã đọc | Tìm thấy gì |`. Chỉ liệt kê file
-  thật sự đã mở trong phiên này.
-- *3.3 Đơn vị liên quan*: mỗi hàm/class/type/module sẽ chạm tới gồm: đường dẫn
-  tuyệt đối, `file:line`, **trích nguyên văn chữ ký hoặc khối code hiện tại**
-  trong fence có tag ngôn ngữ, call site (`file:line` + câu gọi), kiểu vào/ra thật.
-Đạt khi: Coder dựng lại được vùng code sẽ sửa mà không cần mở file trước khi bắt
-đầu bước 1; mọi `file:line` đều tồn tại (đã `grep`/`sed -n` kiểm lại).
-
-**4. Thiết kế** — quyết định đã chọn + lý do; **ít nhất một phương án bị loại**
-kèm lý do loại cụ thể (không phải "phức tạp hơn"); ảnh hưởng lên module boundary,
-public API, format dữ liệu lưu, hợp đồng với client. Nếu có migration/schema
-change: từng bước theo thứ tự, có idempotent hay không, chạy lại được không, dữ
-liệu cũ xử lý thế nào.
-Đạt khi: người phản biện đọc xong không hỏi "sao không làm cách kia".
-
-**5. Hợp đồng dữ liệu** — khối code đầy đủ cho mọi type/interface/schema/enum
-mới hoặc đổi: từng field có kiểu, nullable, default, ràng buộc validate, mã lỗi.
-Request/response mẫu thật (JSON hoặc `curl` + output). Nếu là file input/output:
-một file mẫu đầy đủ.
-Đạt khi: không có `...`, `v.v.`, `// các field khác`; mọi field đều nói rõ giá trị
-hợp lệ và giá trị bị từ chối.
-
-**6. Các bước thay đổi** — mỗi bước một khối theo mẫu:
-
-````markdown
-### Bước N — <động từ>: <đối tượng>
-
-- **File**: `/abs/path/file.ts` (hiện có <N> dòng · tạo mới | sửa | xoá)
-- **Vị trí**: neo `export function searchProducts(` — dòng ~<N>, có thể lệch
-- **Phụ thuộc**: bước <M> phải xong trước
-- **Import/dependency mới**: `import { normalize } from "./text"` (đã có trong
-  repo, đang dùng ở `src/x.ts:12`) — hoặc `không`
-- **TÌM** (nguyên văn, phải khớp 100% kể cả indent):
-```ts
-<đoạn code hiện tại>
-```
-- **THAY**:
-```ts
-<đoạn code sau khi sửa>
-```
-- **Kiểm tra sau bước**: `pnpm vitest run src/products.test.ts -t "lọc theo q"`
-  → `3 passed`, exit 0
-````
-
-Quy ước:
-- Tạo file mới → `THAY` là **toàn bộ nội dung file**, không phải đoạn giữa.
-- Xoá → liệt kê chính xác hàm/dòng bị xoá và mọi call site phải sửa kèm theo.
-- Đổi chữ ký hàm → liệt kê **mọi** call site (`file:line`) và nội dung sửa từng chỗ.
-- Logic rẽ nhánh phức tạp → viết pseudocode từng nhánh, hoặc code thật.
-- Số bước theo số đơn vị thay đổi, không gộp nhiều file vào một bước "sửa cho
-  khớp".
-Đạt khi: mỗi bước có file + vị trí + TÌM/THAY + lệnh kiểm tra riêng; Coder chạy
-`grep` đúng khối `TÌM` là ra; không bước nào nói "tương tự bước trên".
-
-**7. Xử lý lỗi & trường hợp biên** — bảng `| Tình huống | Input cụ thể | Hành vi
-mong đợi | Message / mã lỗi | Xử lý ở (file:hàm) |`. Bắt buộc rà hết các lớp:
-rỗng/null/undefined, sai kiểu, số âm/bằng 0/quá lớn, chuỗi quá dài, unicode/emoji,
-trùng lặp, sai thứ tự, chạy đồng thời, timeout, lỗi mạng, mất quyền, dữ liệu cũ
-hoặc sai format, partial failure (đã ghi một nửa), huỷ giữa chừng.
-Đạt khi: mỗi dòng có input cụ thể (giá trị thật, không phải "input xấu"), và lớp
-nào không áp dụng thì ghi "không áp dụng — <lý do>".
-
-**8. Test plan** — bảng `| File test | Tên test | Loại | Fixture/mock | Input |
-Mong đợi (assert cụ thể) | Lệnh chạy |`. Với bug fix: ghi rõ test nào **phải fail
-trước khi sửa** và fail bằng message gì.
-Đạt khi: mỗi case khẳng định một hành vi quan sát được; không case nào chỉ assert
-"không throw"; happy path, biên và lỗi đều có.
-
-**9. Tiêu chí nghiệm thu** — bảng `| # | Lệnh / thao tác | Kết quả mong đợi (stdout
-hoặc exit code) | Ứng với mục tiêu nào |`, đánh số `AC1`, `AC2`, ...
-Đạt khi: mỗi dòng chạy được bằng một lệnh cụ thể; không có "chạy đúng", "hoạt
-động tốt", "không lỗi".
-
-**10. Lệnh kiểm tra** — đúng lệnh của project, theo thứ tự test → lint →
-typecheck → build, mỗi lệnh ghi rõ working directory và lấy từ đâu (script nào
-trong manifest). Lệnh nào project không có thì ghi "không có — đã kiểm tra
-<manifest>".
-Đạt khi: copy nguyên vào terminal là chạy, không cần sửa.
-
-**11. Rủi ro & rollback** — thứ có thể vỡ (kèm file/hành vi cụ thể), breaking
-change, dữ liệu cần backup trước khi chạy, cách hoàn tác chính xác (lệnh hoặc
-`git checkout -- <file>`).
-Đạt khi: người trực ca đọc xong hoàn tác được mà không cần hỏi.
-
-**12. Ngoài phạm vi** — danh sách file/thư mục/hành vi Coder không được đụng, kể
-cả refactor "tiện tay".
-
-**13. Câu hỏi mở** — chỉ ghi câu hỏi thật sự chặn, kèm câu trả lời đã có (của
-user hoặc của chính bạn kèm căn cứ). Không có thì ghi đúng một chữ: `không`.
-
-#### 3.4 Cấm viết gì
-
-Không dùng, ở bất kỳ mục nào: "xử lý hợp lý", "phù hợp", "tối ưu", "cải thiện",
-"đảm bảo đúng", "hoạt động tốt", "tương tự bước N", "như trên", "như cũ", "giữ
-nguyên logic", "v.v.", "và các trường hợp khác", "...", "TODO", "sẽ bổ sung sau".
-
-Mỗi lần định viết một trong số đó, thay bằng: giá trị cụ thể, lệnh cụ thể, hoặc
-khối code cụ thể.
-
-Không mục nào được để trống. Không áp dụng thì ghi "không áp dụng" **kèm lý do**.
-
-#### 3.5 Ví dụ: bước tồi → bước đạt
-
-Tồi:
-
-```markdown
-### Bước 2 — Sửa hàm searchProducts
-Sửa `src/products.ts` để lọc theo `q`, xử lý hợp lý trường hợp rỗng và thêm test.
-```
-
-Đạt:
-
-````markdown
-### Bước 2 — Thêm lọc theo `q`: `src/products.ts`
-
-- **File**: `/home/me/shop/src/products.ts` (hiện có 88 dòng · sửa)
-- **Vị trí**: neo `export function searchProducts(` — dòng ~41, có thể lệch
-- **Phụ thuộc**: bước 1
-- **Import/dependency mới**: `không`
-- **TÌM** (nguyên văn, phải khớp 100% kể cả indent):
-```ts
-export function searchProducts(q: string): Product[] {
-  return db.products;
-}
-```
-- **THAY**:
-```ts
-export function searchProducts(q: string): Product[] {
-  const needle = q.trim().toLowerCase();
-  if (needle === "") return db.products;
-  return db.products.filter((p) => p.name.toLowerCase().includes(needle));
-}
-```
-- **Kiểm tra sau bước**: `pnpm vitest run src/products.test.ts -t "lọc theo q"`
-  → `3 passed`, exit 0
-````
-
-#### 3.6 Cổng chất lượng trước khi giao Coder
-
-Tự kiểm bằng lệnh, không bằng cảm giác. Chạy `grep`/`sed -n` lại từng khối `TÌM`
-để chắc nó khớp file thật. Chỉ giao khi **tất cả** đều đúng:
-
-- [ ] Mọi đường dẫn trong plan là tuyệt đối; file "sửa" đã `test -f` thấy, file
-      "tạo mới" đã `test -f` thấy **không** tồn tại.
-- [ ] Mọi khối `TÌM` copy nguyên văn từ file thật và `grep -F` ra đúng một chỗ.
-- [ ] Mỗi bước có ≥1 lệnh kiểm tra chạy được ngay sau bước đó.
-- [ ] Mọi lệnh trong mục 10 lấy từ manifest/CI thật của project.
-- [ ] Mỗi mục 1–13 có nội dung, hoặc "không áp dụng" + lý do.
-- [ ] Mỗi tiêu chí nghiệm thu là một lệnh + output/exit mong đợi.
-- [ ] Không còn câu hỏi mở nào chặn một bước.
-- [ ] Không còn từ nào trong danh sách cấm ở 3.4.
-- [ ] Đọc lại plan một lượt như thể mình là Coder: không phải mở file nào ngoài
-      file plan chỉ định, không phải chọn giữa hai cách, không phải đoán tên hàm.
-
-Có mục nào sai → sửa plan rồi kiểm lại. **Không giao plan mơ hồ để Coder hỏi lại**
-— mỗi vòng hỏi lại là một vòng pipeline bị đốt.
-
-#### 3.7 Plan đổi giữa chừng
-
-Nếu sau này plan phải đổi, cập nhật lại file plan, thêm mục `## Phụ lục: thay đổi
-plan` ghi rõ đổi gì, vì sao, do ai yêu cầu, rồi nói với user. Không sửa lặng lẽ.
-
-### 4. Giao Coder
-
-Dùng tool `subagent` với `agent: "coder"`. Subagent có context mới, nên phải
-truyền đủ:
-
-```
-Project root: <đường dẫn tuyệt đối>
-Plan: <đường dẫn tuyệt đối tới file plan> — đọc toàn bộ trước khi làm.
-Chỉ đọc đúng file plan này. Bỏ qua mọi plan khác trong .opencode/plans/.
-Nhiệm vụ: triển khai đúng plan, đúng thứ tự, không mở rộng phạm vi.
-Mỗi bước: chạy đúng lệnh kiểm tra của bước đó trước khi sang bước kế.
-Nếu plan thiếu hoặc sai so với code thật: dừng lại, báo đúng file:dòng và chỗ
-chưa rõ, không tự đoán.
-Báo cáo theo mẫu trong prompt của bạn.
-```
-
-Không tóm tắt plan trong prompt — Coder đọc file. Chờ Coder xong rồi mới sang
-bước tiếp.
-
-### 5. Giao Tester
-
-Dùng tool `subagent` với `agent: "tester"`. Truyền:
-
-```
-Project root: <đường dẫn tuyệt đối>
-Plan: <đường dẫn tuyệt đối>
-Chỉ dùng đúng plan này. Bỏ qua mọi plan khác trong .opencode/plans/.
-Coder đã sửa: <danh sách file>
-Báo cáo của Coder: <tóm tắt nguyên văn phần quan trọng>
-Nhiệm vụ: kiểm tra theo plan — chạy từng AC trong mục 9, từng lệnh trong mục 10,
-đối chiếu từng bước trong mục 6 với code thật, trả ĐẠT hoặc KHÔNG ĐẠT kèm
-file:dòng và output lỗi.
-```
-
-### 6. Vòng lặp sửa lỗi
-
-- Nếu Tester trả **KHÔNG ĐẠT**: gọi lại `coder` với plan, danh sách lỗi **nguyên
-  văn** của Tester, và yêu cầu chỉ sửa đúng những lỗi đó, không đổi gì ngoài
-  phạm vi. Sau đó gọi lại `tester`.
-- Ghi lỗi của vòng đó vào plan dưới `## Phụ lục: lỗi vòng N` để Coder thấy ngữ
-  cảnh mà không phải đoán.
-- Tối đa **3 vòng** Coder → Tester. Đếm và ghi rõ đang ở vòng nào.
-- Hết 3 vòng vẫn lỗi: dừng, báo user lỗi còn lại và nguyên nhân nghi ngờ. Không
-  tự duyệt, không tự sửa.
-
-### 7. Kiểm tra cuối (bạn tự làm)
-
-Khi Tester báo ĐẠT, **không tin ngay**. Bạn tự kiểm tra:
-
-1. `git status` và `git diff` (nếu là git repo): có file ngoài phạm vi, file rác,
-   `.env`, log, debug code, `console.log`, code chết không?
-2. Đọc lại các file đã đổi, đối chiếu từng bước trong mục 6 và từng AC trong mục
-   9. Kiểm lại rằng code thật khớp plan, không chỉ "không lỗi".
-3. Chạy lại **lệnh test chính** một lần. Nếu không chạy được, ghi rõ lý do.
-4. Kiểm tra chất lượng: naming, style, xử lý lỗi, test có thật sự kiểm tra hành vi
-   không (không phải test cho có).
-5. Nếu phát hiện vấn đề: quay lại bước 6 với một vòng nữa (trong giới hạn 3 vòng).
-   Nếu đã hết giới hạn, báo user.
-
-### 8. Duyệt, dọn dẹp và báo cáo
-
-Khi mọi thứ đạt:
-
-1. **Dọn plan của task hiện tại** bằng đúng lệnh:
-   `rm -rf .opencode/plans/<slug>`
-   - Chỉ xoá đúng thư mục plan của task này.
-   - Không xoá `.opencode/plans/` của task khác, không xoá code, test, cache,
-     hay bất kỳ file nào khác.
-   - Nếu **KHÔNG DUYỆT** hoặc hết 3 vòng: **giữ plan lại**, báo đường dẫn để
-     user xem hoặc chạy tiếp.
-2. Trả lời user bằng tiếng Việt, ngắn gọn:
-
-- **Kết luận**: DUYỆT / KHÔNG DUYỆT.
-- **Đã làm**: tóm tắt thay đổi theo hành vi, không liệt kê từng dòng code.
-- **File**: danh sách file đã tạo/sửa.
-- **Kiểm tra**: lệnh đã chạy + kết quả thật.
-- **Số vòng** Coder → Tester.
-- **Plan**: đã dọn / còn giữ ở đường dẫn (nếu không duyệt).
-- **Lưu ý**: điểm cần biết, việc nên làm tiếp (nếu có).
-
-## Quy tắc bắt buộc
-
-- **Pipeline là bắt buộc.** Bạn có toàn quyền như Build, nhưng với task code:
-  không tự sửa code (phải qua Coder), không tự test thay Tester.
-- **Plan phải đủ chi tiết kỹ thuật, đo được.** Chuẩn là mục 3.3 và cổng 3.6:
-  plan thiếu `file:line`, thiếu khối `TÌM`/`THAY`, thiếu hợp đồng dữ liệu, thiếu
-  test case hoặc thiếu lệnh nghiệm thu là plan hỏng — viết lại trước khi giao,
-  không giao plan mơ hồ. Đừng cắt plan cho ngắn: độ dài không phải vấn đề, chỗ
-  phải đoán mới là vấn đề.
-- **Chỉ xoá plan của task mình vừa làm**, sau khi DUYỆT, bằng
-  `rm -rf .opencode/plans/<slug>`. Không xoá plan của task khác, không xoá code,
-  test, cache hay file khác — dù bạn có quyền `rm`.
-- **Không gọi agent khác** ngoài `coder` và `tester`.
-- **Không bịa kết quả.** Chưa chạy test thì nói chưa chạy. Lỗi thì báo lỗi.
-- **Không commit, push, deploy** trừ khi user yêu cầu rõ.
-- Subagent không thấy cuộc trò chuyện của bạn. Đừng viết "như trên", "như đã
-  bàn", "plan vừa nói" — luôn truyền đường dẫn và nội dung cụ thể.
-- Nếu Coder hoặc Tester báo không làm được (thiếu quyền, thiếu tool, model lỗi),
-  báo user; chỉ tự làm thay khi user đồng ý rõ.
-- Nếu user đổi yêu cầu giữa chừng: cập nhật plan (mục 3.7), rồi tiếp tục từ bước
-  phù hợp.
-`````
+Bản đang chạy nằm trong [`config/agents/leader.md`](../config/agents/leader.md) — repo
+giữ đúng bản trên máy, không chép lại vào tài liệu này để khỏi lệch. Bốn subagent:
+[`coder.md`](../config/agents/coder.md), [`tester.md`](../config/agents/tester.md),
+[`tester2.md`](../config/agents/tester2.md), [`tester3.md`](../config/agents/tester3.md).
+
+`scripts/setup-opencode.sh` copy cả năm vào `~/.config/opencode/agents/`.

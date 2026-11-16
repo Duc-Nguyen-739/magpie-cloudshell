@@ -67,7 +67,7 @@ signed="$(magpie accounts 2>/dev/null | grep -c '^●' || true)"
 
 head_ "Routing group"
 groups_now="$(magpie groups 2>/dev/null || true)"
-for g in main code glm; do
+for g in main leader coder tester tester-2 tester-3; do
   if printf '%s\n' "$groups_now" | grep -q "group/$g"; then
     n="$(magpie group "$g" 2>/dev/null | awk '
       /^  models / {inm = 1; c = 1; next}
@@ -83,11 +83,15 @@ done
 head_ "Agent"
 agents_now="$(magpie ls 2>/dev/null || true)"
 for a in opencode openchamber; do
+  case "$a" in
+    opencode)   want=group/main ;;
+    openchamber) want=group/leader ;;
+  esac
   if printf '%s\n' "$agents_now" | grep -qiE "^[[:space:]]*$a[[:space:]]"; then
     line="$(magpie "$a" 2>/dev/null | head -2 | tr -s ' ')"
     case "$line" in
-      *group/main*) ok "$a → group/main" ;;
-      *) warn "$a chưa trỏ group/main (bash scripts/setup-agents.sh)" ;;
+      *"$want"*) ok "$a → $want" ;;
+      *) warn "$a chưa trỏ $want (bash scripts/setup-agents.sh)" ;;
     esac
   fi
 done

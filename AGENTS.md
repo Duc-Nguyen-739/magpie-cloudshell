@@ -28,14 +28,20 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   `opencode-zen-free` **tắt**, `opencode-zen` (API key) **bật nhưng chỉ mở
   `jev-1.13-free`** làm classifier — free tier qua API key bị chặn ở upstream, đường
   plugin cũng cạn theo IP dùng chung; xem [`docs/zen-free.md`](docs/zen-free.md).
-- Ba routing group: `group/main`, `group/code` (cùng một ladder 5 model), `group/glm`
-  (Tester, GLM đứng đầu). `group/deepseek` đã bỏ.
-- Ladder 5 model: `workbuddy-ai/deepseek-v4.1-flash-sg` → GLM (AutoClaw, WorkBuddy) →
-  `workbuddy-ai/hy4flash-free` (đọc ảnh); classifier `opencode-zen/jev-1.13-free`.
-- Provider đang tắt: `kilo`, `qoder`, `opencode-zen-free`. WorkBuddy chỉ expose
-  `deepseek-v4.1-flash-sg`, `glm-5.3-flash`, `hy4flash-free`.
-- OpenCode trỏ `group/main` (chat thường ngày), OpenChamber trỏ `group/code` (pipeline);
-  agent `leader` + 2 subagent `coder`, `tester`;
+- Sáu routing group: `group/main` (chat thường ngày, `stays=session`), `group/leader`
+  (OpenChamber: plan + điều phối), `group/coder`, `group/tester`, `group/tester-2`,
+  `group/tester-3`. Cả sáu dùng `routing=order`, classifier
+  `opencode-zen/jev-1.13-free`, `effort=auto`; không group nào có rule.
+- `group/main`: `freepi/deepseek-v4.1-flash` → `workbuddy-ai/hy4flash-free` →
+  `agy-cli/gemini-3.8-flash` → `autoclaw/zai_glm-5.3-flash` →
+  `workbuddy-ai/glm-5.3-flash`.
+- `group/leader`: `workbuddy-ai/deepseek-v4.1-flash-sg:max` →
+  `agy-cli/claude-opus-4-6-thinking`.
+- Provider đang tắt: `qoder`, `opencode-zen-free`. WorkBuddy chỉ expose
+  `deepseek-v4.1-flash-sg`, `glm-5.3-flash`, `hy4flash-free`; `kilo` **bật** vì
+  `group/tester-2` dùng `kilo/reflection/beam-free`.
+- OpenCode trỏ `group/main` (chat thường ngày), OpenChamber trỏ `group/leader`
+  (pipeline); agent `leader` + 4 subagent `coder`, `tester`, `tester2`, `tester3`;
   skill `magpie-setup`.
 - Supervisor bash giữ gateway + web UI sống; hai lệnh `openchamber` / `openmagpie` in
   link web **đã kèm key**.
@@ -148,14 +154,14 @@ bash scripts/finish.sh # từ repo
 Kiểm tra:
 
 ```sh
-magpie group main      # 8 (hoặc ít hơn) model theo thứ tự, rule images + compact, levels, classifier
-magpie group code      # rule 4 intent + images
-magpie opencode        # model: magpie/group/main
-magpie openchamber     # model: magpie/group/main
+magpie group main      # 5 model theo thứ tự, levels low/high/max, classifier
+magpie group leader    # 2 model, OpenChamber dùng
+magpie opencode        # model: magpie/group/main · small magpie/workbuddy-ai/hy4flash-free
+magpie openchamber     # model: magpie/group/leader
 ```
 
-`setup-groups.sh` bỏ rule nếu model của rule không có trong group, nên cấu hình một phần
-vẫn chạy. Đăng nhập thêm provider → chạy lại `finish.sh` để lấp ladder.
+`setup-groups.sh` chỉ đưa vào group model đang có, nên cấu hình một phần vẫn chạy.
+Đăng nhập thêm provider → chạy lại `finish.sh` để lấp ladder.
 
 ### 5. Bàn giao
 
@@ -207,7 +213,7 @@ magpie provider test autoclaw zai_auto
 | Cloud Shell restart, không có gì chạy | thiếu hook `.bashrc` | `bash bootstrap.sh` thêm lại |
 | `openchamber` không in link | PATH: binary npm che wrapper | `command -v openchamber` phải là `~/.local/bin/openchamber` |
 | Model list rỗng trong OpenCode | gateway chưa chạy | `openmagpie` rồi `magpie healthcheck` |
-| Subagent `coder` lỗi model | thiếu `group/code` hoặc model chưa expose | `setup-opencode.sh` đã lùi về `group/main`; hoặc sửa dòng `model:` |
+| Subagent `coder` lỗi model | thiếu `group/coder` hoặc model chưa expose | `setup-opencode.sh` đã lùi về `group/main`; hoặc sửa dòng `model:` |
 | OpenCode báo `Compression FAILED … target-timeout` | billion-context hết 25 s/target | sửa budget rồi reload — [`docs/billion-context.md`](docs/billion-context.md) |
 
 ## Plugin AutoClaw — bản đang chạy tốt (chốt 2026-10-29)
@@ -229,8 +235,8 @@ Kết quả test lúc **2026-10-29 02:54 UTC** (tài khoản đang hoạt độn
 
 `zaicoding_glm-5.3` hỏng **không phải do plugin**: đó là quota miễn phí của gói
 coding đã hết ở tài khoản này, upstream trả 429. Group vẫn chạy vì rơi xuống model
-kế tiếp. Gọi qua gateway cùng lúc đó: `group/glm` → trả lời, `group/code` →
-`deepseek-v4.1-flash`, `group/main` → `deepseek-v4.1-flash`, cả ba đều `ok`.
+kế tiếp. Gọi qua gateway cùng lúc đó: `group/leader` → trả lời, `group/main` →
+`deepseek-v4.1-flash`, `group/coder` → `deepseek-v4.1-flash`, cả ba đều `ok`.
 
 Khi thử bản plugin mới, chạy lại đúng bốn dòng `provider test` trên để so: 0.2.9
 cho 3 ✓ và một 429 quota; bản mới phải tương đương hoặc tốt hơn, còn nếu ra 401,

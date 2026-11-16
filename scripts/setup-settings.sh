@@ -3,7 +3,8 @@
 #   - settings.json: theme, ngôn ngữ, vision model, image model, check-in, cỡ chữ…
 #   - provider: opencode-zen bật nhưng chỉ expose jev-1.13-free (classifier); opencode-zen-free tắt
 #     (free tier qua API key bị chặn, đường plugin cạn theo IP dùng chung — xem docs/zen-free.md);
-#     kilo và qoder tắt hẳn; workbuddy-ai bỏ model hy3 (không group nào dùng)
+#     qoder tắt hẳn; kilo **bật** (group/tester-2 dùng kilo/reflection/beam-free);
+#     workbuddy-ai chỉ expose deepseek-v4.1-flash-sg, glm-5.3-flash, hy4flash-free
 #
 # Chỉ **thêm khoá còn thiếu**, không ghi đè giá trị bạn đã đặt. Chạy lại vô hại.
 #
@@ -49,9 +50,8 @@ if [ "$DRY" = 1 ]; then
     printf '  \033[2m[dry-run]\033[0m magpie provider models opencode-zen -%s\n' "$m"
   done < <(zen_drop_list)
   printf '  \033[2m[dry-run]\033[0m magpie provider off opencode-zen-free\n'
-  printf '  \033[2m[dry-run]\033[0m magpie provider off kilo\n'
   printf '  \033[2m[dry-run]\033[0m magpie provider off qoder\n'
-  printf '  \033[2m[dry-run]\033[0m magpie provider models workbuddy-ai -hy3\n'
+  printf '  \033[2m[dry-run]\033[0m magpie provider models workbuddy-ai deepseek-v4.1-flash-sg glm-5.3-flash hy4flash-free\n'
 else
   if magpie provider on opencode-zen >/dev/null 2>&1; then
     ok "opencode-zen đang bật"
@@ -72,17 +72,23 @@ else
     warn "không tắt được opencode-zen-free (chưa cài plugin?) — bỏ qua"
   fi
 
-  # Không nằm trong ladder nào: tắt hẳn để danh sách model chỉ còn thứ đang dùng.
-  for p in kilo qoder; do
-    if magpie provider off "$p" >/dev/null 2>&1; then
-      ok "provider $p đang tắt"
-    else
-      warn "không tắt được $p (chưa thêm?) — bỏ qua"
-    fi
+  # qoder không nằm trong ladder nào: tắt hẳn. kilo thì BẬT — tester-2 dùng
+  # kilo/reflection/beam-free, nên không được tắt.
+  if magpie provider off qoder >/dev/null 2>&1; then
+    ok "provider qoder đang tắt"
+  else
+    warn "không tắt được qoder (chưa thêm?) — bỏ qua"
+  fi
+  # WorkBuddy: chỉ expose đúng ba model đang dùng trong group.
+  wb_want=()
+  for m in deepseek-v4.1-flash-sg glm-5.3-flash hy4flash-free; do
+    has_model "workbuddy-ai/$m" && wb_want+=("$m")
   done
-  # WorkBuddy: chỉ giữ model có trong group; hy3 không dùng ở đâu.
-  magpie provider models workbuddy-ai -hy3 >/dev/null 2>&1 \
-    && ok "workbuddy-ai: bỏ hy3 khỏi danh sách expose"
+  if [ ${#wb_want[@]} -gt 0 ]; then
+    magpie provider models workbuddy-ai "${wb_want[@]}" >/dev/null 2>&1 \
+      && ok "workbuddy-ai expose: ${wb_want[*]}" \
+      || warn "không đặt được danh sách model workbuddy-ai"
+  fi
 fi
 
 # ---------------------------------------------------------------- settings

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# setup-opencode.sh — thêm agent Leader + 2 subagent (coder, tester) và skill magpie-setup vào OpenCode.
+# setup-opencode.sh — thêm agent Leader + 4 subagent (coder, tester, tester2, tester3)
+# và skill magpie-setup vào OpenCode.
 # Không ghi đè file đã có; muốn cập nhật thì xoá file cũ rồi chạy lại.
 set -uo pipefail
 
@@ -19,6 +20,7 @@ if ! command -v magpie >/dev/null 2>&1; then
 fi
 
 models_now="$(magpie models 2>/dev/null | awk '{print $1}')"
+groups_now="$(magpie groups 2>/dev/null || true)"
 has_model() { printf '%s\n' "$models_now" | grep -Fxq "$1"; }
 
 install_agent() { # <tên>
@@ -28,14 +30,24 @@ install_agent() { # <tên>
     return 0
   fi
   cp "$src" "$dst"
-  # Model riêng của agent; nếu máy chưa có thì lùi về group/main để không lỗi.
+  # Model riêng của agent; nếu máy chưa có group/model đó thì lùi về group/main.
   local m mid
   m="$(sed -n 's/^model: *//p' "$dst" | head -1)"
   mid="${m#magpie/}"
   mid="${mid%%#*}"                 # bỏ #low/#high/#max trước khi kiểm tra
-  if [ -n "$m" ] && [ -z "${m#magpie/}" ] && ! has_model "$mid"; then
+  if [ -z "$m" ] || [ -n "${m#magpie/}" ]; then
+    ok "$dst"
+    return 0
+  fi
+  if [ "${mid#group/}" != "$mid" ]; then
+    local gid="${mid#group/}"
+    if ! printf '%s\n' "$groups_now" | awk -v g="group/$gid" '{ for (i = 1; i <= NF; i++) if ($i == g) found = 1 } END { exit !found }'; then
+      sed -i "s|^model: .*|model: magpie/group/main|" "$dst"
+      warn "$name: chưa có group/$gid, đã đổi sang magpie/group/main"
+    fi
+  elif ! has_model "$mid"; then
     sed -i "s|^model: .*|model: magpie/group/main|" "$dst"
-    warn "$name: không có ${mid}, đã đổi sang magpie/group/main"
+    warn "$name: không có $mid, đã đổi sang magpie/group/main"
   fi
   ok "$dst"
 }
@@ -43,6 +55,8 @@ install_agent() { # <tên>
 install_agent leader
 install_agent coder
 install_agent tester
+install_agent tester2
+install_agent tester3
 
 # ------------------------------------------------------- skill magpie-setup
 # Nguồn chính thức: https://github.com/magpie-community/plugins/tree/main/skills/magpie-setup
