@@ -88,7 +88,7 @@ fi
 # ---------------------------------------------------------------- settings
 # Giá trị lấy từ máy tham chiếu (magpie 0.1.1763). vision/imageGen chỉ đặt khi
 # model tương ứng đã có, để UI không trỏ vào model không tồn tại.
-VISION="workbuddy-ai/hy4free"
+VISION="workbuddy-ai/hy4flash-free"
 IMAGE="workbuddy-ai/hy-image-3.5"
 
 seed='{

@@ -160,7 +160,7 @@ hội thoại dài.
 | `tray` | `panel` | menu bar mở panel |
 | `currency` | `usd` | giá hiển thị bằng USD |
 | `updateEvery` | `360` | kiểm tra cập nhật mỗi 360 phút |
-| `vision` | `workbuddy-ai/hy4free` | model đọc ảnh cho tool vision |
+| `vision` | `workbuddy-ai/hy4flash-free` | model đọc ảnh cho tool vision |
 | `visionEffort` | `max` | mức reasoning cho vision |
 | `imageGen` | `workbuddy-ai/hy-image-3.5` | model tạo ảnh |
 | `trayUsageEvery` | `3` | nhịp cập nhật usage trên tray |

@@ -214,6 +214,7 @@ script chỉ đưa vào group những model thật sự có.
 | `magpie-finish` | tạo/cập nhật group + trỏ agent (bản cài; giống `bash scripts/finish.sh`) |
 | `bash scripts/autoclaw-link.sh` | in **link localhost/preview** để mở trang đăng nhập AutoClaw từ laptop (`--watch`, `--port`, `--tunnel`) |
 | `autoclaw-link` | như trên, bản cài trong `~/.local/bin` |
+| `bash scripts/agnes-link.sh` | trang local để đăng nhập **Agnes**: mở link, dán API key `cpk-…`; tự lưu + kiểm tra (`--watch`, `--cancel`) |
 | `bash scripts/doctor.sh` | kiểm tra toàn bộ (binary, gateway, provider, group, agent, cổng, key, dung lượng) |
 | `openchamber <lệnh>` | chuyển nguyên cho CLI thật (`status`, `models`, `session`…) |
 
@@ -234,6 +235,8 @@ scripts/
   setup-opencode.sh         2 subagent + skill magpie-setup
   setup-settings.sh         settings.json + trạng thái provider (chỉ thêm khoá thiếu)
   autoclaw-link.sh          in link localhost/preview để đăng nhập AutoClaw
+  agnes-link.sh             trang local để đăng nhập Agnes (dán API key)
+  agnes-login.mjs           server của trang đó
   login.sh                  trạng thái + đăng nhập từng provider
   setup-groups.sh           group/main, code, glm (--force, --dry-run)
   setup-agents.sh           trỏ agent vào group/main
@@ -249,6 +252,7 @@ docs/
   groups.md                 hai group: model, rule, classifier, cách sửa
   zen-free.md               vì sao tắt OpenCode Zen Free; vì sao chỉ giữ jev làm classifier
   opencode.md               OpenCode nối magpie thế nào, subagent, skill
+  billion-context.md        nén hội thoại: budget, target, lỗi target-timeout
   cloudshell.md             headless: cổng, key, preview, PATH, autostart
 ```
 

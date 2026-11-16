@@ -31,14 +31,18 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
 - Ba routing group: `group/main`, `group/code` (cùng một ladder 5 model), `group/glm`
   (Tester, GLM đứng đầu). `group/deepseek` đã bỏ.
 - Ladder 5 model: `workbuddy-ai/deepseek-v4.1-flash-sg` → GLM (AutoClaw, WorkBuddy) →
-  `workbuddy-ai/hy4free` (đọc ảnh); classifier `opencode-zen/jev-1.13-free`.
+  `workbuddy-ai/hy4flash-free` (đọc ảnh); classifier `opencode-zen/jev-1.13-free`.
 - Provider đang tắt: `kilo`, `qoder`, `opencode-zen-free`. WorkBuddy chỉ expose
-  `deepseek-v4.1-flash-sg`, `glm-5.3-flash`, `hy4free`.
+  `deepseek-v4.1-flash-sg`, `glm-5.3-flash`, `hy4flash-free`.
 - OpenCode trỏ `group/main` (chat thường ngày), OpenChamber trỏ `group/code` (pipeline);
   agent `leader` + 2 subagent `coder`, `tester`;
   skill `magpie-setup`.
 - Supervisor bash giữ gateway + web UI sống; hai lệnh `openchamber` / `openmagpie` in
   link web **đã kèm key**.
+- `billion-context` (plugin OpenCode, không phải magpie) nén hội thoại; config ở
+  `~/.config/billion-context/billion-context.json`, sửa xong phải
+  `curl -X POST 127.0.0.1:18787/__bili/config/reload`; xem
+  [`docs/billion-context.md`](docs/billion-context.md).
 - Đích chính xác của cấu hình: [`docs/inventory.md`](docs/inventory.md).
 
 ## Thứ tự làm
@@ -102,6 +106,9 @@ Nói rõ, bằng ngôn ngữ của họ, rồi chờ:
 >   `http://localhost:<cổng>/auth/callback-…`; trang đó không load được — **copy nguyên
 >   địa chỉ, dán vào ô `Callback URL`** trong hộp đăng nhập của magpie, Enter.
 > - Tương tự cho WorkBuddy AI và Qoder (cũng trong web UI).
+> - **Agnes** không có callback URL (token nằm trong `localStorage`, không vào URL) và
+>   plugin cần Chrome trên chính máy này — dùng `bash scripts/agnes-link.sh`, mở link,
+>   đăng nhập rồi dán API key `cpk-…`; trang tự lưu và kiểm tra, không phải gửi gì vào chat.
 > - Hoặc dán API key OpenCode Zen / Kilo: `bash scripts/login.sh keys`.
 > - Muốn dùng CLI thật thì cần SSH tunnel trước — `docs/autoclaw-login.md` Cách B.
 >
@@ -201,6 +208,7 @@ magpie provider test autoclaw zai_auto
 | `openchamber` không in link | PATH: binary npm che wrapper | `command -v openchamber` phải là `~/.local/bin/openchamber` |
 | Model list rỗng trong OpenCode | gateway chưa chạy | `openmagpie` rồi `magpie healthcheck` |
 | Subagent `coder` lỗi model | thiếu `group/code` hoặc model chưa expose | `setup-opencode.sh` đã lùi về `group/main`; hoặc sửa dòng `model:` |
+| OpenCode báo `Compression FAILED … target-timeout` | billion-context hết 25 s/target | sửa budget rồi reload — [`docs/billion-context.md`](docs/billion-context.md) |
 
 ## Plugin AutoClaw — bản đang chạy tốt (chốt 2026-10-29)
 
