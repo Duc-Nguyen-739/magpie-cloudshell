@@ -62,6 +62,13 @@ SHARE="$HOME/.local/share/magpie-cloudshell"
 mkdir -p "$SHARE"
 cp -R "$REPO_DIR/scripts" "$SHARE/"
 cp -R "$REPO_DIR/config" "$SHARE/" 2>/dev/null || true
+cat > "$HOME/.local/bin/agnes-link" <<EOF
+#!/usr/bin/env bash
+# Trang local để đăng nhập Agnes (bản cài từ magpie-cloudshell).
+exec bash "$SHARE/scripts/agnes-link.sh" "\$@"
+EOF
+chmod 755 "$HOME/.local/bin/agnes-link"
+ok "~/.local/bin/agnes-link"
 cat > "$HOME/.local/bin/magpie-finish" <<EOF
 #!/usr/bin/env bash
 # Tạo/cập nhật routing group + trỏ agent (bản cài từ magpie-cloudshell).

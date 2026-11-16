@@ -13,6 +13,7 @@ sửa cấu hình agent** — magpie tự ghi lại danh sách model.
 | `qoder` | Qoder | OAuth web (plugin) | tài khoản Qoder | `magpie accounts` |
 | `opencode-zen` | OpenCode Zen | API key | key `oc_…` | đang **bật**, chỉ expose `jev-1.13-free` (classifier) |
 | `kilo` | Kilo Gateway | API key | key `eyJ…` | `magpie provider test kilo` |
+| `agnes` | Agnes | plugin + API key `cpk-…` | key từ `platform.agnes-ai.com` | `magpie provider test agnes agnes-3.0-flash` |
 | `opencode-zen-free` | OpenCode Zen Free | plugin (key công khai) | không | đang **tắt** — hạn mức theo IP dùng chung |
 
 ## Provider dùng OAuth (bấm trình duyệt)
@@ -71,6 +72,32 @@ magpie plugin login zcode
 ```
 
 Máy tham chiếu có cài nhưng **chưa đăng nhập**; không nằm trong group nào.
+
+### Agnes — `agnes`
+
+```sh
+magpie plugin add @magpie-community/opencode-agnes-auth
+bash scripts/agnes-link.sh                 # mở link, đăng nhập, dán API key
+magpie provider test agnes agnes-3.0-flash
+```
+
+Trên máy có màn hình, `magpie plugin login agnes` tự mở Chrome và đọc token. Trên máy
+headless thì không: plugin cần Chrome **trên chính máy chạy magpie**, mà Agnes **không có
+OAuth callback** về localhost — token nằm trong `localStorage`, không bao giờ vào URL, nên
+không có gì để copy rồi gửi lại như Kiro/AutoClaw.
+
+Vì vậy `agnes-link.sh` dựng một trang local (link `https://<cổng>-<WEB_HOST>/?k=…`): bạn
+đăng nhập Agnes bằng trình duyệt của mình, copy API key, dán vào trang. Trang tự chạy
+`magpie plugin login agnes "Agnes API key"`, kiểm tra key với `apihub.agnes-ai.com`, rồi
+báo xong. Key không đi qua chat và không ghi log.
+
+| Loại key | Dạng | Hạn mức hiện trên `magpie accounts` |
+|---|---|---|
+| Token/Agent Plan | `cpk-…` | 5 giờ + tuần (request) hoặc credit tháng |
+| Personal / Enterprise | `apk-…` | số dư USD |
+
+Console token (`localStorage.getItem("token")` ở `platform.agnes-ai.com`) là tuỳ chọn, chỉ
+để đọc hạn mức; không có nó vẫn gọi model bình thường.
 
 ## Provider dùng API key
 
