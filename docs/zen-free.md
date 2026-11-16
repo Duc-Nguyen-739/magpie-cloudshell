@@ -121,7 +121,7 @@ Tắt `opencode-zen-free` bằng `magpie provider off`, **không** `rm`: plugin 
 2 autoclaw/zaicoding_glm-5.3
 3 autoclaw/zai_glm-5.3-flash
 4 workbuddy-ai/glm-5.3-flash
-5 workbuddy-ai/hy4free
+5 workbuddy-ai/hy4flash-free
 ```
 
 **`group/glm` — 5 model:**
@@ -192,7 +192,7 @@ magpie models | grep -E '^[[:space:]]+opencode-zen/'
 # "magpie provider models opencode-zen +<model> exposes one" — đó không phải model.
 
 magpie group main
-# 5 rung đúng thứ tự mục 5, dòng cuối: workbuddy-ai/hy4free
+# 5 rung đúng thứ tự mục 5, dòng cuối: workbuddy-ai/hy4flash-free
 # dòng classifier:
 #   opencode-zen/jev-1.13-free
 #   effort  auto

@@ -48,7 +48,7 @@ MODELS=(
   autoclaw/zai_glm-5.3-flash                     # AutoClaw — GLM-5.3 flash
   autoclaw/zaicoding_glm-5.3                     # AutoClaw — GLM-5.3 coding (quota free hay cạn)
   workbuddy-ai/glm-5.3-flash                     # WorkBuddy AI — GLM flash dự phòng
-  workbuddy-ai/hy4free                           # WorkBuddy AI — đọc ảnh (rule images)
+  workbuddy-ai/hy4flash-free                     # WorkBuddy AI — đọc ảnh (rule images)
 )
 
 LEVELS=low,high,max                       # mức reasoning agent được chọn
@@ -190,8 +190,8 @@ use_present() {
 say ""
 say "group/main — chat thường ngày, stays=session"
 if create_group "Main" main session; then
-  add_rule main workbuddy-ai/hy4free images                  # ảnh → model đọc được ảnh
-  add_rule main workbuddy-ai/hy4free,workbuddy-ai/glm-5.3-flash compact  # nén → free trước, GLM sau
+  add_rule main workbuddy-ai/hy4flash-free images                  # ảnh → model đọc được ảnh
+  add_rule main workbuddy-ai/hy4flash-free,workbuddy-ai/glm-5.3-flash compact  # nén → free trước, GLM sau
 fi
 
 # ------------------------------------------------------------- group/code
@@ -200,7 +200,7 @@ fi
 say ""
 say "group/code — Leader + Coder, stays=turn, 6 rule"
 if create_group "Code" code turn; then
-  add_rule code workbuddy-ai/hy4free,workbuddy-ai/glm-5.3-flash compact
+  add_rule code workbuddy-ai/hy4flash-free,workbuddy-ai/glm-5.3-flash compact
   add_rule code workbuddy-ai/deepseek-v4.1-flash-sg \
     intent="asking for a detailed plan before any code is written (lên plan, lập kế hoạch chi tiết)"
   add_rule code workbuddy-ai/deepseek-v4.1-flash-sg \
@@ -213,7 +213,7 @@ if create_group "Code" code turn; then
   fi
   add_rule code workbuddy-ai/deepseek-v4.1-flash-sg \
     intent="final overall review of the finished code and releasing or publishing it (kiểm tra tổng thể lần cuối, duyệt, phát hành, release, ship)"
-  add_rule code workbuddy-ai/hy4free images
+  add_rule code workbuddy-ai/hy4flash-free images
 fi
 
 # ------------------------------------------------------------- group/glm

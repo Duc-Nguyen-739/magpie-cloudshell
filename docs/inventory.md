@@ -76,7 +76,7 @@ opencode-zen-freex                          phục vụ opencode-zen-free
 | levels | `low,high,max` | `low,high,max` |
 | effort | `auto` | `auto` |
 | classifier | `opencode-zen/jev-1.13-free` | `opencode-zen/jev-1.13-free` |
-| rule | ảnh → hy4free; compact → hy4free, glm-5.3-flash | compact → hy4free, glm-5.3-flash; 4 intent + ảnh → hy4free (test → GLM, flash đầu) |
+| rule | ảnh → hy4flash-free; compact → hy4flash-free, glm-5.3-flash | compact → hy4flash-free, glm-5.3-flash; 4 intent + ảnh → hy4flash-free (test → GLM, flash đầu) |
 | agent dùng | OpenCode (chat) | Leader, Coder, OpenChamber |
 
 Group còn lại không rule, không classifier:
@@ -95,7 +95,7 @@ Thứ tự fallback 5 model cho cả `main` và `code`:
 2 autoclaw/zai_glm-5.3-flash
 3 autoclaw/zaicoding_glm-5.3
 4 workbuddy-ai/glm-5.3-flash
-5 workbuddy-ai/hy4free
+5 workbuddy-ai/hy4flash-free
 ```
 
 `autoclaw/zai_auto` và `autoclaw/zai_auto-fast` đã bị bỏ khỏi mọi group vì chỉ có 200K

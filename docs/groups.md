@@ -18,15 +18,15 @@ thành sai và một request dài rơi xuống chúng sẽ lỗi. Bỏ đi thì 
 
 ```sh
 magpie group add "Main" \
-  models=workbuddy-ai/deepseek-v4.1-flash-sg,autoclaw/zai_glm-5.3-flash,autoclaw/zaicoding_glm-5.3,workbuddy-ai/glm-5.3-flash,workbuddy-ai/hy4free \
+  models=workbuddy-ai/deepseek-v4.1-flash-sg,autoclaw/zai_glm-5.3-flash,autoclaw/zaicoding_glm-5.3,workbuddy-ai/glm-5.3-flash,workbuddy-ai/hy4flash-free \
   routing=order stays=session
 
 magpie group set main levels=low,high,max
 magpie group set main classifier=opencode-zen/jev-1.13-free
 magpie group set main effort=auto
 
-magpie group rule add main use=workbuddy-ai/hy4free images
-magpie group rule add main use=workbuddy-ai/hy4free,workbuddy-ai/glm-5.3-flash compact
+magpie group rule add main use=workbuddy-ai/hy4flash-free images
+magpie group rule add main use=workbuddy-ai/hy4flash-free,workbuddy-ai/glm-5.3-flash compact
 ```
 
 ### `group/code` — công việc code
@@ -35,15 +35,15 @@ Cùng ladder, `stays=turn` và 6 rule (nén hội thoại đứng đầu):
 
 ```sh
 magpie group add "Code" \
-  models=workbuddy-ai/deepseek-v4.1-flash-sg,autoclaw/zai_glm-5.3-flash,autoclaw/zaicoding_glm-5.3,workbuddy-ai/glm-5.3-flash,workbuddy-ai/hy4free \
+  models=workbuddy-ai/deepseek-v4.1-flash-sg,autoclaw/zai_glm-5.3-flash,autoclaw/zaicoding_glm-5.3,workbuddy-ai/glm-5.3-flash,workbuddy-ai/hy4flash-free \
   routing=order stays=turn
 magpie group set code levels=low,high,max
 magpie group set code classifier=opencode-zen/jev-1.13-free
 magpie group set code effort=auto
 
-# Đứng đầu để bước nén không bị rule intent giành mất. hy4free trước (free, 1M);
-# hy4free lỗi hoặc bị limit thì nhảy sang GLM-5.3 Flash (cũng 1M, rẻ).
-magpie group rule add code use=workbuddy-ai/hy4free,workbuddy-ai/glm-5.3-flash compact
+# Đứng đầu để bước nén không bị rule intent giành mất. hy4flash-free trước (free, 1M);
+# hy4flash-free lỗi hoặc bị limit thì nhảy sang GLM-5.3 Flash (cũng 1M, rẻ).
+magpie group rule add code use=workbuddy-ai/hy4flash-free,workbuddy-ai/glm-5.3-flash compact
 
 magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash-sg \
   intent="asking for a detailed plan before any code is written (lên plan, lập kế hoạch chi tiết)"
@@ -53,7 +53,7 @@ magpie group rule add code use=autoclaw/zai_glm-5.3-flash,autoclaw/zaicoding_glm
   intent="running tests or checking the code just written, before it is finished (kiểm tra, test code vừa viết)"
 magpie group rule add code use=workbuddy-ai/deepseek-v4.1-flash-sg \
   intent="final overall review of the finished code and releasing or publishing it (kiểm tra tổng thể lần cuối, duyệt, phát hành, release, ship)"
-magpie group rule add code use=workbuddy-ai/hy4free images
+magpie group rule add code use=workbuddy-ai/hy4flash-free images
 ```
 
 ### `group/glm` — Tester
@@ -111,8 +111,8 @@ khó. Classifier chỉ là model *phụ*: nó không nằm trong ladder, không 
 **Rule.** Rule đầu tiên khớp sẽ đưa model của nó lên đầu lượt đó; các model còn lại
 vẫn ở sau làm fallback.
 
-- `images` → `workbuddy-ai/hy4free`: đây là model đọc ảnh trong ladder hiện tại.
-- `compact` → `workbuddy-ai/hy4free` rồi `workbuddy-ai/glm-5.3-flash`: nén hội thoại chỉ cần model free 1M; hy4free lỗi hoặc bị limit thì GLM flash nhận.
+- `images` → `workbuddy-ai/hy4flash-free`: đây là model đọc ảnh trong ladder hiện tại.
+- `compact` → `workbuddy-ai/hy4flash-free` rồi `workbuddy-ai/glm-5.3-flash`: nén hội thoại chỉ cần model free 1M; hy4flash-free lỗi hoặc bị limit thì GLM flash nhận.
 - `intent=…` → 4 kiểu việc code, chia theo bước: lên plan → viết code → test → review.
   Riêng bước test/review dùng GLM-5.3 vì nó kỹ hơn ở việc đọc lỗi.
 
