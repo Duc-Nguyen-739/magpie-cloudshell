@@ -193,7 +193,7 @@ group có hiệu lực ngay ở lượt kế tiếp, không cần restart gatewa
 ## Cảnh báo
 
 - `scripts/setup-groups.sh --force` (và `finish.sh`, vì nó gọi `--force`) sẽ
-  **tạo lại cả sáu group** theo ladder trong script và xoá `code`/`glm`/`deepseek`
+  **tạo lại cả bảy group** theo ladder trong script và xoá `code`/`glm`/`deepseek`
   còn sót. Muốn giữ group tự thêm tay thì đừng chạy `--force`, hoặc chạy lại mục
   [Dựng lại](#dựng-lại).
 - `scripts/setup-opencode.sh` không ghi đè file agent đã có, nên `leader.md`,

@@ -4,7 +4,7 @@ Tóm tắt: **kết cục** — `opencode-zen-free` (plugin, không cần key) *
 tính theo **IP dùng chung** đã cạn và không hồi lại. `opencode-zen` (API key) **bật** nhưng
 **chỉ expose đúng `jev-1.13-free`**, dùng làm **classifier** cho cả sáu routing group;
 7 model free còn lại bị **429** ở upstream cho toàn bộ model free nên bỏ khỏi danh sách
-expose. Ladder của sáu group không còn rung OpenCode nào (xem [`groups.md`](groups.md)). File này giữ lại làm **bản ghi bằng chứng** đo được, cùng cách kiểm
+expose. Ladder của sáu group có classifier không còn rung OpenCode nào (xem [`groups.md`](groups.md)). File này giữ lại làm **bản ghi bằng chứng** đo được, cùng cách kiểm
 tra và cách bật lại nếu sau này muốn thử.
 
 ## 1. Chuyện gì xảy ra
@@ -124,7 +124,7 @@ ladder `group/main`:
 5 workbuddy-ai/glm-5.3-flash
 ```
 
-**Classifier** của cả sáu group: `opencode-zen/jev-1.13-free` — model phân
+**Classifier** của sáu group (tất cả trừ `group/free`): `opencode-zen/jev-1.13-free` — model phân
 loại nội bộ của Zen, **không** bị chặn free tier (đo 582–768 ms mỗi lượt), không hiện cho
 agent chọn, và **không** đụng bể IP dùng chung của `opencode-zen-free` (vì sao, xem mục 6).
 
@@ -244,7 +244,7 @@ magpie provider on opencode-zen-free     # plugin vẫn cài, chỉ cần bật 
 magpie group set main models+=opencode-zen-free/deepseek-v4.1-flash-free,opencode-zen-free/glm-5.3-flash-free
 ```
 
-`setup-groups.sh` hiện định nghĩa sáu group; thêm model free vào đúng group bạn muốn thử
+`setup-groups.sh` hiện định nghĩa bảy group; thêm model free vào đúng group bạn muốn thử
 (thường là `main`). `code`/`glm` không còn — đừng thêm vào đó. Nhớ rằng hạn mức tính theo
 IP dùng chung: bể cạn thì bật lại cũng không giúp gì.
 

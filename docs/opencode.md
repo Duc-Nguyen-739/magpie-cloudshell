@@ -37,8 +37,11 @@ Khi bạn chạy `magpie opencode group/main`, magpie sửa
 ```
 
 - `apiKey: "magpie"` là chuỗi giả — gateway local không kiểm tra key. Đừng đổi thành key thật.
-- Danh sách `models` do magpie sinh từ provider đang có: máy này **16 model** = 6
-  `group/*` + 10 model lẻ. Thêm provider mới là model mới tự hiện ra.
+- Danh sách `models` do magpie sinh từ provider đang có: máy này **123 model** = 6
+  `group/*` + model lẻ của 12 provider đang bật. `group/main` **không** có trong danh
+  sách vì group đó đang tắt (`disabled` trong `providers.json`), dù `model` ở trên vẫn
+  trỏ vào nó — bật lại bằng `magpie group on main` thì magpie ghi lại file và nó xuất
+  hiện. Thêm provider mới là model mới tự hiện ra.
 - Mỗi group có `variants` `low`/`high`/`max` đúng bằng levels của group; gọi
   `magpie/group/main#high` là chọn mức đó.
 - **Đừng sửa tay khối `providers.magpie`**: lần sau magpie ghi đè. Muốn đổi thì đổi ở

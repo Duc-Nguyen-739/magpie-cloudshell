@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# setup-groups.sh — tạo sáu routing group đang dùng: main, leader, coder,
-# tester, tester-2, tester-3.
+# setup-groups.sh — tạo bảy routing group đang dùng: main, leader, coder,
+# tester, tester-2, tester-3, free.
 #
 #   bash scripts/setup-groups.sh            tạo group còn thiếu, bỏ qua group đã có
-#   bash scripts/setup-groups.sh --force    tạo lại (thay) cả sáu group
+#   bash scripts/setup-groups.sh --force    tạo lại (thay) cả bảy group
 #   bash scripts/setup-groups.sh --dry-run  chỉ in lệnh, không đổi gì
 #
 # Chỉ đưa vào group những model thật sự có (đã đăng nhập provider), nên chạy được
@@ -47,12 +47,14 @@ groups_now="$(magpie groups 2>/dev/null || true)"
 
 join() { local IFS=,; printf '%s' "$*"; }
 
-# Bỏ hậu tố :high/:max khi kiểm tra model có thật; giữ nguyên hậu tố khi đưa vào group.
+# Bỏ hậu tố mức reasoning (:high/:max) khi kiểm tra model có thật; giữ nguyên hậu tố
+# khi đưa vào group. Model mà tên vốn có hậu tố (:free) khớp đúng nguyên chuỗi.
 filter_models() {
   local m base
   for m in "$@"; do
     base="${m%%:*}"
-    if printf '%s\n' "$models_now" | grep -Fxq "$base"; then
+    if printf '%s\n' "$models_now" \
+      | awk -v m="$m" -v base="$base" '$0 == m || $0 == base || index($0, base ":") == 1 { f = 1 } END { exit !f }'; then
       printf '%s\n' "$m"
     else
       warn "thiếu $base (provider chưa đăng nhập, hoặc model đã bị provider bỏ khỏi danh sách)"
@@ -105,20 +107,52 @@ make_group() { # <tên> <id> <stays> <levels> <model…>
   fi
 }
 
+make_plain_group() { # <tên> <id> <model…> — không levels, không classifier
+  local name=$1 id=$2; shift 2
+  local present=() m
+  while IFS= read -r m; do [ -n "$m" ] && present+=("$m"); done < <(filter_models "$@")
+  if [ ${#present[@]} -eq 0 ]; then
+    warn "bỏ qua group/$id: không có model nào trong danh sách"
+    return 0
+  fi
+
+  if printf '%s\n' "$groups_now" | awk -v g="group/$id" '{ for (i = 1; i <= NF; i++) if ($i == g) found = 1 } END { exit !found }'; then
+    if [ "$FORCE" != 1 ]; then
+      say "group/$id đã có — bỏ qua (dùng --force để tạo lại)"
+      return 0
+    fi
+    if [ "$(group_name_now "$id")" != "$name" ]; then
+      say "thay group/$id (tên cũ khác)"
+      run magpie group rm "$id" >/dev/null 2>&1 || warn "không xoá được group/$id"
+    else
+      say "thay group/$id"
+    fi
+  fi
+
+  local list; list="$(join "${present[@]}")"
+  run magpie group add "$name" "models=$list" routing=order >/dev/null \
+    || { warn "không tạo được group/$id"; return 1; }
+  ok "group/$id: ${#present[@]} model · không levels, không classifier"
+}
+
 # ------------------------------------------------------------ định nghĩa
 # main — chat thường ngày, stays=session để prompt cache còn giá trị.
 MAIN_MODELS=(
   freepi/deepseek-v4.1-flash
   workbuddy-ai/hy4flash-free
   agy-cli/gemini-3.8-flash
+  agy-cli/gemini-2.5-flash-lite
   autoclaw/zai_glm-5.3-flash
   workbuddy-ai/glm-5.3-flash
 )
 
-# leader — OpenChamber: lên plan và điều phối; DeepSeek SG max, Opus dự phòng.
+# leader — OpenChamber: lên plan và điều phối; hai model Xingchi trước, Opus và
+# DeepSeek SG dự phòng.
 LEADER_MODELS=(
-  workbuddy-ai/deepseek-v4.1-flash-sg:max
+  xingchi/gpt-6-astra
+  xingchi/gpt-6.1-sol
   agy-cli/claude-opus-4-6-thinking
+  workbuddy-ai/deepseek-v4.1-flash-sg
 )
 
 # coder — viết code theo plan.
@@ -130,23 +164,33 @@ CODER_MODELS=(
 TESTER_MODELS=(
   freepi/deepseek-v4.1-flash:high
   agnes/agnes-3.0-flash:high
-  autoclaw/zai_glm-5.3-flash
+  workbuddy-ai/glm-5.3-flash
 )
 
 # tester-2 — tester độc lập, chạy song song với tester.
 TESTER2_MODELS=(
   workbuddy-ai/hy4flash-free:high
-  kilo/reflection/beam-free:high
-  agy-cli/gemini-3.8-flash:high
   agnes/agnes-3.0-flash:high
+  agy-cli/gemini-3.8-flash:high
   autoclaw/zai_glm-5.3-flash
 )
 
 # tester-3 — tester thứ ba, soi hợp đồng dữ liệu và regression ngoài phạm vi.
 TESTER3_MODELS=(
-  agy-cli/gemini-3.8-flash:high
   autoclaw/zai_glm-5.3-flash
+  agy-cli/gemini-3.8-flash
+  kilo/reflection/beam-free:high
   workbuddy-ai/hy4flash-free:high
+)
+
+# free — chỉ cho việc nén của billion-context: mỗi provider một model free nhanh
+# nhất, không levels, không classifier, không stays. Xem docs/billion-context.md.
+FREE_MODELS=(
+  cline/cline-free/solar-mini4
+  kilo/baidu/ernie-5.5-flash-preview:free
+  kiro/claude-haiku-4.5
+  openrouter/openrouter/free
+  workbuddy-ai/hy4flash-free
 )
 
 # Group từng có trong định nghĩa nhưng nay đã bỏ. `group add` không xoá group thừa,
@@ -191,6 +235,10 @@ make_group "Tester 3" tester-3 turn "$LEVELS_HIGH" "${TESTER3_MODELS[@]}"
 say ""
 say "group/main — chat thường ngày, stays=session"
 make_group "Main" main session "$LEVELS_FULL" "${MAIN_MODELS[@]}"
+
+say ""
+say "group/free — chỉ cho việc nén của billion-context"
+make_plain_group "free" free "${FREE_MODELS[@]}"
 
 say ""
 if [ "$DRY" = 1 ]; then

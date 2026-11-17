@@ -1,4 +1,4 @@
-# Routing group — sáu group đang dùng
+# Routing group — bảy group đang dùng
 
 Group là nhiều model mà agent chọn như **một**. Agent trỏ vào `group/main`; gateway
 quyết định model nào trả lời từng lượt, và tự chuyển model kế tiếp khi model hiện tại
@@ -6,9 +6,10 @@ hỏng, hết quota hoặc bị chặn.
 
 ## Định nghĩa
 
-Sáu group, tất cả `routing=order`, `effort=auto`, classifier
-`opencode-zen/jev-1.13-free`, **không group nào có rule**. `main`/`leader`/`coder` mở
-levels `low,high,max`; ba tester chỉ `high`.
+Bảy group. Sáu group đầu dùng `routing=order`, `effort=auto`, classifier
+`opencode-zen/jev-1.13-free`, **không group nào có rule**; `main`/`leader`/`coder` mở
+levels `low,high,max`, ba tester chỉ `high`. `group/free` là group riêng của
+billion-context: không classifier, không levels, chỉ để việc nén gọi một phát.
 
 ### `group/main` — chat thường ngày
 
@@ -16,18 +17,19 @@ levels `low,high,max`; ba tester chỉ `high`.
 
 ```sh
 magpie group add "Main" \
-  models=freepi/deepseek-v4.1-flash,workbuddy-ai/hy4flash-free,agy-cli/gemini-3.8-flash,autoclaw/zai_glm-5.3-flash,workbuddy-ai/glm-5.3-flash \
+  models=freepi/deepseek-v4.1-flash,workbuddy-ai/hy4flash-free,agy-cli/gemini-3.8-flash,agy-cli/gemini-2.5-flash-lite,autoclaw/zai_glm-5.3-flash,workbuddy-ai/glm-5.3-flash \
   routing=order stays=session
 magpie group set main levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
+# máy tham chiếu đang TẮT group này: magpie group off main (gateway trả not_found_error)
 ```
 
 ### `group/leader` — OpenChamber: plan + điều phối
 
-`stays=turn`; DeepSeek SG ở mức `max` để viết plan, Opus dự phòng khi DeepSeek hết quota.
+`stays=turn`; hai model Xingchi đứng đầu (viết plan), Opus và DeepSeek SG dự phòng.
 
 ```sh
 magpie group add "Leader" \
-  models=workbuddy-ai/deepseek-v4.1-flash-sg:max,agy-cli/claude-opus-4-6-thinking \
+  models=xingchi/gpt-6-astra,xingchi/gpt-6.1-sol,agy-cli/claude-opus-4-6-thinking,workbuddy-ai/deepseek-v4.1-flash-sg \
   routing=order stays=turn
 magpie group set leader levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 ```
@@ -45,7 +47,7 @@ magpie group set coder levels=low,high,max classifier=opencode-zen/jev-1.13-free
 
 ```sh
 magpie group add "Tester" \
-  models=freepi/deepseek-v4.1-flash:high,agnes/agnes-3.0-flash:high,autoclaw/zai_glm-5.3-flash \
+  models=freepi/deepseek-v4.1-flash:high,agnes/agnes-3.0-flash:high,workbuddy-ai/glm-5.3-flash \
   routing=order stays=turn
 magpie group set tester levels=high classifier=opencode-zen/jev-1.13-free effort=auto
 ```
@@ -56,7 +58,7 @@ Dùng pool khác Tester để hai bên không giành cùng một quota.
 
 ```sh
 magpie group add "Tester 2" \
-  models=workbuddy-ai/hy4flash-free:high,kilo/reflection/beam-free:high,agy-cli/gemini-3.8-flash:high,agnes/agnes-3.0-flash:high,autoclaw/zai_glm-5.3-flash \
+  models=workbuddy-ai/hy4flash-free:high,agnes/agnes-3.0-flash:high,agy-cli/gemini-3.8-flash:high,autoclaw/zai_glm-5.3-flash \
   routing=order stays=turn
 magpie group set tester-2 levels=high classifier=opencode-zen/jev-1.13-free effort=auto
 ```
@@ -65,15 +67,30 @@ magpie group set tester-2 levels=high classifier=opencode-zen/jev-1.13-free effo
 
 ```sh
 magpie group add "Tester 3" \
-  models=agy-cli/gemini-3.8-flash:high,autoclaw/zai_glm-5.3-flash,workbuddy-ai/hy4flash-free:high \
+  models=autoclaw/zai_glm-5.3-flash,agy-cli/gemini-3.8-flash,kilo/reflection/beam-free:high,workbuddy-ai/hy4flash-free:high \
   routing=order stays=turn
 magpie group set tester-3 levels=high classifier=opencode-zen/jev-1.13-free effort=auto
 ```
 
+### `group/free` — chỉ cho việc nén của billion-context
+
+Không classifier, không levels, không `stays`: mỗi lần nén là một request độc lập, chọn
+model free nhanh nhất còn sống. Đo 6 request song song, mỗi provider một model.
+
+```sh
+magpie group add "free" \
+  models=cline/cline-free/solar-mini4,kilo/baidu/ernie-5.5-flash-preview:free,kiro/claude-haiku-4.5,openrouter/openrouter/free,workbuddy-ai/hy4flash-free \
+  routing=order
+```
+
+Bảng đo và lý do chọn nằm trong [`billion-context.md`](billion-context.md).
+
 ### Provider đang tắt
 
-`qoder` và `opencode-zen-free` tắt hẳn vì không nằm trong group nào. `kilo` **bật** vì
-`group/tester-2` dùng `kilo/reflection/beam-free`. `opencode-zen` vẫn bật nhưng **chỉ**
+`qoder`, `antigravity`, `copilot` và `opencode-zen-free` tắt vì không nằm trong group nào.
+`kilo` **bật** vì `group/tester-3` dùng `kilo/reflection/beam-free`; `kiro`, `cline`,
+`openrouter` bật vì `group/free` cần. `aihubmix` bật nhưng 36 model `-free` chỉ trả câu
+từ chối (tài khoản chưa nạp tiền) — đừng đưa vào group nào. `opencode-zen` vẫn bật nhưng **chỉ**
 giữ `jev-1.13-free` làm classifier, không phải rung fallback: script đọc danh sách đang
 expose rồi bỏ mọi model khác, nên model free mới của Zen không tự lọt vào.
 
@@ -90,12 +107,13 @@ song song mà không tranh nhau một ladder.
 **Thứ tự model.**
 
 - `main`: FreePi trước (free 15k token/ngày), rồi Hy4 flash (free, 1M), Gemini 3.8
-  Flash, GLM-5.3 Flash của AutoClaw, cuối là WorkBuddy GLM-5.3-Flash.
-- `leader`: DeepSeek SG ở `max` — viết plan cần model mạnh; Opus là đường dự phòng.
+  Flash, Gemini 2.5 Flash-Lite, GLM-5.3 Flash của AutoClaw, cuối là WorkBuddy
+  GLM-5.3-Flash. **Group đang tắt trên máy tham chiếu** vì FreePi đầu ladder hay 429.
+- `leader`: hai model Xingchi trước (viết plan), Opus và DeepSeek SG dự phòng.
 - `coder`: FreePi DeepSeek ở `high` — đủ mạnh cho code, không tốn quota WorkBuddy.
-- `tester`: FreePi → Agnes → AutoClaw GLM.
-- `tester-2`: Hy4 → Kilo beam-free → Gemini → Agnes → AutoClaw GLM.
-- `tester-3`: Gemini → AutoClaw GLM → Hy4.
+- `tester`: FreePi → Agnes → WorkBuddy GLM-5.3-Flash.
+- `tester-2`: Hy4 → Agnes → Gemini 3.8 → AutoClaw GLM.
+- `tester-3`: AutoClaw GLM → Gemini 3.8 → Kilo beam-free → Hy4.
 
 `routing=order` nghĩa là model đầu trả lời; chỉ khi nó không trả lời được mới sang model
 sau.

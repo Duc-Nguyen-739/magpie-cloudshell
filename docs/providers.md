@@ -10,11 +10,28 @@ sửa cấu hình agent** — magpie tự ghi lại danh sách model.
 |---|---|---|---|---|
 | `autoclaw` | AutoClaw (Zhipu) | OAuth Google/z.ai (plugin) | tài khoản Google hoặc z.ai | `magpie accounts` |
 | `workbuddy-ai` | WorkBuddy AI | OAuth web (plugin) | tài khoản WorkBuddy | `magpie accounts` |
-| `qoder` | Qoder | OAuth web (plugin) | tài khoản Qoder | `magpie accounts` |
-| `opencode-zen` | OpenCode Zen | API key | key `oc_…` | đang **bật**, chỉ expose `jev-1.13-free` (classifier) |
-| `kilo` | Kilo Gateway | API key | key `eyJ…` | `magpie provider test kilo` |
+| `agy-cli` | agy-cli | OAuth Google (plugin) | tài khoản Google (Antigravity) | `magpie provider test agy-cli gemini-3.8-flash` |
+| `freepi` | FreePi | OAuth (plugin) | tài khoản FreePi | `magpie provider test freepi deepseek-v4.1-flash` |
+| `cline` | Cline | OAuth (plugin) | tài khoản Cline | `magpie accounts` |
+| `kiro` | Kiro | OAuth Google (plugin) | tài khoản Kiro | `magpie accounts` |
 | `agnes` | Agnes | plugin + API key `cpk-…` | key từ `platform.agnes-ai.com` | `magpie provider test agnes agnes-3.0-flash` |
-| `opencode-zen-free` | OpenCode Zen Free | plugin (key công khai) | không | đang **tắt** — hạn mức theo IP dùng chung |
+| `kilo` | Kilo Gateway | API key `eyJ…` | key từ kilo.ai | `magpie provider test kilo` |
+| `openrouter` | OpenRouter | API key `sk-or-…` | key từ openrouter.ai | `magpie provider test openrouter` |
+| `xingchi` | Xingchi custom | API key + `baseAPI` riêng | key + endpoint `api.xingchiapi.com` | `magpie provider test xingchi gpt-6-astra` |
+| `aihubmix` | AiHubMix | API key `sk-e…` | key + **đã nạp tiền** | 36 model `-free` trả câu từ chối nếu tài khoản chưa nạp — xem dưới |
+| `opencode-zen` | OpenCode Zen | API key `oc_…` | key từ opencode.ai | đang **bật**, chỉ expose `jev-1.13-free` (classifier) |
+| `qoder` | Qoder | OAuth web (plugin) | tài khoản Qoder | **tắt** (`magpie provider off qoder`) |
+| `antigravity` | Antigravity | OAuth (plugin) | tài khoản Google | **tắt** |
+| `copilot` | Copilot | OAuth GitHub | tài khoản GitHub Copilot | **tắt** |
+| `opencode-zen-free` | OpenCode Zen Free | plugin (key công khai) | không | **tắt** — hạn mức theo IP dùng chung |
+
+### `aihubmix` (AiHubMix) — bẫy "xanh giả"
+
+`magpie provider test aihubmix <model>` báo `✓ chat` chỉ vì gateway thấy **HTTP 200 + có
+text**; AiHubMix trả 200 kèm câu *"Sorry, to prevent abuse of free resources, accounts
+that have not been recharged can only try 10 times…"* và `completion_tokens: 0`. Cả 36
+model `-free` đều như vậy khi tài khoản chưa nạp tiền lần nào. Muốn kiểm thật thì đọc
+`choices[0].message.content`, đừng tin mã trạng thái. Đừng đưa provider này vào group nào.
 
 ## Provider dùng OAuth (bấm trình duyệt)
 

@@ -2,7 +2,7 @@
 
 Tài liệu này ghi lại **chính xác** những gì đang chạy trên máy đã dựng repo này, để
 người/agent cài lại máy khác biết đích cần đạt tới. Số liệu lấy trực tiếp từ máy
-(2026-10-27, magpie 0.1.1763).
+(2026-11-17, magpie 0.1.4334).
 
 ## Môi trường
 
@@ -11,7 +11,7 @@ người/agent cài lại máy khác biết đích cần đạt tới. Số li�
 | Máy | Google Cloud Shell, Debian, user thường (không sudo cho magpie) |
 | Display | không có (headless) |
 | systemd | **không có user bus** → `magpie daemon install` thất bại, phải dùng supervisor riêng |
-| node | v24.22.1, qua nvm ở `/usr/local/nvm` (Cloud Shell nạp lazy) |
+| node | v26.13.0, qua nvm ở `/usr/local/nvm` (Cloud Shell nạp lazy) |
 | npm prefix | `~/.npm-global` (mọi package global nằm trong `$HOME`) |
 | `$HOME` | giữ được qua các lần restart Cloud Shell; `/usr/local` thì không |
 
@@ -30,9 +30,9 @@ và OpenCode service do OpenChamber/CLI tự bật.
 
 | Thành phần | Phiên bản | Đường dẫn | Ghi chú |
 |---|---|---|---|
-| magpie | 0.1.1763 | `~/.local/bin/magpie` (55 MB) | bản terminal (`MAGPIE_CLI=1`) |
-| OpenCode | v2.2.0 | `~/.opencode/bin/opencode` | cài bằng script curl |
-| OpenChamber | 2.5.2 | `~/.npm-global/bin/openchamber` | npm global, `@openchamber/web` |
+| magpie | 0.1.4334 | `~/.local/bin/magpie` (88 MB) | bản terminal (`MAGPIE_CLI=1`) |
+| OpenCode | v2.3.0 | `~/.opencode/bin/opencode` | cài bằng script curl |
+| OpenChamber | 2.7.2 | `~/.npm-global/bin/openchamber` | npm global, `@openchamber/web` |
 | bun (cho plugin) | 1.4.4 | `~/.cache/magpie/bun/` | magpie tự tải khi cần plugin |
 
 Lệnh tiện dụng tự viết trong `~/.local/bin`:
@@ -44,66 +44,96 @@ Lệnh tiện dụng tự viết trong `~/.local/bin`:
 | `magpie-headless-start/stop/status` | điều khiển supervisor |
 | `magpie-headless` | chính vòng lặp supervisor (không gọi tay) |
 
-## Provider (6)
+## Provider (16 — 12 bật, 4 tắt)
 
-| id | Tên | Xác thực | Model | Trạng thái |
+| id | Tên | Xác thực | Model expose | Trạng thái |
 |---|---|---|---|---|
-| `autoclaw` | AutoClaw (Zhipu) | OAuth Google/z.ai (plugin) | 4 | 3 tài khoản đã đăng nhập |
-| `workbuddy-ai` | WorkBuddy AI | OAuth web (plugin) | 26 | 3 tài khoản, 1 đang dùng |
-| `qoder` | Qoder | OAuth web (plugin) | 2 | đã đăng nhập |
-| `opencode-zen` | OpenCode Zen | API key | 41 (1 expose: `jev-1.13-free`) | **bật**, chỉ expose `jev-1.13-free` làm classifier; free tier qua API key bị chặn |
-| `kilo` | Kilo Gateway | API key | 353 | đã có key |
-| `opencode-zen-free` | OpenCode Zen Free | plugin, key công khai | 8 | **đang tắt** (`magpie provider off opencode-zen-free`); plugin vẫn cài, bật lại được |
+| `workbuddy-ai` | WorkBuddy AI | OAuth web (plugin) | 3 / 23 | **bật**; expose `deepseek-v4.1-flash-sg`, `glm-5.3-flash`, `hy4flash-free` |
+| `autoclaw` | AutoClaw (Zhipu) | OAuth Google/z.ai (plugin) | 2 / 4 | **bật**; `zai_glm-5.3-flash`, `zaicoding_glm-5.3` |
+| `freepi` | FreePi | OAuth (plugin) | 1 / 18 | **bật**; `deepseek-v4.1-flash`, **một request tại một thời điểm** |
+| `agy-cli` | agy-cli | OAuth Google (plugin) | 3 / 5 | **bật**; `gemini-3.8-flash`, `gemini-2.5-flash-lite`, `claude-opus-4-6-thinking` |
+| `agnes` | Agnes | API key | 1 / 4 | **bật**; `agnes-3.0-flash` |
+| `kilo` | Kilo Gateway | API key | 13 / 417 | **bật**; có `reflection/beam-free` |
+| `openrouter` | OpenRouter | API key | 20 / 422 | **bật**; 50 request/ngày cho model `:free` |
+| `cline` | Cline | OAuth (plugin) | 18 / 467 | **bật**; `cline-free/solar-mini4` |
+| `kiro` | Kiro | OAuth Google (plugin) | 8 / 8 | **bật**; `claude-haiku-4.5` (50 credit/tháng) |
+| `aihubmix` | AiHubMix | API key | 36 / 659 | **bật nhưng vô dụng**: cả 36 model `-free` trả HTTP 200 + câu "Sorry, to prevent abuse of free resources…", 0 token — tài khoản chưa nạp tiền |
+| `xingchi` | Xingchi custom | API key | 2 / 2 | **bật**; `gpt-6-astra`, `gpt-6.1-sol`, đứng đầu `group/leader` |
+| `opencode-zen` | OpenCode Zen | API key | 1 / 46 | **bật**, chỉ expose `jev-1.13-free` làm classifier; free tier qua API key bị chặn |
+| `qoder` | Qoder | OAuth web (plugin) | 18 | **tắt** (`magpie provider off qoder`) |
+| `antigravity` | Antigravity | OAuth (plugin) | 2 | **tắt** |
+| `copilot` | Copilot | OAuth GitHub | 1 / 24 | **tắt** |
+| `opencode-zen-free` | OpenCode Zen Free | plugin, key công khai | 8 / 15 | **tắt**; plugin vẫn cài, bật lại được |
 
-## Plugin (6)
+## Plugin (8)
 
 ```
-@magpie-community/opencode-autoclaw-auth    autoclaw, autoclaw-cn
-@magpie-community/opencode-workbuddy-auth   workbuddy-ai, workbuddy
-@magpie-community/opencode-qoder-auth       qoder, qoder-cn, qwenwork, qwenwork-enterprise
-@magpie-community/opencode-zcode-auth       zcode, zcode-cn (chưa đăng nhập)
-@magpie-community/opencode-zen-free-auth    opencode-zen-free
-opencode-zen-freex                          phục vụ opencode-zen-free
+@magpie-community/opencode-autoclaw-auth@0.2.9    autoclaw, autoclaw-cn
+@magpie-community/opencode-workbuddy-auth@latest  workbuddy-ai, workbuddy
+@magpie-community/opencode-kiro-auth@latest       kiro
+@magpie-community/opencode-cline-auth@latest      cline
+@magpie-community/opencode-agnes-auth@latest      agnes
+@magpie-community/opencode-agy-cli-auth@latest    agy-cli
+@magpie-community/opencode-zen-free-auth@latest   opencode-zen-free
+opencode-zen-freex@latest                         phục vụ opencode-zen-free
 ```
 
-## Routing group (6)
+`qoder` / `zcode` không còn plugin trên máy này (provider `qoder` đang tắt, model vẫn
+còn trong `providers.json`). AutoClaw **ghim 0.2.9** — bản vàng, xem mục cuối `AGENTS.md`.
+
+## Routing group (7)
 
 | Group | Dùng cho | stays | levels | Model (thứ tự fallback) |
 |---|---|---|---|---|
-| `main` | OpenCode — chat thường ngày | `session` | `low,high,max` | `freepi/deepseek-v4.1-flash` → `workbuddy-ai/hy4flash-free` → `agy-cli/gemini-3.8-flash` → `autoclaw/zai_glm-5.3-flash` → `workbuddy-ai/glm-5.3-flash` |
-| `leader` | OpenChamber — plan + điều phối | `turn` | `low,high,max` | `workbuddy-ai/deepseek-v4.1-flash-sg:max` → `agy-cli/claude-opus-4-6-thinking` |
+| `main` | OpenCode — chat thường ngày, **đang tắt** | `session` | `low,high,max` | `freepi/deepseek-v4.1-flash` → `workbuddy-ai/hy4flash-free` → `agy-cli/gemini-3.8-flash` → `agy-cli/gemini-2.5-flash-lite` → `autoclaw/zai_glm-5.3-flash` → `workbuddy-ai/glm-5.3-flash` |
+| `leader` | OpenChamber — plan + điều phối | `turn` | `low,high,max` | `xingchi/gpt-6-astra` → `xingchi/gpt-6.1-sol` → `agy-cli/claude-opus-4-6-thinking` → `workbuddy-ai/deepseek-v4.1-flash-sg` |
 | `coder` | viết code theo plan | `turn` | `low,high,max` | `freepi/deepseek-v4.1-flash:high` |
-| `tester` | chạy test, báo lỗi | `turn` | `high` | `freepi/deepseek-v4.1-flash:high` → `agnes/agnes-3.0-flash:high` → `autoclaw/zai_glm-5.3-flash` |
-| `tester-2` | tester độc lập, chạy song song | `turn` | `high` | `workbuddy-ai/hy4flash-free:high` → `kilo/reflection/beam-free:high` → `agy-cli/gemini-3.8-flash:high` → `agnes/agnes-3.0-flash:high` → `autoclaw/zai_glm-5.3-flash` |
-| `tester-3` | tester thứ ba, soi hợp đồng dữ liệu | `turn` | `high` | `agy-cli/gemini-3.8-flash:high` → `autoclaw/zai_glm-5.3-flash` → `workbuddy-ai/hy4flash-free:high` |
+| `tester` | chạy test, báo lỗi | `turn` | `high` | `freepi/deepseek-v4.1-flash:high` → `agnes/agnes-3.0-flash:high` → `workbuddy-ai/glm-5.3-flash` |
+| `tester-2` | tester độc lập, chạy song song | `turn` | `high` | `workbuddy-ai/hy4flash-free:high` → `agnes/agnes-3.0-flash:high` → `agy-cli/gemini-3.8-flash:high` → `autoclaw/zai_glm-5.3-flash` |
+| `tester-3` | tester thứ ba, soi hợp đồng dữ liệu | `turn` | `high` | `autoclaw/zai_glm-5.3-flash` → `agy-cli/gemini-3.8-flash` → `kilo/reflection/beam-free:high` → `workbuddy-ai/hy4flash-free:high` |
+| `free` | **chỉ** cho việc nén của billion-context | — | — | `cline/cline-free/solar-mini4` → `kilo/baidu/ernie-5.5-flash-preview:free` → `kiro/claude-haiku-4.5` → `openrouter/openrouter/free` → `workbuddy-ai/hy4flash-free` |
 
-Cả sáu dùng `routing=order`, `effort=auto`, classifier `opencode-zen/jev-1.13-free`;
+Sáu group đầu dùng `routing=order`, `effort=auto`, classifier `opencode-zen/jev-1.13-free`;
 **không group nào có rule**. `main`, `leader`, `coder` mở levels `low,high,max`; ba tester
-chỉ `high`.
+chỉ `high`. `group/free` không có classifier lẫn levels — nó chỉ để billion-context gọi
+một phát, xem [`billion-context.md`](billion-context.md).
+
+**`group/main` đang tắt** (`"disabled": true` trong `providers.json`), nên gateway trả
+`not_found_error` cho `group/main` và nó không hiện trong danh sách model của OpenCode —
+dù `opencode.json` vẫn đặt `model: magpie/group/main`. Đây là chỗ lệch cần biết: phiên
+OpenCode mới dùng model mặc định sẽ lỗi cho tới khi `magpie group on main` (hoặc trỏ
+OpenCode sang group đang bật).
 
 `autoclaw/zai_auto` và `autoclaw/zai_auto-fast` không nằm trong group nào vì chỉ có 200K
 context — mọi member còn lại đều khai 1M. `workbuddy-ai/hy3` (192K) đã bị provider bỏ
 khỏi danh sách expose, nên không còn trong group. `autoclaw/zaicoding_glm-5.3` đã rời
 ladder (quota coding free hay 429); group vẫn chạy nhờ `autoclaw/zai_glm-5.3-flash`.
 
+Ngoài 7 group trên, `magpie groups` còn liệt kê các **group `auto/*`** do magpie tự sinh
+(`auto/free`, `auto/particle-1:free`, `auto/ernie-5.5-flash-preview:free`…) — mỗi cái gom
+cùng một model từ kilo/openrouter/cline. Chúng không được agent nào trỏ tới; 11 cái đã
+được ẩn (`{"hidden": true}` trong `providers.json`), `magpie group restore <id>` đưa lại.
+
 ## Agent được magpie quản lý
 
 | Agent | Model | File magpie sửa |
 |---|---|---|
-| OpenCode | `magpie/group/main`, small `magpie/workbuddy-ai/hy4flash-free` | `~/.config/opencode/opencode.json` |
-| OpenChamber | `magpie/group/leader` | `~/.config/openchamber/preferences.json` |
+| OpenCode | `magpie/group/main` (group đang tắt), model phụ cho agent `title` = `magpie/workbuddy-ai/hy4flash-free` | `~/.config/opencode/opencode.json` |
+| OpenChamber | `magpie/group/leader`, `defaultVariant: max`, `defaultAgent: leader` | `~/.config/openchamber/preferences.json` |
 | Gemini CLI | (auth google, không đặt model) | `~/.gemini/settings.json` |
 | Antigravity CLI | — | `~/.gemini/antigravity-cli/settings.json` |
-| Pi | CLI không có | `~/.pi/agent/settings.json` |
+| DeepSeek Harness | CLI không có trên máy | `~/.dsh/profiles/web/cordis.patch.yml` |
 
 ## OpenCode
 
 - Provider `magpie`: khai trong `providers` của `opencode.json`, `baseURL:
   http://127.0.0.1:3425/v1`, `apiKey: magpie` (chuỗi giả — gateway local không cần key
-  thật), **16 model** do magpie sinh: 6 `group/*` + 10 model lẻ.
-- Ba provider gọi thẳng còn khai báo — `kiraai`, `takenbarbor`, `dsh` — đều nằm trong
-  `disabled_providers`, cùng `kilo` (đã có `kilo/reflection/beam-free` qua magpie nên
-  không gọi thẳng nữa).
+  thật), **123 model** do magpie sinh: 6 `group/*` (thiếu `group/main` vì group đang tắt)
+  + model lẻ của 12 provider đang bật. `model: magpie/group/main`, agent `title` dùng
+  `magpie/workbuddy-ai/hy4flash-free`.
+- Provider gọi thẳng còn khai báo: `xingchi` (bật, dùng cho `group/leader`), còn
+  `kiraai`, `takenbarbor`, `dsh` nằm trong `disabled_providers` cùng `kilo` (đã có
+  `kilo/reflection/beam-free` qua magpie nên không gọi thẳng nữa).
 - Agent tự viết trong `~/.config/opencode/agents/`: `leader.md` (primary,
   `group/leader#max`), `coder.md` (`group/coder`), `tester.md` (`group/tester`),
   `tester2.md` (`group/tester-2`), `tester3.md` (`group/tester-3`).
@@ -147,21 +177,25 @@ ladder (quota coding free hay 429); group vẫn chạy nhờ `autoclaw/zai_glm-5
 | `updateEvery` | `360` | kiểm tra cập nhật mỗi 360 phút |
 | `vision` | `workbuddy-ai/hy4flash-free` | model đọc ảnh cho tool vision |
 | `visionEffort` | `max` | mức reasoning cho vision |
-| `imageGen` | `workbuddy-ai/hy-image-3.5` | model tạo ảnh |
+| `redact` | `astrlink-guard` | model che dữ liệu nhạy cảm khi chia sẻ log |
+| `redactKinds` | `bucket,home,ip,userhost` | những gì bị che |
+| `quotaLeft` | `true` | hiện quota còn lại trong UI |
 | `trayUsageEvery` | `3` | nhịp cập nhật usage trên tray |
 | `textSize` | `110` | cỡ chữ UI |
-| `pluginCheckins.autoclaw` | `true` | điểm danh AutoClaw hằng ngày |
+| `pluginCheckins` | `{autoclaw: true, qoder: true}` | điểm danh hằng ngày |
 
 `scripts/setup-settings.sh` chỉ **thêm khoá còn thiếu**, không ghi đè giá trị đã có; và chỉ
 đặt `vision`/`imageGen` khi model tương ứng đã tồn tại (tức sau khi đăng nhập WorkBuddy).
+Máy này **không còn `imageGen`**: WorkBuddy đã bỏ `hy-image-3.5` khỏi danh sách expose, nên
+script không thêm khoá đó nữa — đó là hành vi đúng, không phải lỗi.
 
 ## Repo này tái tạo được gì
 
 | Hạng mục | Repo | Ghi chú |
 |---|---|---|
 | magpie binary | ✅ | installer chính thức hoặc `--from-source` (clone yetone/magpie) |
-| 6 plugin provider | ✅ | `scripts/plugins.sh` |
-| 6 routing group | ✅ | **giống hệt** cấu hình máy này |
+| 8 plugin provider | ✅ | `scripts/plugins.sh` |
+| 7 routing group | ✅ | **giống hệt** cấu hình máy này, kể cả `group/free`; riêng `group/main` do script tạo ở trạng thái **bật** (máy này tắt tay) |
 | settings.json | ✅ | chỉ thêm khoá thiếu |
 | `opencode-zen` bật, chỉ expose `jev-1.13-free`; `opencode-zen-free` tắt | ✅ | `setup-settings.sh` |
 | OpenCode + provider `magpie` | ✅ | magpie tự ghi `opencode.json` |
@@ -179,13 +213,14 @@ ladder (quota coding free hay 429); group vẫn chạy nhờ `autoclaw/zai_glm-5
 ## Bản đồ kết nối
 
 ```
-OpenCode    ─→ group/main     ─┐
-OpenChamber ─→ group/leader   ─┤
-Leader      ─→ group/leader   ─┼─→ gateway 127.0.0.1:3425
-Coder       ─→ group/coder    ─┤      ├─→ freepi, workbuddy-ai, agy-cli
-Tester      ─→ group/tester   ─┤      ├─→ autoclaw, agnes, kilo
-Tester 2    ─→ group/tester-2 ─┤      └─→ opencode-zen (classifier)
-Tester 3    ─→ group/tester-3 ─┘
+OpenCode    ─→ group/main (đang tắt) ─┐
+OpenChamber ─→ group/leader        ─┤
+Leader      ─→ group/leader        ─┼─→ gateway 127.0.0.1:3425
+Coder       ─→ group/coder         ─┤      ├─→ xingchi, workbuddy-ai, agy-cli
+Tester      ─→ group/tester        ─┤      ├─→ freepi, autoclaw, agnes
+Tester 2    ─→ group/tester-2      ─┤      ├─→ kilo, cline, kiro, openrouter
+Tester 3    ─→ group/tester-3      ─┤      └─→ opencode-zen (classifier)
+billion-context ─→ group/free      ─┘
 ```
 
 Mỗi group · classifier ─→ `opencode-zen/jev-1.13-free` (chỉ model này, không vào ladder)
