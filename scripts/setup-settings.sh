@@ -50,7 +50,7 @@ if [ "$DRY" = 1 ]; then
     printf '  \033[2m[dry-run]\033[0m magpie provider models opencode-zen -%s\n' "$m"
   done < <(zen_drop_list)
   printf '  \033[2m[dry-run]\033[0m magpie provider off opencode-zen-free\n'
-  printf '  \033[2m[dry-run]\033[0m magpie provider off qoder\n'
+  printf '  \033[2m[dry-run]\033[0m magpie provider off qoder antigravity copilot\n'
   printf '  \033[2m[dry-run]\033[0m magpie provider models workbuddy-ai deepseek-v4.1-flash-sg glm-5.3-flash hy4flash-free\n'
 else
   if magpie provider on opencode-zen >/dev/null 2>&1; then
@@ -72,13 +72,15 @@ else
     warn "không tắt được opencode-zen-free (chưa cài plugin?) — bỏ qua"
   fi
 
-  # qoder không nằm trong ladder nào: tắt hẳn. kilo thì BẬT — tester-2 dùng
-  # kilo/reflection/beam-free, nên không được tắt.
-  if magpie provider off qoder >/dev/null 2>&1; then
-    ok "provider qoder đang tắt"
-  else
-    warn "không tắt được qoder (chưa thêm?) — bỏ qua"
-  fi
+  # qoder / antigravity / copilot không nằm trong ladder nào: tắt hẳn. kilo thì BẬT
+  # — tester-3 dùng kilo/reflection/beam-free, nên không được tắt.
+  for off_id in qoder antigravity copilot; do
+    if magpie provider off "$off_id" >/dev/null 2>&1; then
+      ok "provider $off_id đang tắt"
+    else
+      warn "không tắt được $off_id (chưa thêm?) — bỏ qua"
+    fi
+  done
   # WorkBuddy: chỉ expose đúng ba model đang dùng trong group.
   wb_want=()
   for m in deepseek-v4.1-flash-sg glm-5.3-flash hy4flash-free; do
@@ -92,7 +94,7 @@ else
 fi
 
 # ---------------------------------------------------------------- settings
-# Giá trị lấy từ máy tham chiếu (magpie 0.1.1763). vision/imageGen chỉ đặt khi
+# Giá trị lấy từ máy tham chiếu (magpie 0.1.4334). vision/imageGen chỉ đặt khi
 # model tương ứng đã có, để UI không trỏ vào model không tồn tại.
 VISION="workbuddy-ai/hy4flash-free"
 IMAGE="workbuddy-ai/hy-image-3.5"
@@ -102,9 +104,12 @@ seed='{
   "lang": "system",
   "tray": "panel",
   "currency": "usd",
-  "pluginCheckins": {"autoclaw": true},
+  "pluginCheckins": {"autoclaw": true, "qoder": true},
   "updateEvery": 360,
   "visionEffort": "max",
+  "redact": "astrlink-guard",
+  "redactKinds": ["bucket", "home", "ip", "userhost"],
+  "quotaLeft": true,
   "trayUsageEvery": 3,
   "textSize": 110
 }'

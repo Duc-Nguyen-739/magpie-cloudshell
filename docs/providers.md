@@ -81,6 +81,9 @@ magpie plugin login qoder
 Cùng plugin còn đăng ký `qoder-cn`, `qwenwork`, `qwenwork-enterprise` — chỉ cần nếu
 bạn có tài khoản tương ứng.
 
+Máy tham chiếu **không cài plugin này**: provider `qoder` đang tắt và không nằm trong
+group nào. Cài lại đúng ba dòng trên khi muốn dùng.
+
 ### ZCode — `zcode` (tuỳ chọn)
 
 ```sh
@@ -88,7 +91,8 @@ magpie plugin add @magpie-community/opencode-zcode-auth
 magpie plugin login zcode
 ```
 
-Máy tham chiếu có cài nhưng **chưa đăng nhập**; không nằm trong group nào.
+Máy tham chiếu **không cài**; `zcode` không phải provider đang bật và không nằm trong
+group nào.
 
 ### Agnes — `agnes`
 

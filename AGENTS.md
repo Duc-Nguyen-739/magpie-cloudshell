@@ -24,11 +24,12 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
 
 - magpie bản terminal trong `~/.local/bin` (không desktop, không systemd).
 - **16 provider** khai trong magpie, **12 bật / 4 tắt** (`qoder`, `antigravity`,
-  `copilot`, `opencode-zen-free`). Plugin vẫn cài: AutoClaw (Zhipu), WorkBuddy, Qoder,
-  Kiro, OpenCode Zen Free (2 plugin), ZCode.
+  `copilot`, `opencode-zen-free`). Tám plugin đang cài: AutoClaw (Zhipu), WorkBuddy,
+  agy-cli, cline, kiro, agnes, OpenCode Zen Free (2 plugin). `qoder` / `zcode` không cài
+  trên máy này (provider `qoder` đang tắt).
 - `settings.json` giống máy tham chiếu (theme dark, `vision=workbuddy-ai/hy4flash-free`
   + `visionEffort=max`, `redact=astrlink-guard`, `quotaLeft`, `textSize=110`, check-in
-  AutoClaw + Qoder); `opencode-zen` (API key) **bật nhưng chỉ mở `jev-1.13-free`** làm
+  AutoClaw + Qoder — qoder đang tắt nên chỉ còn AutoClaw có tác dụng); `opencode-zen` (API key) **bật nhưng chỉ mở `jev-1.13-free`** làm
   classifier — free tier qua API key bị chặn ở upstream, đường plugin cũng cạn theo IP
   dùng chung; xem [`docs/zen-free.md`](docs/zen-free.md).
 - Bảy routing group: `group/main` (chat thường ngày, `stays=session`), `group/leader`
