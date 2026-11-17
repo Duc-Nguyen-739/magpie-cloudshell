@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # finish.sh — bước cuối sau khi đã đăng nhập provider:
-# cấu hình magpie, tạo/cập nhật sáu group, trỏ agent vào group/main + group/leader,
+# cấu hình magpie, tạo/cập nhật chín group, trỏ agent vào group/main + group/leader,
 # rồi kiểm tra.
 #
 #   bash scripts/finish.sh

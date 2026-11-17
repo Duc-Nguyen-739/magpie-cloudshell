@@ -67,7 +67,7 @@ signed="$(magpie accounts 2>/dev/null | grep -c '^●' || true)"
 
 head_ "Routing group"
 groups_now="$(magpie groups 2>/dev/null || true)"
-for g in main leader coder tester tester-2 tester-3; do
+for g in main leader review reviewplan coder tester tester-2 tester-3; do
   if printf '%s\n' "$groups_now" | grep -q "group/$g"; then
     n="$(magpie group "$g" 2>/dev/null | awk '
       /^  models / {inm = 1; c = 1; next}
@@ -94,6 +94,10 @@ for a in opencode openchamber; do
       *) warn "$a chưa trỏ $want (bash scripts/setup-agents.sh)" ;;
     esac
   fi
+done
+for a in leader review reviewplan coder tester tester2 tester3; do
+  f="$HOME/.config/opencode/agents/$a.md"
+  [ -f "$f" ] && ok "agent $a" || warn "thiếu $f (bash scripts/setup-opencode.sh)"
 done
 
 head_ "Cổng"

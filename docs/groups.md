@@ -1,4 +1,4 @@
-# Routing group — bảy group đang dùng
+# Routing group — chín group đang dùng
 
 Group là nhiều model mà agent chọn như **một**. Agent trỏ vào `group/main`; gateway
 quyết định model nào trả lời từng lượt, và tự chuyển model kế tiếp khi model hiện tại
@@ -6,10 +6,12 @@ hỏng, hết quota hoặc bị chặn.
 
 ## Định nghĩa
 
-Bảy group. Sáu group đầu dùng `routing=order`, `effort=auto`, classifier
-`opencode-zen/jev-1.13-free`, **không group nào có rule**; `main`/`leader`/`coder` mở
-levels `low,high,max`, ba tester chỉ `high`. `group/free` là group riêng của
-billion-context: không classifier, không levels, chỉ để việc nén gọi một phát.
+Chín group. Tám group dùng `routing=order`, `effort=auto`, classifier
+`opencode-zen/jev-1.13-free`, **không group nào có rule**. `main`/`leader`/`coder` và
+ba tester mở levels `low,high,max`; `review`/`reviewplan` mở
+`none,low,high,max` (Freepi không expose mức reasoning nhưng magpie vẫn mở levels khi
+đặt `effort=auto`). `group/free` là group riêng của billion-context: plain,
+`routing=rotate`, chỉ để việc nén gọi một phát.
 
 ### `group/main` — chat thường ngày
 
@@ -36,6 +38,40 @@ magpie group add "Leader" \
 magpie group set leader levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 ```
 
+### `group/review` — khảo sát codebase và viết plan
+
+`stays=turn` để sau này thêm bậc failover mà không phải đổi kiểu giữ hội thoại.
+Levels `none,low,high,max` (magpie mở levels khi đặt `effort=auto`; FreePi không
+expose mức reasoning nhưng vẫn ghim `:high`), classifier
+`opencode-zen/jev-1.13-free` + `effort=auto` như các group khác.
+
+```sh
+magpie group add "Review" \
+  models=freepi/deepseek-v4.1-flash:high,workbuddy-ai/deepseek-v4.1-flash-sg \
+  routing=order stays=turn
+magpie group set review levels=none,low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
+```
+
+Người dùng tự thêm model: `magpie group set review models+=<provider/model>`. Nên
+đặt model khác family ở cuối ladder để failover thật sự khi FreePi cạn quota.
+
+### `group/reviewplan` — kiểm chứng/sửa plan và audit cuối
+
+Cùng cấu hình với `group/review` (freepi:high → DeepSeek SG, classifier jev);
+hiện chưa có model khác family nên việc kiểm chứng chưa độc lập hoàn toàn. Thêm
+model khác family khi có điều kiện.
+
+```sh
+magpie group add "Reviewplan" \
+  models=freepi/deepseek-v4.1-flash:high,workbuddy-ai/deepseek-v4.1-flash-sg \
+  routing=order stays=turn
+magpie group set reviewplan levels=none,low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
+```
+
+`scripts/setup-groups.sh` chỉ tạo hai group này khi thiếu; `--force` **không** reset
+chúng, để ladder người dùng tự thêm không bị `finish.sh` xoá. Muốn reset:
+`magpie group rm review` (hoặc `reviewplan`) rồi chạy lại script.
+
 ### `group/coder` — viết code theo plan
 
 ```sh
@@ -49,9 +85,9 @@ magpie group set coder levels=low,high,max classifier=opencode-zen/jev-1.13-free
 
 ```sh
 magpie group add "Tester" \
-  models=freepi/deepseek-v4.1-flash:high,agnes/agnes-3.0-flash:high,workbuddy-ai/glm-5.3-flash \
+  models=freepi/deepseek-v4.1-flash,workbuddy-ai/glm-5.3-flash \
   routing=order stays=turn
-magpie group set tester levels=high classifier=opencode-zen/jev-1.13-free effort=auto
+magpie group set tester levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 ```
 
 ### `group/tester-2` — tester độc lập, chạy song song
@@ -60,18 +96,18 @@ Dùng pool khác Tester để hai bên không giành cùng một quota.
 
 ```sh
 magpie group add "Tester 2" \
-  models=workbuddy-ai/hy4flash-free:high,agnes/agnes-3.0-flash:high,agy-cli/gemini-3.8-flash:high,autoclaw/zai_glm-5.3-flash \
+  models=workbuddy-ai/hy4flash-free,agnes/agnes-3.0-flash,agy-cli/gemini-3.8-flash,autoclaw/zai_glm-5.3-flash \
   routing=order stays=turn
-magpie group set tester-2 levels=high classifier=opencode-zen/jev-1.13-free effort=auto
+magpie group set tester-2 levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 ```
 
 ### `group/tester-3` — tester thứ ba, soi hợp đồng dữ liệu
 
 ```sh
 magpie group add "Tester 3" \
-  models=autoclaw/zai_glm-5.3-flash,agy-cli/gemini-3.8-flash,kilo/reflection/beam-free:high,workbuddy-ai/hy4flash-free:high \
+  models=kiro/claude-haiku-4.5,kilo/reflection/beam-free,autoclaw/zai_glm-5.3-flash,agy-cli/gemini-3.8-flash,workbuddy-ai/hy4flash-free \
   routing=order stays=turn
-magpie group set tester-3 levels=high classifier=opencode-zen/jev-1.13-free effort=auto
+magpie group set tester-3 levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 ```
 
 ### `group/free` — chỉ cho việc nén của billion-context
@@ -81,18 +117,20 @@ model free nhanh nhất còn sống. Đo 6 request song song, mỗi provider m�
 
 ```sh
 magpie group add "free" \
-  models=cline/cline-free/solar-mini4,kilo/baidu/ernie-5.5-flash-preview:free,kiro/claude-haiku-4.5,openrouter/openrouter/free,workbuddy-ai/hy4flash-free \
-  routing=order
+  models=kilo/particle-ai/particle-1:free,cline/particle-ai/particle-1:free,openrouter/particle-ai/particle-1:free \
+  routing=rotate
 ```
 
 Bảng đo và lý do chọn nằm trong [`billion-context.md`](billion-context.md).
 
 ### Provider đang tắt
 
-`qoder`, `antigravity`, `copilot` và `opencode-zen-free` tắt vì không nằm trong group nào.
-`kilo` **bật** vì `group/tester-3` dùng `kilo/reflection/beam-free`; `kiro`, `cline`,
-`openrouter` bật vì `group/free` cần. `aihubmix` bật nhưng 36 model `-free` chỉ trả câu
-từ chối (tài khoản chưa nạp tiền) — đừng đưa vào group nào. `opencode-zen` vẫn bật nhưng **chỉ**
+`aihubmix`, `copilot`, `agnes` và `opencode-zen-free` đang tắt vì không nằm trong group
+nào; `qoder`/`antigravity` chỉ còn record trong `providers.json` và không hiện vì thiếu
+plugin. `kilo` **bật** vì `group/tester-3` dùng `kilo/reflection/beam-free` và `group/free`
+dùng `particle-1:free`; `kiro`, `cline`, `openrouter` bật vì `group/free` cần. `aihubmix`
+nếu bật thì 36 model `-free` chỉ trả câu từ chối (tài khoản chưa nạp tiền) — đừng đưa vào
+group nào. `opencode-zen` vẫn bật nhưng **chỉ**
 giữ `jev-1.13-free` làm classifier, không phải rung fallback: script đọc danh sách đang
 expose rồi bỏ mọi model khác, nên model free mới của Zen không tự lọt vào.
 
@@ -101,31 +139,35 @@ xoá bằng `magpie group rm`, vì `group add` không dọn group thừa.
 
 ## Vì sao như vậy
 
-**Chia group theo vai.** Leader, Coder và ba Tester là năm vai khác nhau, nên mỗi vai
-một group thay vì dùng rule `intent` trong một group chung: classifier có thể đoán sai,
-còn group riêng thì lượt nào cũng bắt đầu đúng model. Cách này cũng cho ba tester chạy
-song song mà không tranh nhau một ladder.
+**Chia group theo vai.** Leader, Review, Reviewplan, Coder và ba Tester là bảy vai khác
+nhau, nên mỗi vai một group thay vì dùng rule `intent` trong một group chung: classifier
+có thể đoán sai, còn group riêng thì lượt nào cũng bắt đầu đúng model. Cách này cũng cho
+ba tester chạy song song mà không tranh nhau một ladder.
 
 **Thứ tự model.**
 
 - `main`: FreePi trước (free 15k token/ngày), rồi Hy4 flash (free, 1M), Gemini 3.8
   Flash, Gemini 2.5 Flash-Lite, GLM-5.3 Flash của AutoClaw, cuối là WorkBuddy
   GLM-5.3-Flash. **Group đang tắt trên máy tham chiếu** vì FreePi đầu ladder hay 429.
-- `leader`: hai model Xingchi trước (viết plan), Opus và DeepSeek SG dự phòng.
+- `leader`: `xingchi/gpt-6.1-sol:high` trước (đo được 2,0 s so với 4,6 s khi để
+  mặc định), Opus và DeepSeek SG dự phòng.
+- `review`/`reviewplan`: FreePi DeepSeek V4.1 Flash. Review đọc nhiều file nên cần
+  theo dõi quota; Reviewplan nên có model khác family khi thêm bậc.
 - `coder`: FreePi DeepSeek ở `high` — đủ mạnh cho code, không tốn quota WorkBuddy.
-- `tester`: FreePi → Agnes → WorkBuddy GLM-5.3-Flash.
+- `tester`: FreePi → WorkBuddy GLM-5.3-Flash (Agnes đang tắt nên bỏ khỏi ladder).
 - `tester-2`: Hy4 → Agnes → Gemini 3.8 → AutoClaw GLM.
-- `tester-3`: AutoClaw GLM → Gemini 3.8 → Kilo beam-free → Hy4.
+- `tester-3`: Kiro Haiku → Kilo beam-free → AutoClaw GLM → Gemini 3.8 → Hy4.
 
 `routing=order` nghĩa là model đầu trả lời; chỉ khi nó không trả lời được mới sang model
 sau.
 
 **`stays`.** `session` giữ một tài khoản suốt phiên → prompt cache còn giá trị, rẻ và
 nhanh; dùng cho chat. `turn` cho phép đổi model mỗi lượt; dùng cho pipeline
-Leader → Coder → Tester.
+Leader → Review → Reviewplan → Coder → Tester.
 
-**`levels`.** Agent được chọn `low`, `high`, `max`; model nào không có mức đó thì magpie
-gửi mức gần nhất. Ba tester chỉ mở `high` vì đó là mức chúng luôn dùng.
+**`levels`.** Phần lớn group mở `low`, `high`, `max`; `review`/`reviewplan` mở thêm
+`none` (magpie tự mở levels khi đặt `effort=auto`). Model nào không có mức được chọn
+thì magpie gửi mức gần nhất.
 
 **`effort=auto` + `classifier`.** Mỗi lượt, model nhỏ `opencode-zen/jev-1.13-free` đọc
 yêu cầu và chọn mức reasoning thay vì agent luôn dùng một mức. Rẻ hơn cho câu hỏi ngắn,
@@ -158,6 +200,9 @@ magpie group rm coder                     # xoá group
 
 Lưu ý: `magpie group add <tên đã dùng>` **thay** group đó. `scripts/setup-groups.sh`
 chỉ thay khi có `--force`; `finish.sh` gọi với `--force` vì nó là nguồn định nghĩa.
+Ngoại lệ: `review`/`reviewplan` chỉ được tạo khi thiếu, `--force` không reset — để
+ladder người dùng tự thêm không bị xoá. Reset hai group này bằng `magpie group rm`
+rồi chạy lại script.
 
 ## Kiểm tra
 

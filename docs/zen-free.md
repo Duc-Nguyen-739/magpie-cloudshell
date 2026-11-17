@@ -2,9 +2,9 @@
 
 Tóm tắt: **kết cục** — `opencode-zen-free` (plugin, không cần key) **tắt hẳn** vì bể free
 tính theo **IP dùng chung** đã cạn và không hồi lại. `opencode-zen` (API key) **bật** nhưng
-**chỉ expose đúng `jev-1.13-free`**, dùng làm **classifier** cho cả sáu routing group;
+**chỉ expose đúng `jev-1.13-free`**, dùng làm **classifier** cho tám group có classifier;
 7 model free còn lại bị **429** ở upstream cho toàn bộ model free nên bỏ khỏi danh sách
-expose. Ladder của sáu group có classifier không còn rung OpenCode nào (xem [`groups.md`](groups.md)). File này giữ lại làm **bản ghi bằng chứng** đo được, cùng cách kiểm
+expose. Ladder của tám group có classifier không còn rung OpenCode nào (xem [`groups.md`](groups.md)). File này giữ lại làm **bản ghi bằng chứng** đo được, cùng cách kiểm
 tra và cách bật lại nếu sau này muốn thử.
 
 ## 1. Chuyện gì xảy ra
@@ -113,7 +113,7 @@ Tắt `opencode-zen-free` bằng `magpie provider off`, **không** `rm`: plugin 
 `magpie provider on opencode-zen-free` là xong. Muốn xoá hẳn key thì mới chạy
 `magpie provider rm opencode-zen` (không hoàn lại được).
 
-**Sáu group — không rung OpenCode nào.** Định nghĩa đầy đủ ở [`groups.md`](groups.md);
+**Tám group — không rung OpenCode nào.** Định nghĩa đầy đủ ở [`groups.md`](groups.md);
 ladder `group/main`:
 
 ```
@@ -124,7 +124,9 @@ ladder `group/main`:
 5 workbuddy-ai/glm-5.3-flash
 ```
 
-**Classifier** của sáu group (tất cả trừ `group/free`): `opencode-zen/jev-1.13-free` — model phân
+**Classifier** của tám group `main`, `leader`, `review`, `reviewplan`, `coder`, `tester`,
+`tester-2`, `tester-3` (`group/free` là plain group, không classifier):
+`opencode-zen/jev-1.13-free` — model phân
 loại nội bộ của Zen, **không** bị chặn free tier (đo 582–768 ms mỗi lượt), không hiện cho
 agent chọn, và **không** đụng bể IP dùng chung của `opencode-zen-free` (vì sao, xem mục 6).
 
@@ -160,7 +162,7 @@ Số đo lịch sử, để thấy vì sao **không** dùng đường free:
 thời đều 200, 4/4 lượt classifier OK, 0 lỗi:
 
 ```sh
-for g in main leader coder tester tester-2 tester-3; do
+for g in main leader review reviewplan coder tester tester-2 tester-3; do
   magpie group set "$g" classifier=kilo/reflection/beam-free
 done
 ```
@@ -244,7 +246,7 @@ magpie provider on opencode-zen-free     # plugin vẫn cài, chỉ cần bật 
 magpie group set main models+=opencode-zen-free/deepseek-v4.1-flash-free,opencode-zen-free/glm-5.3-flash-free
 ```
 
-`setup-groups.sh` hiện định nghĩa bảy group; thêm model free vào đúng group bạn muốn thử
+`setup-groups.sh` hiện định nghĩa chín group; thêm model free vào đúng group bạn muốn thử
 (thường là `main`). `code`/`glm` không còn — đừng thêm vào đó. Nhớ rằng hạn mức tính theo
 IP dùng chung: bể cạn thì bật lại cũng không giúp gì.
 

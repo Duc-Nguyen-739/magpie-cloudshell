@@ -79,6 +79,11 @@ canceled the request`, tức **phía gọi tự huỷ**, không phải magpie tr
 
 ## `group/free` — chọn model nén (đo 2026-11-17)
 
+> **Ladder hiện tại** (sau khi người dùng đổi): `kilo/particle-ai/particle-1:free` →
+> `cline/particle-ai/particle-1:free` → `openrouter/particle-ai/particle-1:free`,
+> `routing=rotate`. Không còn `workbuddy-ai/hy4flash-free` làm chốt chặn. Bảng đo dưới
+> đây là của ladder cũ, giữ để tham chiếu — **chưa đo lại** ladder mới.
+
 Yêu cầu: chịu được **5–6 lượt nén cùng lúc**, nhanh, rẻ (free), và mỗi provider chỉ lấy
 **một** model nhanh nhất; `workbuddy-ai/hy4flash-free` là chốt chặn cuối khi các provider
 khác hết limit.
@@ -109,13 +114,15 @@ Model bị loại vì không dùng được cho việc nén:
   `aihubmix/crouton-alpha-free` đã `404 model_retired`. Model trả phí thì
   `insufficient_user_quota`. Không dùng được cho tới khi nạp tiền.
 
-Thứ tự `group/free` (routing `order`, mỗi provider một model, WorkBuddy cuối):
+Thứ tự `group/free` hiện tại (routing `rotate`, mỗi provider một model):
 
-1. `cline/cline-free/solar-mini4`
-2. `kilo/baidu/ernie-5.5-flash-preview:free`
-3. `kiro/claude-haiku-4.5`
-4. `openrouter/openrouter/free`
-5. `workbuddy-ai/hy4flash-free`
+1. `kilo/particle-ai/particle-1:free`
+2. `cline/particle-ai/particle-1:free`
+3. `openrouter/particle-ai/particle-1:free`
+
+Ladder cũ (đo trong bảng trên) là `cline/cline-free/solar-mini4` →
+`kilo/baidu/ernie-5.5-flash-preview:free` → `kiro/claude-haiku-4.5` →
+`openrouter/openrouter/free` → `workbuddy-ai/hy4flash-free` (routing `order`).
 
 OpenRouter đo nhanh nhất khi rảnh (4,0 s) nhưng **không thể ổn định bằng cách đổi model**:
 `GET /api/v1/key` cho `is_free_tier: true`, `free_model_daily_requests {used:30, limit:50}`,
@@ -123,11 +130,12 @@ tức toàn bộ model free dùng chung **50 request/ngày** (và 20/phút), hai
 tài khoản dùng chung đúng một bộ đếm. Đo lại 2026-11-17: `openrouter/openrouter/free` và
 `openrouter/baidu/ernie-5.5-flash-preview:free` đều `429 free-models-per-min` ngay ở
 request đơn. Vì vậy giữ **Free Models Router** (tự chọn model free còn sống, tốt hơn ghim
-một model như `particle-1`) ở vị trí áp chót, và coi nó là vé số: 429 chỉ mất ~2 s rồi rơi
-xuống WorkBuddy. Muốn bỏ hẳn OpenRouter thì dựng group 4 model, không mất gì vì WorkBuddy
-đã là chốt chặn.
+một model như `particle-1`) ở vị trí áp chót — đó là lý do của ladder cũ. Ladder hiện tại
+ghim thẳng `openrouter/particle-ai/particle-1:free` và dùng `routing=rotate`, nên lượt nén
+chỉ chạm OpenRouter khoảng 1/3 số lần; đổi lại, không còn WorkBuddy làm chốt chặn.
 
-Đo lại cả group: **6/6, p50 6,7 s, 688 ký tự**, không có reasoning token.
+Đo cả group cũ: **6/6, p50 6,7 s, 688 ký tự**, không có reasoning token. Chưa đo lại
+ladder particle-1.
 
 **Vì sao budget như hiện tại (2026-11-17, sau khi bỏ chuỗi 5 model).** Chuỗi fallback cũ làm mỗi lần nén
 hiện trong magpie là một model khác nhau: `hy4flash-free` hết `targetTimeoutMs`
@@ -152,9 +160,11 @@ Ba thay đổi, mỗi cái ứng với một lỗi đọc được trong `bili.l
    `summaryMaxChars: 2500` cho một range thì nâng cap toàn cục **không** cứu được range
    đó — muốn cứu phải có target thứ hai chịu viết ngắn.
 
-Target duy nhất là `magpie/group/free`: model đầu của group lo phần lớn, provider nào bị
-limit thì `routing=order` tự rơi sang provider kế tiếp, và `workbuddy-ai/hy4flash-free`
-đứng cuối làm chốt chặn (100M free token/ngày × 13 account nên gần như không cạn).
+Target duy nhất là `magpie/group/free`. Với `routing=rotate`, mỗi lượt nén đi một
+provider khác nhau; nếu cả ba cùng bị limit thì **không còn** `workbuddy-ai/hy4flash-free`
+làm chốt chặn như ladder cũ. Theo dõi `bili.log`; nếu thấy nén hỏng vì 429 hàng loạt,
+thêm lại `workbuddy-ai/hy4flash-free` vào cuối ladder
+(`magpie group set free models+=workbuddy-ai/hy4flash-free`).
 
 Đo trực tiếp qua gateway (`max_tokens: 4000`, non-stream, 346 KB ≈ 62k token đầu vào):
 `hy4flash-free` **10,8 s**, `deepseek-v4.1-flash-sg` 7,6 s; gọi ngắn (50 token) có lúc

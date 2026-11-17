@@ -23,24 +23,28 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
 ## Bạn đang dựng gì
 
 - magpie bản terminal trong `~/.local/bin` (không desktop, không systemd).
-- **16 provider** khai trong magpie, **12 bật / 4 tắt** (`qoder`, `antigravity`,
-  `copilot`, `opencode-zen-free`). Tám plugin đang cài: AutoClaw (Zhipu), WorkBuddy,
-  agy-cli, cline, kiro, agnes, OpenCode Zen Free (2 plugin). `qoder` / `zcode` không cài
-  trên máy này (provider `qoder` đang tắt).
+- **14 provider** hiện trong `magpie providers`, **10 bật / 4 tắt** (`aihubmix`,
+  `copilot`, `agnes`, `opencode-zen-free`). `providers.json` còn record `qoder` và
+  `antigravity` nhưng không hiện vì thiếu plugin. Chín plugin đang cài: AutoClaw (Zhipu),
+  WorkBuddy, agy-cli, cline, kiro, agnes, FreePi, OpenCode Zen Free (2 plugin).
 - `settings.json` giống máy tham chiếu (theme dark, `vision=workbuddy-ai/hy4flash-free`
   + `visionEffort=max`, `redact=astrlink-guard`, `quotaLeft`, `textSize=110`, check-in
   AutoClaw + Qoder — qoder đang tắt nên chỉ còn AutoClaw có tác dụng); `opencode-zen` (API key) **bật nhưng chỉ mở `jev-1.13-free`** làm
   classifier — free tier qua API key bị chặn ở upstream, đường plugin cũng cạn theo IP
   dùng chung; xem [`docs/zen-free.md`](docs/zen-free.md).
-- Bảy routing group: `group/main` (chat thường ngày, `stays=session`), `group/leader`
-  (OpenChamber: plan + điều phối), `group/coder`, `group/tester`, `group/tester-2`,
-  `group/tester-3`, `group/free` (chỉ dùng cho việc nén của billion-context).
-  Sáu group đầu dùng classifier `opencode-zen/jev-1.13-free`, `effort=auto`;
-  không group nào có rule.
-- `group/free`: `cline/cline-free/solar-mini4` → `kilo/baidu/ernie-5.5-flash-preview:free`
-  → `kiro/claude-haiku-4.5` → `openrouter/openrouter/free` →
-  `workbuddy-ai/hy4flash-free` (chốt chặn). Mỗi provider một model nhanh nhất, đo 6
-  request song song; xem bảng trong [`docs/billion-context.md`](docs/billion-context.md).
+- Chín routing group: `group/main` (chat thường ngày, `stays=session`), `group/leader`
+  (OpenChamber: quyết định + điều phối), `group/review` (khảo sát + viết plan),
+  `group/reviewplan` (kiểm chứng/sửa plan + audit cuối), `group/coder`, `group/tester`,
+  `group/tester-2`, `group/tester-3`, `group/free` (chỉ dùng cho việc nén của
+  billion-context). Tám group dùng classifier `opencode-zen/jev-1.13-free`,
+  `effort=auto`; không group nào có rule. `main`/`leader`/`coder` và ba tester mở
+  levels `low,high,max`; `review`/`reviewplan` mở `none,low,high,max` (FreePi không
+  expose mức reasoning nhưng magpie vẫn mở levels khi đặt `effort=auto`), và
+  `finish.sh --force` không reset chúng.
+- `group/free`: `kilo/particle-ai/particle-1:free` →
+  `cline/particle-ai/particle-1:free` → `openrouter/particle-ai/particle-1:free`,
+  `routing=rotate`. Mỗi provider một model nhanh nhất, đo 6 request song song; xem
+  bảng trong [`docs/billion-context.md`](docs/billion-context.md).
 - `group/main`: `freepi/deepseek-v4.1-flash` → `workbuddy-ai/hy4flash-free` →
   `agy-cli/gemini-3.8-flash` → `agy-cli/gemini-2.5-flash-lite` →
   `autoclaw/zai_glm-5.3-flash` → `workbuddy-ai/glm-5.3-flash`. **Group này đang tắt**
@@ -52,23 +56,28 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   vì nó đứng đầu nên mỗi lượt OpenChamber mất 34 s keepalive rồi mới nhảy sang sol.
   Ghim `:high` cho sol vì magpie gửi level đó thành `reasoning_effort` — đo được
   4,6 s → 2,0 s; để trống thì upstream dùng mặc định chậm hơn.
+- `group/review`: `freepi/deepseek-v4.1-flash:high` → `workbuddy-ai/deepseek-v4.1-flash-sg`
+  (`stays=turn`; người dùng tự thêm bậc sau bằng `magpie group set review models+=…`).
+- `group/reviewplan`: cùng ladder với review; nên thêm model khác family để kiểm chứng
+  độc lập.
 - `group/coder`: `freepi/deepseek-v4.1-flash:high`.
-- `group/tester`: `freepi/deepseek-v4.1-flash:high` → `agnes/agnes-3.0-flash:high` →
-  `workbuddy-ai/glm-5.3-flash`.
-- `group/tester-2`: `workbuddy-ai/hy4flash-free:high` → `agnes/agnes-3.0-flash:high` →
-  `agy-cli/gemini-3.8-flash:high` → `autoclaw/zai_glm-5.3-flash`.
-- `group/tester-3`: `autoclaw/zai_glm-5.3-flash` → `agy-cli/gemini-3.8-flash` →
-  `kilo/reflection/beam-free:high` → `workbuddy-ai/hy4flash-free:high`.
-- Provider đang tắt: `qoder`, `antigravity`, `copilot`, `opencode-zen-free`. WorkBuddy
+- `group/tester`: `freepi/deepseek-v4.1-flash` → `workbuddy-ai/glm-5.3-flash`.
+- `group/tester-2`: `workbuddy-ai/hy4flash-free` → `agnes/agnes-3.0-flash` →
+  `agy-cli/gemini-3.8-flash` → `autoclaw/zai_glm-5.3-flash`.
+- `group/tester-3`: `kiro/claude-haiku-4.5` → `kilo/reflection/beam-free` →
+  `autoclaw/zai_glm-5.3-flash` → `agy-cli/gemini-3.8-flash` →
+  `workbuddy-ai/hy4flash-free`.
+- Provider đang tắt: `aihubmix`, `copilot`, `agnes`, `opencode-zen-free`. WorkBuddy
   chỉ expose `deepseek-v4.1-flash-sg`, `glm-5.3-flash`, `hy4flash-free`; `kilo` **bật**
-  vì `group/tester-3` dùng `kilo/reflection/beam-free`; `aihubmix` bật nhưng 36 model
-  `-free` chỉ trả câu từ chối (tài khoản chưa nạp tiền) — xem mục lỗi thường gặp.
-- OpenCode khai **123 model** của provider `magpie` (6 `group/*` — thiếu `group/main`
+  vì `group/tester-3` dùng `kilo/reflection/beam-free`; `aihubmix` đang tắt, nếu bật
+  thì 36 model `-free` chỉ trả câu từ chối (tài khoản chưa nạp tiền) — xem mục lỗi
+  thường gặp.
+- OpenCode khai **25 model** của provider `magpie` (8 `group/*` — thiếu `group/main`
   vì group đang tắt — cộng model lẻ), `model: magpie/group/main`, model phụ cho agent
   `title` là `magpie/workbuddy-ai/hy4flash-free`. OpenChamber đặt
   `defaultModel: magpie/group/leader`, `defaultVariant: max`, `defaultAgent: leader`;
-  agent `leader` + 4 subagent `coder`, `tester`, `tester2`, `tester3`; skill
-  `magpie-setup`.
+  agent `leader` + 6 subagent `review`, `reviewplan`, `coder`, `tester`, `tester2`,
+  `tester3`; skill `magpie-setup`.
 - Supervisor bash giữ gateway + web UI sống; hai lệnh `openchamber` / `openmagpie` in
   link web **đã kèm key**.
 - `billion-context` (plugin OpenCode, không phải magpie) nén hội thoại; config ở
@@ -117,7 +126,7 @@ Kiểm tra:
 ```sh
 magpie --version                  # có số phiên bản
 magpie healthcheck && echo ok     # exit 0
-magpie plugin list                # 8 plugin, "on"
+magpie plugin list                # 9 plugin, "on"
 command -v openchamber openmagpie magpie-headless-start
 ```
 
@@ -180,9 +189,11 @@ bash scripts/finish.sh # từ repo
 Kiểm tra:
 
 ```sh
-magpie groups           # 7 group; group/main đang tắt trên máy tham chiếu
+magpie groups           # 9 group; group/main đang tắt trên máy tham chiếu
 magpie group main      # 6 model theo thứ tự, levels low/high/max, classifier
-magpie group leader    # 4 model, OpenChamber dùng
+magpie group leader    # 3 model, OpenChamber dùng
+magpie group review    # freepi:high → workbuddy deepseek-sg, classifier jev
+magpie group reviewplan # freepi:high → workbuddy deepseek-sg, classifier jev
 magpie opencode        # model: magpie/group/main · small magpie/workbuddy-ai/hy4flash-free
 magpie openchamber     # model: magpie/group/leader · variant max
 ```

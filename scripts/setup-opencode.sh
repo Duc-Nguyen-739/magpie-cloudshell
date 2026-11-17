@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# setup-opencode.sh — thêm agent Leader + 4 subagent (coder, tester, tester2, tester3)
-# và skill magpie-setup vào OpenCode.
+# setup-opencode.sh — thêm agent Leader + 6 subagent (review, reviewplan, coder,
+# tester, tester2, tester3) và skill magpie-setup vào OpenCode.
 # Không ghi đè file đã có; muốn cập nhật thì xoá file cũ rồi chạy lại.
 set -uo pipefail
 
@@ -53,6 +53,8 @@ install_agent() { # <tên>
 }
 
 install_agent leader
+install_agent review
+install_agent reviewplan
 install_agent coder
 install_agent tester
 install_agent tester2

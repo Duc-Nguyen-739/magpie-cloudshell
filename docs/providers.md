@@ -14,14 +14,14 @@ sửa cấu hình agent** — magpie tự ghi lại danh sách model.
 | `freepi` | FreePi | OAuth (plugin) | tài khoản FreePi | `magpie provider test freepi deepseek-v4.1-flash` |
 | `cline` | Cline | OAuth (plugin) | tài khoản Cline | `magpie accounts` |
 | `kiro` | Kiro | OAuth Google (plugin) | tài khoản Kiro | `magpie accounts` |
-| `agnes` | Agnes | plugin + API key `cpk-…` | key từ `platform.agnes-ai.com` | `magpie provider test agnes agnes-3.0-flash` |
+| `agnes` | Agnes | plugin + API key `cpk-…` | key từ `platform.agnes-ai.com` | **tắt** (`magpie provider on agnes`) |
 | `kilo` | Kilo Gateway | API key `eyJ…` | key từ kilo.ai | `magpie provider test kilo` |
 | `openrouter` | OpenRouter | API key `sk-or-…` | key từ openrouter.ai | `magpie provider test openrouter` |
 | `xingchi` | Xingchi custom | API key + `baseAPI` riêng | key + endpoint `api.xingchiapi.com` | `magpie provider test xingchi gpt-6.1-sol` |
-| `aihubmix` | AiHubMix | API key `sk-e…` | key + **đã nạp tiền** | 36 model `-free` trả câu từ chối nếu tài khoản chưa nạp — xem dưới |
+| `aihubmix` | AiHubMix | API key `sk-e…` | key + **đã nạp tiền** | **tắt**; nếu bật, 36 model `-free` trả câu từ chối khi chưa nạp — xem dưới |
 | `opencode-zen` | OpenCode Zen | API key `oc_…` | key từ opencode.ai | đang **bật**, chỉ expose `jev-1.13-free` (classifier) |
-| `qoder` | Qoder | OAuth web (plugin) | tài khoản Qoder | **tắt** (`magpie provider off qoder`) |
-| `antigravity` | Antigravity | OAuth (plugin) | tài khoản Google | **tắt** |
+| `qoder` | Qoder | OAuth web (plugin) | tài khoản Qoder | record còn, **không hiện** (thiếu plugin) |
+| `antigravity` | Antigravity | OAuth (plugin) | tài khoản Google | record còn, **không hiện** (thiếu plugin) |
 | `copilot` | Copilot | OAuth GitHub | tài khoản GitHub Copilot | **tắt** |
 | `opencode-zen-free` | OpenCode Zen Free | plugin (key công khai) | không | **tắt** — hạn mức theo IP dùng chung |
 
