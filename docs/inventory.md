@@ -44,7 +44,7 @@ Lệnh tiện dụng tự viết trong `~/.local/bin`:
 | `magpie-headless-start/stop/status` | điều khiển supervisor |
 | `magpie-headless` | chính vòng lặp supervisor (không gọi tay) |
 
-## Provider (14 hiện trong `magpie providers` — 10 bật, 4 tắt)
+## Provider (15 hiện trong `magpie providers` — 11 bật, 4 tắt)
 
 `providers.json` còn record `qoder` và `antigravity`, nhưng `magpie providers` không
 hiện vì thiếu plugin trên máy này.
@@ -54,6 +54,7 @@ hiện vì thiếu plugin trên máy này.
 | `workbuddy-ai` | WorkBuddy AI | OAuth web (plugin) | 3 / 23 | **bật**; expose `deepseek-v4.1-flash-sg`, `glm-5.3-flash`, `hy4flash-free` |
 | `autoclaw` | AutoClaw (Zhipu) | OAuth Google/z.ai (plugin) | 2 / 4 | **bật**; `zai_glm-5.3-flash`, `zaicoding_glm-5.3` |
 | `freepi` | FreePi | OAuth (plugin) | 1 / 18 | **bật**; `deepseek-v4.1-flash`, **một request tại một thời điểm** |
+| `free-pi` | free-pi | OAuth (plugin) | 4 / 9 | **bật**; tài khoản thứ hai của cùng `api.freepi.ai`, slot + budget riêng; **phải vá client version** — `docs/providers.md` |
 | `agy-cli` | agy-cli | OAuth Google (plugin) | 3 / 5 | **bật**; `gemini-3.8-flash`, `gemini-2.5-flash-lite`, `claude-opus-4-6-thinking` |
 | `agnes` | Agnes | API key | 1 / 4 | **tắt** (`magpie provider on agnes`); `agnes-3.0-flash` |
 | `kilo` | Kilo Gateway | API key | 2 / 406 | **bật**; có `reflection/beam-free` và `particle-1:free` |
@@ -68,7 +69,7 @@ hiện vì thiếu plugin trên máy này.
 | `copilot` | Copilot | OAuth GitHub | 1 / 24 | **tắt** |
 | `opencode-zen-free` | OpenCode Zen Free | plugin, key công khai | 8 / 15 | **tắt**; plugin vẫn cài, bật lại được |
 
-## Plugin (9)
+## Plugin (10)
 
 ```
 @magpie-community/opencode-autoclaw-auth@0.2.9    autoclaw, autoclaw-cn
@@ -77,6 +78,7 @@ hiện vì thiếu plugin trên máy này.
 @magpie-community/opencode-cline-auth@latest      cline
 @magpie-community/opencode-agnes-auth@latest      agnes
 magpie-freepi-auth@latest                         freepi
+magpie-free-pi@0.1.5 (đã vá)                      free-pi
 @magpie-community/opencode-agy-cli-auth@latest    agy-cli
 @magpie-community/opencode-zen-free-auth@latest   opencode-zen-free
 opencode-zen-freex@latest                         phục vụ opencode-zen-free
@@ -204,7 +206,7 @@ script không thêm khoá đó nữa — đó là hành vi đúng, không phải
 | Hạng mục | Repo | Ghi chú |
 |---|---|---|
 | magpie binary | ✅ | installer chính thức hoặc `--from-source` (clone yetone/magpie) |
-| 9 plugin provider | ✅ | `scripts/plugins.sh` |
+| 10 plugin provider | ✅ | `scripts/plugins.sh` (cài xong tự vá `free-pi`) |
 | 9 routing group | ✅ | **giống hệt** cấu hình máy này, kể cả `group/free`; `review`/`reviewplan` chỉ tạo khi thiếu, `--force` không reset; riêng `group/main` do script tạo ở trạng thái **bật** (máy này tắt tay) |
 | settings.json | ✅ | chỉ thêm khoá thiếu |
 | `opencode-zen` bật, chỉ expose `jev-1.13-free`; `opencode-zen-free` tắt | ✅ | `setup-settings.sh` |

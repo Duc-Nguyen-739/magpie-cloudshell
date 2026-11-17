@@ -5,6 +5,8 @@ set -uo pipefail
 
 export PATH="$HOME/.local/bin:$PATH"
 
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
 PLUGINS=(
   "@magpie-community/opencode-autoclaw-auth"    # AutoClaw (Zhipu) — OAuth Google/z.ai
   "@magpie-community/opencode-workbuddy-auth"   # WorkBuddy / WorkBuddy AI
@@ -13,6 +15,7 @@ PLUGINS=(
   "@magpie-community/opencode-kiro-auth"        # Kiro — group/free
   "@magpie-community/opencode-agnes-auth"       # Agnes — group/tester (đang tắt)
   "magpie-freepi-auth"                          # FreePi — group/review, reviewplan, coder
+  "magpie-free-pi"                              # free-pi — provider thứ hai, tài khoản riêng
   "@magpie-community/opencode-zen-free-auth"    # OpenCode Zen Free
   "opencode-zen-freex"                          # phần phục vụ OpenCode Zen Free
   # qoder / zcode không cài trên máy tham chiếu (provider qoder đang tắt); cần thì
@@ -40,5 +43,19 @@ for spec in "${PLUGINS[@]}"; do
 done
 
 say ""
-say "Đã cài $(magpie plugin list 2>/dev/null | grep -c '^@' || true) plugin. Xem: magpie plugin list"
+say "Đã cài $(magpie plugin list 2>/dev/null | grep -vc '^[[:space:]]*$' || true) plugin. Xem: magpie plugin list"
+
+# free-pi ghim phiên bản client trong mã nguồn, server nâng mức tối thiểu là mọi
+# request chat bị 426 (trước cả khi chọn model). Vá lại sau mỗi lần cài/cập nhật.
+if magpie plugin list 2>/dev/null | grep -q 'magpie-free-pi'; then
+  say ""
+  say "vá free-pi (lấy client version từ /client-version)…"
+  if node "$REPO_DIR/scripts/patch-free-pi.mjs" >/dev/null 2>&1; then
+    say "  ✓ free-pi"
+  else
+    warn "không vá được free-pi — chạy tay: node scripts/patch-free-pi.mjs"
+    rc=1
+  fi
+fi
+
 exit "$rc"

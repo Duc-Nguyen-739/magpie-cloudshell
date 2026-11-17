@@ -6,6 +6,7 @@ set -uo pipefail
 export PATH="$HOME/.local/bin:$HOME/.opencode/bin:$HOME/.npm-global/bin:$PATH"
 
 CONF="$HOME/.config/magpie"
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 KEY_FILE="$CONF/web-key"
 MP_PORT="${MAGPIE_WEB_PORT:-3430}"
 OC_PORT="${OPENCHAMBER_PORT:-3000}"
@@ -60,6 +61,15 @@ head_ "Provider"
 np="$(magpie providers 2>/dev/null | grep -c . || true)"
 [ "$np" -gt 0 ] && ok "$np provider" || bad "chưa có provider nào"
 magpie providers 2>/dev/null | sed 's/^/      /'
+
+# free-pi: bản npm ghim client version, server nâng mức là 426 toàn bộ model.
+if magpie plugin list 2>/dev/null | grep -q 'magpie-free-pi'; then
+  if node "$REPO_DIR/scripts/patch-free-pi.mjs" --check >/dev/null 2>&1; then
+    ok "free-pi đã vá (client version lấy từ /client-version)"
+  else
+    warn "free-pi chưa vá — chat sẽ 426 khi server nâng mức tối thiểu (node scripts/patch-free-pi.mjs)"
+  fi
+fi
 
 head_ "Đăng nhập"
 signed="$(magpie accounts 2>/dev/null | grep -c '^●' || true)"

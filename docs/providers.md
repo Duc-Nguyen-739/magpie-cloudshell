@@ -12,6 +12,7 @@ sửa cấu hình agent** — magpie tự ghi lại danh sách model.
 | `workbuddy-ai` | WorkBuddy AI | OAuth web (plugin) | tài khoản WorkBuddy | `magpie accounts` |
 | `agy-cli` | agy-cli | OAuth Google (plugin) | tài khoản Google (Antigravity) | `magpie provider test agy-cli gemini-3.8-flash` |
 | `freepi` | FreePi | OAuth (plugin) | tài khoản FreePi | `magpie provider test freepi deepseek-v4.1-flash` |
+| `free-pi` | free-pi | OAuth (plugin) | tài khoản GitHub thứ hai | `magpie provider test free-pi particle` |
 | `cline` | Cline | OAuth (plugin) | tài khoản Cline | `magpie accounts` |
 | `kiro` | Kiro | OAuth Google (plugin) | tài khoản Kiro | `magpie accounts` |
 | `agnes` | Agnes | plugin + API key `cpk-…` | key từ `platform.agnes-ai.com` | **tắt** (`magpie provider on agnes`) |
@@ -139,6 +140,46 @@ báo xong. Key không đi qua chat và không ghi log.
 
 Console token (`localStorage.getItem("token")` ở `platform.agnes-ai.com`) là tuỳ chọn, chỉ
 để đọc hạn mức; không có nó vẫn gọi model bình thường.
+
+### free-pi — `free-pi` (plugin, **phải vá**)
+
+Hai plugin, cùng một upstream `api.freepi.ai`, **hai tài khoản khác nhau** — không phải
+bản sao của nhau:
+
+| Plugin | Provider id | Tài khoản trên máy này | Model expose |
+|---|---|---|---|
+| `magpie-freepi-auth` | `freepi` | `ducnguyenvan05-source` (Free) | 1 / 18 — `deepseek-v4.1-flash` |
+| `magpie-free-pi` | `free-pi` | `Duc-Nguyen-739` (young) | 4 / 9 — `particle`, `deepseek-v4.1-flash`, `glm-5.3-flash`, `deepseek-v4-flash` |
+
+Mỗi tài khoản có budget riêng (15.000 credits/ngày) và **một slot đồng thời riêng**: gọi
+đồng thời hai provider thì cả hai trả 200, còn hai request cùng lúc trên **một** provider
+thì request thứ hai nhận `429 one request at a time`. Vì vậy hai tài khoản = hai slot +
+hai budget, không phải "đổi tài khoản" và không bị server chặn.
+
+**Cái bẫy:** bản `magpie-free-pi@0.1.5` trên npm ghim `FREEPI_CLIENT_VERSION` (lúc phát
+hành là `0.6.16`) rồi gửi qua header `x-client-version`. freepi.ai nâng mức tối thiểu
+(`GET /client-version` → `min`, `latest`) mà không báo trước; client cũ bị chặn bằng
+**HTTP 426 `upgrade_required`** ngay trước bước định tuyến model, nên **mọi** model cùng
+chết — UI báo "9 of 9 models didn't answer", còn `magpie provider test` chỉ thấy 426.
+
+```sh
+node scripts/patch-free-pi.mjs --check   # 0 = đã vá, 1 = chưa
+node scripts/patch-free-pi.mjs           # vá (idempotent)
+kill $(pgrep -f "magpie serve --web=0.0.0.0:3430")   # supervisor tự dựng lại
+magpie provider test free-pi particle
+```
+
+Bản vá đổi hằng số thành biến sống: mỗi request chat đọc `min`/`latest` từ
+`GET /client-version` (công khai, không cần auth, cache 10 phút, chính endpoint plugin đã
+gọi để lấy catalog), lấy số lớn hơn, và giữ `0.6.22` làm mức dự phòng khi mạng hỏng. Nhờ
+vậy server nâng mức nữa thì plugin tự theo, không phải sửa tay.
+
+Vá nằm trong `~/.config/magpie/plugins/node_modules/`, nên **mất khi `magpie plugin update`
+hoặc cài lại plugin** — `scripts/plugins.sh` (và `bootstrap.sh`) tự chạy lại bản vá sau khi
+cài, `scripts/doctor.sh` báo nếu thiếu. Sửa gốc là việc của upstream
+(`github.com/wawaTuna/magpie-free-pi`): đọc `min` từ `/client-version` thay vì ghim — đã mở
+issue kèm bằng chứng và bản vá mẫu:
+<https://github.com/wawaTuna/magpie-free-pi/issues/1>.
 
 ## Provider dùng API key
 

@@ -23,10 +23,13 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
 ## Bạn đang dựng gì
 
 - magpie bản terminal trong `~/.local/bin` (không desktop, không systemd).
-- **14 provider** hiện trong `magpie providers`, **10 bật / 4 tắt** (`aihubmix`,
+- **15 provider** hiện trong `magpie providers`, **11 bật / 4 tắt** (`aihubmix`,
   `copilot`, `agnes`, `opencode-zen-free`). `providers.json` còn record `qoder` và
-  `antigravity` nhưng không hiện vì thiếu plugin. Chín plugin đang cài: AutoClaw (Zhipu),
-  WorkBuddy, agy-cli, cline, kiro, agnes, FreePi, OpenCode Zen Free (2 plugin).
+  `antigravity` nhưng không hiện vì thiếu plugin. Mười plugin đang cài: AutoClaw (Zhipu),
+  WorkBuddy, agy-cli, cline, kiro, agnes, FreePi, free-pi, OpenCode Zen Free (2 plugin).
+  `free-pi` là tài khoản thứ hai của cùng `api.freepi.ai` — **phải chạy
+  `node scripts/patch-free-pi.mjs` sau mỗi lần cài/cập nhật plugin**, nếu không mọi model
+  trả 426 (`docs/providers.md`).
 - `settings.json` giống máy tham chiếu (theme dark, `vision=workbuddy-ai/hy4flash-free`
   + `visionEffort=max`, `redact=astrlink-guard`, `quotaLeft`, `textSize=110`, check-in
   AutoClaw + Qoder — qoder đang tắt nên chỉ còn AutoClaw có tác dụng); `opencode-zen` (API key) **bật nhưng chỉ mở `jev-1.13-free`** làm
@@ -126,7 +129,7 @@ Kiểm tra:
 ```sh
 magpie --version                  # có số phiên bản
 magpie healthcheck && echo ok     # exit 0
-magpie plugin list                # 9 plugin, "on"
+magpie plugin list                # 10 plugin, "on"
 command -v openchamber openmagpie magpie-headless-start
 ```
 
@@ -251,6 +254,7 @@ magpie provider test autoclaw zai_auto
 | Cloud Shell restart, không có gì chạy | thiếu hook `.bashrc` | `bash bootstrap.sh` thêm lại |
 | `openchamber` không in link | PATH: binary npm che wrapper | `command -v openchamber` phải là `~/.local/bin/openchamber` |
 | Model list rỗng trong OpenCode | gateway chưa chạy | `openmagpie` rồi `magpie healthcheck` |
+| `free-pi` báo **426** `your free-pi-cli is below the required minimum`, "9 of 9 models didn't answer" | plugin npm ghim `x-client-version`; server đã nâng `min` | `node scripts/patch-free-pi.mjs` rồi `kill $(pgrep -f "magpie serve --web=0.0.0.0:3430")` — `docs/providers.md` |
 | OpenChamber báo **502** hoặc Xingchi **503** `Service temporarily unavailable` | model đó (`gpt-6-astra`) mất channel ở pool upstream; stream thì keepalive 34 s rồi mới lỗi | dùng `xingchi/gpt-6.1-sol:high`; chi tiết trong [`docs/providers.md`](docs/providers.md) |
 | `the routing group Main is switched off … not served` | group bị tắt (`disabled` trong `providers.json`) | `magpie group on main`, hoặc trỏ agent sang group đang bật |
 | AiHubMix/`aihubmix` trả "Sorry, to prevent abuse of free resources…" | tài khoản chưa nạp tiền; cả 36 model `-free` trả cùng câu này | nạp tiền hoặc `magpie provider off aihubmix` — `magpie provider test` vẫn tick xanh vì chỉ kiểm HTTP 200 |
