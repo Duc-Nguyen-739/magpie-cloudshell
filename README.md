@@ -174,7 +174,7 @@ Nếu bạn đăng nhập **trong web UI** (cách dùng trên Cloud Shell), lầ
 | OpenCode Zen | API key `oc_…` — **bật**, chỉ expose `jev-1.13-free` (classifier) | [`docs/zen-free.md`](docs/zen-free.md) |
 | Kilo | API key `eyJ…` | [`docs/providers.md`](docs/providers.md) |
 | OpenCode Zen Free | plugin, key công khai — **tắt** (hạn mức theo IP dùng chung) | [`docs/providers.md`](docs/providers.md) |
-| free-pi | OAuth plugin — tài khoản thứ hai của freepi.ai; **phải chạy `node scripts/patch-free-pi.mjs`** nếu vừa cài/cập nhật plugin | [`docs/providers.md`](docs/providers.md) |
+| free-pi | OAuth plugin — tài khoản thứ hai của freepi.ai; **phải chạy `node scripts/patch-free-pi.mjs`** nếu vừa cài/cập nhật plugin, và `node scripts/setup-freepi-pair.mjs` để pool chỉ còn một entry mỗi tài khoản | [`docs/providers.md`](docs/providers.md) |
 
 ## Group + agent (tự động sau khi đăng nhập)
 
@@ -237,8 +237,9 @@ config/agents/              leader.md + review, reviewplan, coder, tester (OpenC
 scripts/
   install.sh                magpie CLI từ installer chính thức (MAGPIE_CLI=1)
   install-from-source.sh    clone repo chính chủ + make cli (cần Go)
-  plugins.sh                10 plugin provider (+ vá free-pi)
+  plugins.sh                10 plugin provider (+ vá free-pi, dọn pool trùng)
   patch-free-pi.mjs         vá free-pi: client version lấy từ /client-version, không ghim
+  setup-freepi-pair.mjs     tách riêng 2 provider freepi.ai: một entry cho mỗi user_id
   install-opencode.sh       OpenCode (opencode.ai/install)
   install-openchamber.sh    @openchamber/web vào ~/.npm-global
   setup-opencode.sh         agent leader + 6 subagent + skill magpie-setup

@@ -206,7 +206,7 @@ script không thêm khoá đó nữa — đó là hành vi đúng, không phải
 | Hạng mục | Repo | Ghi chú |
 |---|---|---|
 | magpie binary | ✅ | installer chính thức hoặc `--from-source` (clone yetone/magpie) |
-| 10 plugin provider | ✅ | `scripts/plugins.sh` (cài xong tự vá `free-pi`) |
+| 10 plugin provider | ✅ | `scripts/plugins.sh` (cài xong tự vá `free-pi`, dọn pool trùng) |
 | 9 routing group | ✅ | **giống hệt** cấu hình máy này, kể cả `group/free`; `review`/`reviewplan` chỉ tạo khi thiếu, `--force` không reset; riêng `group/main` do script tạo ở trạng thái **bật** (máy này tắt tay) |
 | settings.json | ✅ | chỉ thêm khoá thiếu |
 | `opencode-zen` bật, chỉ expose `jev-1.13-free`; `opencode-zen-free` tắt | ✅ | `setup-settings.sh` |

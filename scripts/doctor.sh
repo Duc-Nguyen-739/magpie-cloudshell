@@ -69,6 +69,11 @@ if magpie plugin list 2>/dev/null | grep -q 'magpie-free-pi'; then
   else
     warn "free-pi chưa vá — chat sẽ 426 khi server nâng mức tối thiểu (node scripts/patch-free-pi.mjs)"
   fi
+  if node "$REPO_DIR/scripts/setup-freepi-pair.mjs" --check >/dev/null 2>&1; then
+    ok "free-pi: một entry cho mỗi tài khoản (không trùng pool)"
+  else
+    warn "pool free-pi có entry trùng user_id — chạy: node scripts/setup-freepi-pair.mjs"
+  fi
 fi
 
 head_ "Đăng nhập"

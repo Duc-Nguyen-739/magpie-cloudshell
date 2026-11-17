@@ -56,6 +56,14 @@ if magpie plugin list 2>/dev/null | grep -q 'magpie-free-pi'; then
     warn "không vá được free-pi — chạy tay: node scripts/patch-free-pi.mjs"
     rc=1
   fi
+
+  # Hai provider freepi.ai phải tách rời: mỗi user_id đúng một entry trong pool
+  # của free-pi (đăng nhập lặp sinh entry trùng, budget vẫn chỉ một).
+  if node "$REPO_DIR/scripts/setup-freepi-pair.mjs" >/dev/null 2>&1; then
+    say "  ✓ free-pi: một tài khoản, không trùng"
+  else
+    warn "không dọn được pool free-pi — chạy tay: node scripts/setup-freepi-pair.mjs"
+  fi
 fi
 
 exit "$rc"

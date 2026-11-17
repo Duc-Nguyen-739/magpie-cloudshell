@@ -149,12 +149,38 @@ bản sao của nhau:
 | Plugin | Provider id | Tài khoản trên máy này | Model expose |
 |---|---|---|---|
 | `magpie-freepi-auth` | `freepi` | `ducnguyenvan05-source` (Free) | 1 / 18 — `deepseek-v4.1-flash` |
-| `magpie-free-pi` | `free-pi` | `Duc-Nguyen-739` (young) | 4 / 9 — `particle`, `deepseek-v4.1-flash`, `glm-5.3-flash`, `deepseek-v4-flash` |
+| `magpie-free-pi` | `free-pi` | `Duc-Nguyen-739` (young) | 1 / 9 — `deepseek-v4.1-flash` (catalog 9 model; pick list tuỳ máy) |
 
 Mỗi tài khoản có budget riêng (15.000 credits/ngày) và **một slot đồng thời riêng**: gọi
 đồng thời hai provider thì cả hai trả 200, còn hai request cùng lúc trên **một** provider
 thì request thứ hai nhận `429 one request at a time`. Vì vậy hai tài khoản = hai slot +
 hai budget, không phải "đổi tài khoản" và không bị server chặn.
+
+**Tách rời nhau ở đâu.** Hai provider chỉ dùng chung domain; phần đăng nhập, session,
+budget và slot là riêng từng cái:
+
+| | `freepi` | `free-pi` |
+|---|---|---|
+| Plugin | `magpie-freepi-auth` | `magpie-free-pi` (đã vá) |
+| JWT giữ ở | auth store của magpie (khoá theo provider id) | `~/.free-pi/agent/accounts.json` (0600) |
+| `x-session-id` | hằng số `magpie-freepi` | `~/.free-pi/agent/session-id` |
+| Tài khoản / budget | `ducnguyenvan05-source` — 15.000 credits/ngày | `Duc-Nguyen-739` — 15.000 credits/ngày |
+| Slot đồng thời | 1 | 1 |
+| Client version | tự canh từ `/client-version` (12h/lần) | bản vá đọc `/client-version` mỗi request |
+
+Pool của `free-pi` chỉ dedupe theo **chuỗi JWT**, nên đăng nhập cùng một tài khoản GitHub
+hai lần sinh hai entry cùng `user_id`: server vẫn chỉ cấp một budget, chỉ bộ đếm
+slot/rotation bị lệch (và có thể tự đụng `429 one request at a time`). Script gọi `/me`
+cho từng entry rồi giữ entry **mới nhất** cho mỗi `user_id`:
+
+```sh
+node scripts/setup-freepi-pair.mjs --check   # 0 = sạch, 1 = có entry trùng
+node scripts/setup-freepi-pair.mjs           # dọn, backup accounts.json.bak-…
+```
+
+`scripts/plugins.sh` chạy script này sau khi vá `free-pi`; `scripts/doctor.sh` báo nếu pool
+còn trùng. Đừng sửa tay `accounts.json`: JWT trong đó là credential, và `freepi` không
+dùng file này — nó nằm trong auth store của magpie.
 
 **Cái bẫy:** bản `magpie-free-pi@0.1.5` trên npm ghim `FREEPI_CLIENT_VERSION` (lúc phát
 hành là `0.6.16`) rồi gửi qua header `x-client-version`. freepi.ai nâng mức tối thiểu

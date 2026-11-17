@@ -255,6 +255,7 @@ magpie provider test autoclaw zai_auto
 | `openchamber` không in link | PATH: binary npm che wrapper | `command -v openchamber` phải là `~/.local/bin/openchamber` |
 | Model list rỗng trong OpenCode | gateway chưa chạy | `openmagpie` rồi `magpie healthcheck` |
 | `free-pi` báo **426** `your free-pi-cli is below the required minimum`, "9 of 9 models didn't answer" | plugin npm ghim `x-client-version`; server đã nâng `min` | `node scripts/patch-free-pi.mjs` rồi `kill $(pgrep -f "magpie serve --web=0.0.0.0:3430")` — `docs/providers.md` |
+| `freepi` và `free-pi` lẫn tài khoản / "one request at a time" dù đang rảnh | pool `~/.free-pi/agent/accounts.json` có nhiều entry cùng `user_id` (đăng nhập lặp), bộ đếm slot tưởng có nhiều tài khoản | `node scripts/setup-freepi-pair.mjs` — giữ entry mới nhất mỗi `user_id`, backup `.bak-…` |
 | OpenChamber báo **502** hoặc Xingchi **503** `Service temporarily unavailable` | model đó (`gpt-6-astra`) mất channel ở pool upstream; stream thì keepalive 34 s rồi mới lỗi | dùng `xingchi/gpt-6.1-sol:high`; chi tiết trong [`docs/providers.md`](docs/providers.md) |
 | `the routing group Main is switched off … not served` | group bị tắt (`disabled` trong `providers.json`) | `magpie group on main`, hoặc trỏ agent sang group đang bật |
 | AiHubMix/`aihubmix` trả "Sorry, to prevent abuse of free resources…" | tài khoản chưa nạp tiền; cả 36 model `-free` trả cùng câu này | nạp tiền hoặc `magpie provider off aihubmix` — `magpie provider test` vẫn tick xanh vì chỉ kiểm HTTP 200 |
