@@ -146,11 +146,10 @@ MAIN_MODELS=(
   workbuddy-ai/glm-5.3-flash
 )
 
-# leader — OpenChamber: lên plan và điều phối; hai model Xingchi trước, Opus và
-# DeepSeek SG dự phòng.
+# leader — OpenChamber: lên plan và điều phối; sol ghim :high đứng đầu, Opus và
+# DeepSeek SG dự phòng. gpt-6-astra bị bỏ: pool upstream Xingchi trả 503 (2026-11-17).
 LEADER_MODELS=(
-  xingchi/gpt-6-astra
-  xingchi/gpt-6.1-sol
+  xingchi/gpt-6.1-sol:high
   agy-cli/claude-opus-4-6-thinking
   workbuddy-ai/deepseek-v4.1-flash-sg
 )

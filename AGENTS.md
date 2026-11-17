@@ -46,8 +46,12 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   `autoclaw/zai_glm-5.3-flash` → `workbuddy-ai/glm-5.3-flash`. **Group này đang tắt**
   (`disabled` trong `providers.json`) nên gateway trả `not_found_error` cho
   `group/main`; bật lại bằng `magpie group on main` (hoặc trỏ OpenCode sang group khác).
-- `group/leader`: `xingchi/gpt-6-astra` → `xingchi/gpt-6.1-sol` →
-  `agy-cli/claude-opus-4-6-thinking` → `workbuddy-ai/deepseek-v4.1-flash-sg`.
+- `group/leader`: `xingchi/gpt-6.1-sol:high` → `agy-cli/claude-opus-4-6-thinking` →
+  `workbuddy-ai/deepseek-v4.1-flash-sg`. `xingchi/gpt-6-astra` đã bị bỏ khỏi group
+  (2026-11-17): model vẫn nằm trong danh mục Xingchi nhưng pool upstream trả 503, và
+  vì nó đứng đầu nên mỗi lượt OpenChamber mất 34 s keepalive rồi mới nhảy sang sol.
+  Ghim `:high` cho sol vì magpie gửi level đó thành `reasoning_effort` — đo được
+  4,6 s → 2,0 s; để trống thì upstream dùng mặc định chậm hơn.
 - `group/coder`: `freepi/deepseek-v4.1-flash:high`.
 - `group/tester`: `freepi/deepseek-v4.1-flash:high` → `agnes/agnes-3.0-flash:high` →
   `workbuddy-ai/glm-5.3-flash`.
@@ -236,6 +240,7 @@ magpie provider test autoclaw zai_auto
 | Cloud Shell restart, không có gì chạy | thiếu hook `.bashrc` | `bash bootstrap.sh` thêm lại |
 | `openchamber` không in link | PATH: binary npm che wrapper | `command -v openchamber` phải là `~/.local/bin/openchamber` |
 | Model list rỗng trong OpenCode | gateway chưa chạy | `openmagpie` rồi `magpie healthcheck` |
+| OpenChamber báo **502** hoặc Xingchi **503** `Service temporarily unavailable` | model đó (`gpt-6-astra`) mất channel ở pool upstream; stream thì keepalive 34 s rồi mới lỗi | dùng `xingchi/gpt-6.1-sol:high`; chi tiết trong [`docs/providers.md`](docs/providers.md) |
 | `the routing group Main is switched off … not served` | group bị tắt (`disabled` trong `providers.json`) | `magpie group on main`, hoặc trỏ agent sang group đang bật |
 | AiHubMix/`aihubmix` trả "Sorry, to prevent abuse of free resources…" | tài khoản chưa nạp tiền; cả 36 model `-free` trả cùng câu này | nạp tiền hoặc `magpie provider off aihubmix` — `magpie provider test` vẫn tick xanh vì chỉ kiểm HTTP 200 |
 | Subagent `coder` lỗi model | thiếu `group/coder` hoặc model chưa expose | `setup-opencode.sh` đã lùi về `group/main`; hoặc sửa dòng `model:` |

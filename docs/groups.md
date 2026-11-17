@@ -25,11 +25,13 @@ magpie group set main levels=low,high,max classifier=opencode-zen/jev-1.13-free 
 
 ### `group/leader` — OpenChamber: plan + điều phối
 
-`stays=turn`; hai model Xingchi đứng đầu (viết plan), Opus và DeepSeek SG dự phòng.
+`stays=turn`; `gpt-6.1-sol` ghim `:high` đứng đầu (viết plan), Opus và DeepSeek SG
+dự phòng. `gpt-6-astra` đã bỏ khỏi group vì pool upstream của Xingchi trả 503 — xem
+[`providers.md`](providers.md).
 
 ```sh
 magpie group add "Leader" \
-  models=xingchi/gpt-6-astra,xingchi/gpt-6.1-sol,agy-cli/claude-opus-4-6-thinking,workbuddy-ai/deepseek-v4.1-flash-sg \
+  models=xingchi/gpt-6.1-sol:high,agy-cli/claude-opus-4-6-thinking,workbuddy-ai/deepseek-v4.1-flash-sg \
   routing=order stays=turn
 magpie group set leader levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 ```

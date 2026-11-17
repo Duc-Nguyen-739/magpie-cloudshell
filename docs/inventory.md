@@ -58,7 +58,7 @@ Lệnh tiện dụng tự viết trong `~/.local/bin`:
 | `cline` | Cline | OAuth (plugin) | 18 / 467 | **bật**; `cline-free/solar-mini4` |
 | `kiro` | Kiro | OAuth Google (plugin) | 8 / 8 | **bật**; `claude-haiku-4.5` (50 credit/tháng) |
 | `aihubmix` | AiHubMix | API key | 36 / 659 | **bật nhưng vô dụng**: cả 36 model `-free` trả HTTP 200 + câu "Sorry, to prevent abuse of free resources…", 0 token — tài khoản chưa nạp tiền |
-| `xingchi` | Xingchi custom | API key | 2 / 2 | **bật**; `gpt-6-astra`, `gpt-6.1-sol`, đứng đầu `group/leader` |
+| `xingchi` | Xingchi custom | API key | 2 / 2 | **bật**; `gpt-6.1-sol:high` đứng đầu `group/leader`; `gpt-6-astra` vẫn trong danh mục nhưng pool upstream trả 503 (2026-11-17) |
 | `opencode-zen` | OpenCode Zen | API key | 1 / 46 | **bật**, chỉ expose `jev-1.13-free` làm classifier; free tier qua API key bị chặn |
 | `qoder` | Qoder | OAuth web (plugin) | 18 | **tắt** (`magpie provider off qoder`) |
 | `antigravity` | Antigravity | OAuth (plugin) | 2 | **tắt** |
@@ -86,7 +86,7 @@ còn trong `providers.json`). AutoClaw **ghim 0.2.9** — bản vàng, xem mục
 | Group | Dùng cho | stays | levels | Model (thứ tự fallback) |
 |---|---|---|---|---|
 | `main` | OpenCode — chat thường ngày, **đang tắt** | `session` | `low,high,max` | `freepi/deepseek-v4.1-flash` → `workbuddy-ai/hy4flash-free` → `agy-cli/gemini-3.8-flash` → `agy-cli/gemini-2.5-flash-lite` → `autoclaw/zai_glm-5.3-flash` → `workbuddy-ai/glm-5.3-flash` |
-| `leader` | OpenChamber — plan + điều phối | `turn` | `low,high,max` | `xingchi/gpt-6-astra` → `xingchi/gpt-6.1-sol` → `agy-cli/claude-opus-4-6-thinking` → `workbuddy-ai/deepseek-v4.1-flash-sg` |
+| `leader` | OpenChamber — plan + điều phối | `turn` | `low,high,max` | `xingchi/gpt-6.1-sol:high` → `agy-cli/claude-opus-4-6-thinking` → `workbuddy-ai/deepseek-v4.1-flash-sg` |
 | `coder` | viết code theo plan | `turn` | `low,high,max` | `freepi/deepseek-v4.1-flash:high` |
 | `tester` | chạy test, báo lỗi | `turn` | `high` | `freepi/deepseek-v4.1-flash:high` → `agnes/agnes-3.0-flash:high` → `workbuddy-ai/glm-5.3-flash` |
 | `tester-2` | tester độc lập, chạy song song | `turn` | `high` | `workbuddy-ai/hy4flash-free:high` → `agnes/agnes-3.0-flash:high` → `agy-cli/gemini-3.8-flash:high` → `autoclaw/zai_glm-5.3-flash` |

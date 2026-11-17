@@ -17,7 +17,7 @@ sửa cấu hình agent** — magpie tự ghi lại danh sách model.
 | `agnes` | Agnes | plugin + API key `cpk-…` | key từ `platform.agnes-ai.com` | `magpie provider test agnes agnes-3.0-flash` |
 | `kilo` | Kilo Gateway | API key `eyJ…` | key từ kilo.ai | `magpie provider test kilo` |
 | `openrouter` | OpenRouter | API key `sk-or-…` | key từ openrouter.ai | `magpie provider test openrouter` |
-| `xingchi` | Xingchi custom | API key + `baseAPI` riêng | key + endpoint `api.xingchiapi.com` | `magpie provider test xingchi gpt-6-astra` |
+| `xingchi` | Xingchi custom | API key + `baseAPI` riêng | key + endpoint `api.xingchiapi.com` | `magpie provider test xingchi gpt-6.1-sol` |
 | `aihubmix` | AiHubMix | API key `sk-e…` | key + **đã nạp tiền** | 36 model `-free` trả câu từ chối nếu tài khoản chưa nạp — xem dưới |
 | `opencode-zen` | OpenCode Zen | API key `oc_…` | key từ opencode.ai | đang **bật**, chỉ expose `jev-1.13-free` (classifier) |
 | `qoder` | Qoder | OAuth web (plugin) | tài khoản Qoder | **tắt** (`magpie provider off qoder`) |
@@ -32,6 +32,26 @@ text**; AiHubMix trả 200 kèm câu *"Sorry, to prevent abuse of free resources
 that have not been recharged can only try 10 times…"* và `completion_tokens: 0`. Cả 36
 model `-free` đều như vậy khi tài khoản chưa nạp tiền lần nào. Muốn kiểm thật thì đọc
 `choices[0].message.content`, đừng tin mã trạng thái. Đừng đưa provider này vào group nào.
+
+### `xingchi` (Xingchi custom) — pool model và `reasoning_effort`
+
+Endpoint `https://api.xingchiapi.com`, bán lại qua các "group" tài khoản: mỗi model do
+một nhóm account riêng phục vụ. Khi nhóm đó không còn channel sống, upstream trả **503
+`Service temporarily unavailable`** gần như tức thì (0,4–0,6 s) — khác với quá tải thật
+(sẽ treo lâu rồi mới lỗi). Nếu client gửi `stream: true`, magpie giữ kết nối, upstream
+nhả `: keepalive` khoảng 34 s rồi mới gửi event lỗi, nên client thường hiện thành **502**
+dù HTTP header đã là 200.
+
+- `gpt-6-astra` hỏng theo kiểu này từ 2026-11-17 (4/4 lần 503, balance vẫn còn) → đã bỏ
+  khỏi `group/leader`. Muốn thử lại: `magpie provider test xingchi gpt-6-astra`.
+- `gpt-6.1-sol` sống, nhưng upstream nhồi sẵn ~4.200 `prompt_tokens` system prompt vào
+  mọi request, và mặc định (không gửi `reasoning_effort`) chậm ~4,6 s cho một câu hai
+  chữ. Ghim level trong tên model — `xingchi/gpt-6.1-sol:high` — thì magpie gửi
+  `reasoning_effort`, đo được **~2,0 s**; `:low` ~1,8 s. Vẫn có lúc queue lên 48 s, đó
+  là phương sai phía họ, không sửa được từ phía mình.
+- Cổng client: request có User-Agent lạ (ví dụ `curl/8`) bị chặn bằng **403
+  `client_not_allowed`** kèm danh sách client được phép (Codex, Claude Code, OpenCode…).
+  Muốn test bằng `curl` thì đặt `-H "User-Agent: opencode/2.3.0"`.
 
 ## Provider dùng OAuth (bấm trình duyệt)
 
