@@ -79,5 +79,6 @@ install_private_plugin() {
 install_private_plugin "FreePi2" "FreePiLogin2" "freepi2" "${FREEPI2_DIR:-$HOME/.local/src/FreePiLogin2}"
 install_private_plugin "FreePi3" "FreePiLogin3" "freepi3" "${FREEPI3_DIR:-$HOME/.local/src/FreePiLogin3}"
 install_private_plugin "FreePi4" "FreePiLogin4" "freepi4" "${FREEPI4_DIR:-$HOME/.local/src/FreePiLogin4}"
+install_private_plugin "FreePi5" "FreePiLogin5" "freepi5" "${FREEPI5_DIR:-$HOME/.local/src/FreePiLogin5}"
 
 exit "$rc"

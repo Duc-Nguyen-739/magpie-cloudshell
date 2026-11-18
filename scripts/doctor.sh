@@ -63,7 +63,7 @@ np="$(magpie providers 2>/dev/null | grep -c . || true)"
 magpie providers 2>/dev/null | sed 's/^/      /'
 
 # FreePi2/FreePi3: plugin riêng, kho riêng ~/.freepi2, ~/.freepi3.
-for pair in "FreePi2:freepi2" "FreePi3:freepi3" "FreePi4:freepi4"; do
+for pair in "FreePi2:freepi2" "FreePi3:freepi3" "FreePi4:freepi4" "FreePi5:freepi5"; do
   name="${pair%%:*}"
   provider="${pair##*:}"
   if magpie plugin list 2>/dev/null | grep -q "$provider"; then
