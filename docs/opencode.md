@@ -37,8 +37,9 @@ Khi bạn chạy `magpie opencode group/main`, magpie sửa
 ```
 
 - `apiKey: "magpie"` là chuỗi giả — gateway local không kiểm tra key. Đừng đổi thành key thật.
-- Danh sách `models` do magpie sinh từ provider đang có: máy này **29 model** = 8
-  `group/*` + model lẻ của các provider đang bật (gồm `freepi2/…`, `freepi3/…`, `freepi4/…`, `freepi5/…`). `group/main` **không** có trong danh
+- Danh sách `models` do magpie sinh từ provider đang có: máy này **30 model** = 8
+  `group/*` + model lẻ của các provider đang bật (gồm `freepi2/…`, `freepi3/…`,
+  `freepi4/…`, `freepi5/…`, `freepi6/…`). `group/main` **không** có trong danh
   sách vì group đó đang tắt (`disabled` trong `providers.json`), dù `model` ở trên vẫn
   trỏ vào nó — bật lại bằng `magpie group on main` thì magpie ghi lại file và nó xuất
   hiện. Thêm provider mới là model mới tự hiện ra.
@@ -74,8 +75,8 @@ mục "Thêm relay".
 | File | Vai trò | Model |
 |---|---|---|
 | `leader.md` | primary; chỉ nhận thông tin, suy luận, quyết định và điều phối. Không đọc file, không shell, không sửa gì | `magpie/group/leader#max` |
-| `review.md` | khảo sát codebase và viết plan 13 mục; chỉ ghi trong `.opencode/plans/` | `magpie/group/review` |
-| `reviewplan.md` | kiểm chứng/tự sửa plan, rồi audit cuối code với plan; chỉ ghi trong `.opencode/plans/` | `magpie/group/reviewplan` |
+| `review.md` | khảo sát codebase, trả brief hướng cho Leader duyệt rồi viết plan 13 mục; chỉ ghi trong `.opencode/plans/` | `magpie/group/review` |
+| `reviewplan.md` | gác hướng (`DIRECTION`), kiểm chứng/tự sửa plan, rồi audit cuối code với plan; chỉ ghi trong `.opencode/plans/` | `magpie/group/reviewplan` |
 | `coder.md` | viết code theo plan, không tự lên plan | `magpie/group/coder` |
 | `tester.md` | chạy test, báo lỗi chính xác, không sửa code | `magpie/group/tester` |
 | `tester2.md` | tester độc lập chạy song song; soi test rỗng, case biên, regression | `magpie/group/tester-2` |
@@ -89,6 +90,9 @@ Leader chỉ được gọi `review`, `reviewplan`, `coder`, `tester`, `tester2`
 các subagent đặt `permissions: subagent resource:"*" effect: deny` — không được tự gọi
 agent khác. Leader còn bị deny `read`, `glob`, `grep`, `edit`, `shell`, `webfetch`,
 `websearch`; chỉ giữ `question` và sáu subagent.
+
+Mỗi agent có mục `## Skill`: Leader gửi `Skill: <id>` (hoặc `Skill: không`) trong
+prompt, agent tự gọi tool `skill` trước khi làm. Leader không tự nạp skill.
 
 ## Skill dùng chung
 

@@ -27,13 +27,13 @@ magpie group set main levels=low,high,max classifier=opencode-zen/jev-1.13-free 
 
 ### `group/leader` — OpenChamber: plan + điều phối
 
-`stays=turn`; `gpt-6.1-sol` ghim `:high` đứng đầu (viết plan), Opus và DeepSeek SG
-dự phòng. `gpt-6-astra` đã bỏ khỏi group vì pool upstream của Xingchi trả 503 — xem
-[`providers.md`](providers.md).
+`stays=turn`; `gpt-6.1-sol` ghim `:high` đứng đầu (viết plan), FreePi6, Opus và
+DeepSeek SG dự phòng. `gpt-6-astra` đã bỏ khỏi group vì pool upstream của Xingchi
+trả 503 — xem [`providers.md`](providers.md).
 
 ```sh
 magpie group add "Leader" \
-  models=xingchi/gpt-6.1-sol:high,agy-cli/claude-opus-4-6-thinking,workbuddy-ai/deepseek-v4.1-flash-sg \
+  models=xingchi/gpt-6.1-sol:high,freepi6/deepseek-v4.1-flash,agy-cli/claude-opus-4-6-thinking,workbuddy-ai/deepseek-v4.1-flash-sg \
   routing=order stays=turn
 magpie group set leader levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 ```
@@ -47,23 +47,23 @@ expose mức reasoning nhưng vẫn ghim `:high`), classifier
 
 ```sh
 magpie group add "Review" \
-  models=freepi/deepseek-v4.1-flash:high,workbuddy-ai/deepseek-v4.1-flash-sg \
+  models=freepi/deepseek-v4.1-flash:high,workbuddy-ai/deepseek-v4.1-flash-sg:high,workbuddy-ai/hy4flash-free:high \
   routing=order stays=turn
 magpie group set review levels=none,low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 ```
 
-Người dùng tự thêm model: `magpie group set review models+=<provider/model>`. Nên
+Repo đã có ba bậc; thêm bằng `magpie group set review models+=<provider/model>`. Nên
 đặt model khác family ở cuối ladder để failover thật sự khi FreePi cạn quota.
 
 ### `group/reviewplan` — kiểm chứng/sửa plan và audit cuối
 
-Cùng cấu hình với `group/review` (freepi:high → DeepSeek SG, classifier jev);
-hiện chưa có model khác family nên việc kiểm chứng chưa độc lập hoàn toàn. Thêm
-model khác family khi có điều kiện.
+Dùng tài khoản FreePi5 để không giành slot với `review`; hai bậc WorkBuddy dự phòng.
+Cùng levels/classifier với `group/review`; hiện chưa có model khác family nên việc
+kiểm chứng chưa độc lập hoàn toàn. Thêm model khác family khi có điều kiện.
 
 ```sh
 magpie group add "Reviewplan" \
-  models=freepi/deepseek-v4.1-flash:high,workbuddy-ai/deepseek-v4.1-flash-sg \
+  models=freepi5/deepseek-v4.1-flash:high,workbuddy-ai/deepseek-v4.1-flash-sg:high,workbuddy-ai/hy4flash-free:high \
   routing=order stays=turn
 magpie group set reviewplan levels=none,low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 ```
@@ -74,38 +74,45 @@ chúng, để ladder người dùng tự thêm không bị `finish.sh` xoá. Mu�
 
 ### `group/coder` — viết code theo plan
 
+FreePi chính `high`, DeepSeek SG `high` dự phòng.
+
 ```sh
 magpie group add "Coder" \
-  models=freepi/deepseek-v4.1-flash:high \
+  models=freepi/deepseek-v4.1-flash:high,workbuddy-ai/deepseek-v4.1-flash-sg:high \
   routing=order stays=turn
 magpie group set coder levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 ```
 
 ### `group/tester` — kiểm tra, chạy test
 
+FreePi4 để ba tester chạy song song không giành slot; WorkBuddy GLM dự phòng.
+
 ```sh
 magpie group add "Tester" \
-  models=freepi/deepseek-v4.1-flash,workbuddy-ai/glm-5.3-flash \
+  models=freepi4/deepseek-v4.1-flash,workbuddy-ai/glm-5.3-flash \
   routing=order stays=turn
 magpie group set tester levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 ```
 
 ### `group/tester-2` — tester độc lập, chạy song song
 
-Dùng pool khác Tester để hai bên không giành cùng một quota.
+FreePi2 đứng đầu; WorkBuddy và AutoClaw dự phòng. Dùng pool khác Tester để hai bên
+không giành cùng một quota.
 
 ```sh
 magpie group add "Tester 2" \
-  models=workbuddy-ai/hy4flash-free,agnes/agnes-3.0-flash,agy-cli/gemini-3.8-flash,autoclaw/zai_glm-5.3-flash \
+  models=freepi2/deepseek-v4.1-flash,workbuddy-ai/hy4flash-free,autoclaw/zai_glm-5.3-flash \
   routing=order stays=turn
 magpie group set tester-2 levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 ```
 
 ### `group/tester-3` — tester thứ ba, soi hợp đồng dữ liệu
 
+FreePi3 đứng đầu; Kiro, AutoClaw, Gemini và hai bậc WorkBuddy dự phòng.
+
 ```sh
 magpie group add "Tester 3" \
-  models=kiro/claude-haiku-4.5,kilo/reflection/beam-free,autoclaw/zai_glm-5.3-flash,agy-cli/gemini-3.8-flash,workbuddy-ai/hy4flash-free \
+  models=freepi3/deepseek-v4.1-flash,kiro/claude-haiku-4.5,autoclaw/zai_glm-5.3-flash,agy-cli/gemini-3.8-flash,workbuddy-ai/hy4flash-free,workbuddy-ai/deepseek-v4.1-flash-sg \
   routing=order stays=turn
 magpie group set tester-3 levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 ```
@@ -127,8 +134,9 @@ Bảng đo và lý do chọn nằm trong [`billion-context.md`](billion-context.
 
 `aihubmix`, `copilot`, `agnes` và `opencode-zen-free` đang tắt vì không nằm trong group
 nào; `qoder`/`antigravity` chỉ còn record trong `providers.json` và không hiện vì thiếu
-plugin. `kilo` **bật** vì `group/tester-3` dùng `kilo/reflection/beam-free` và `group/free`
-dùng `particle-1:free`; `kiro`, `cline`, `openrouter` bật vì `group/free` cần. `aihubmix`
+plugin. `kilo` **bật** vì `group/free` dùng `particle-1:free`; `kiro` bật vì
+`group/tester-3` dùng `claude-haiku-4.5`; `cline`, `openrouter` bật vì `group/free`
+cần. `aihubmix`
 nếu bật thì 36 model `-free` chỉ trả câu từ chối (tài khoản chưa nạp tiền) — đừng đưa vào
 group nào. `opencode-zen` vẫn bật nhưng **chỉ**
 giữ `jev-1.13-free` làm classifier, không phải rung fallback: script đọc danh sách đang
@@ -150,13 +158,19 @@ ba tester chạy song song mà không tranh nhau một ladder.
   Flash, Gemini 2.5 Flash-Lite, GLM-5.3 Flash của AutoClaw, cuối là WorkBuddy
   GLM-5.3-Flash. **Group đang tắt trên máy tham chiếu** vì FreePi đầu ladder hay 429.
 - `leader`: `xingchi/gpt-6.1-sol:high` trước (đo được 2,0 s so với 4,6 s khi để
-  mặc định), Opus và DeepSeek SG dự phòng.
-- `review`/`reviewplan`: FreePi DeepSeek V4.1 Flash. Review đọc nhiều file nên cần
-  theo dõi quota; Reviewplan nên có model khác family khi thêm bậc.
+  mặc định), FreePi6, Opus và DeepSeek SG dự phòng.
+- `review`/`reviewplan`: FreePi DeepSeek V4.1 Flash; `reviewplan` dùng tài khoản
+  FreePi5 để không giành slot với `review`. Review đọc nhiều file nên cần theo dõi
+  quota; Reviewplan nên có model khác family khi thêm bậc.
 - `coder`: FreePi DeepSeek ở `high` — đủ mạnh cho code, không tốn quota WorkBuddy.
-- `tester`: FreePi → WorkBuddy GLM-5.3-Flash (Agnes đang tắt nên bỏ khỏi ladder).
-- `tester-2`: Hy4 → Agnes → Gemini 3.8 → AutoClaw GLM.
-- `tester-3`: Kiro Haiku → Kilo beam-free → AutoClaw GLM → Gemini 3.8 → Hy4.
+- `tester`: FreePi4 → WorkBuddy GLM-5.3-Flash (Agnes đang tắt nên bỏ khỏi ladder).
+- `tester-2`: FreePi2 → Hy4 → AutoClaw GLM.
+- `tester-3`: FreePi3 → Kiro Haiku → AutoClaw GLM → Gemini 3.8 → Hy4 → DeepSeek SG.
+
+**Chia tài khoản FreePi.** FreePi chính (15k credit/ngày) đứng đầu `main`, `review`
+và `coder`; `reviewplan` dùng FreePi5, `tester` FreePi4, `tester-2` FreePi2,
+`tester-3` FreePi3, `leader` FreePi6. Nhờ vậy ba tester và review/reviewplan chạy
+song song không giành một slot "one request at a time" của cùng tài khoản.
 
 `routing=order` nghĩa là model đầu trả lời; chỉ khi nó không trả lời được mới sang model
 sau.

@@ -201,14 +201,14 @@ OpenChamber → `group/leader`:
 
 | Group | Dùng cho | Model (thứ tự fallback) |
 |---|---|---|
-| `main` | chat thường ngày, `stays=session` | `freepi/deepseek-v4.1-flash` → `workbuddy-ai/hy4flash-free` → `agy-cli/gemini-3.8-flash` → `autoclaw/zai_glm-5.3-flash` → `workbuddy-ai/glm-5.3-flash` |
-| `leader` | OpenChamber: quyết định + điều phối, `stays=turn` | `xingchi/gpt-6.1-sol:high` → `agy-cli/claude-opus-4-6-thinking` → `workbuddy-ai/deepseek-v4.1-flash-sg` |
-| `review` | khảo sát codebase + viết plan | `freepi/deepseek-v4.1-flash:high` → `workbuddy-ai/deepseek-v4.1-flash-sg` |
-| `reviewplan` | kiểm chứng/sửa plan + audit cuối | `freepi/deepseek-v4.1-flash:high` → `workbuddy-ai/deepseek-v4.1-flash-sg` |
-| `coder` | viết code theo plan | `freepi/deepseek-v4.1-flash:high` |
-| `tester` | chạy test, báo lỗi | `freepi/deepseek-v4.1-flash` → `workbuddy-ai/glm-5.3-flash` |
-| `tester-2` | tester độc lập | `workbuddy-ai/hy4flash-free` → `agnes/agnes-3.0-flash` → `agy-cli/gemini-3.8-flash` → `autoclaw/zai_glm-5.3-flash` |
-| `tester-3` | tester thứ ba | `kiro/claude-haiku-4.5` → `kilo/reflection/beam-free` → `autoclaw/zai_glm-5.3-flash` → `agy-cli/gemini-3.8-flash` → `workbuddy-ai/hy4flash-free` |
+| `main` | chat thường ngày, `stays=session` | `freepi/deepseek-v4.1-flash` → `workbuddy-ai/hy4flash-free` → `agy-cli/gemini-3.8-flash` → `agy-cli/gemini-2.5-flash-lite` → `autoclaw/zai_glm-5.3-flash` → `workbuddy-ai/glm-5.3-flash` |
+| `leader` | OpenChamber: quyết định + điều phối, `stays=turn` | `xingchi/gpt-6.1-sol:high` → `freepi6/deepseek-v4.1-flash` → `agy-cli/claude-opus-4-6-thinking` → `workbuddy-ai/deepseek-v4.1-flash-sg` |
+| `review` | khảo sát + brief hướng + viết plan | `freepi/deepseek-v4.1-flash:high` → `workbuddy-ai/deepseek-v4.1-flash-sg:high` → `workbuddy-ai/hy4flash-free:high` |
+| `reviewplan` | gác hướng + kiểm chứng/sửa plan + audit cuối | `freepi5/deepseek-v4.1-flash:high` → `workbuddy-ai/deepseek-v4.1-flash-sg:high` → `workbuddy-ai/hy4flash-free:high` |
+| `coder` | viết code theo plan | `freepi/deepseek-v4.1-flash:high` → `workbuddy-ai/deepseek-v4.1-flash-sg:high` |
+| `tester` | chạy test, báo lỗi | `freepi4/deepseek-v4.1-flash` → `workbuddy-ai/glm-5.3-flash` |
+| `tester-2` | tester độc lập | `freepi2/deepseek-v4.1-flash` → `workbuddy-ai/hy4flash-free` → `autoclaw/zai_glm-5.3-flash` |
+| `tester-3` | tester thứ ba | `freepi3/deepseek-v4.1-flash` → `kiro/claude-haiku-4.5` → `autoclaw/zai_glm-5.3-flash` → `agy-cli/gemini-3.8-flash` → `workbuddy-ai/hy4flash-free` → `workbuddy-ai/deepseek-v4.1-flash-sg` |
 
 Tám group dùng `routing=order`, `effort=auto`, classifier `opencode-zen/jev-1.13-free`;
 không group nào có rule. `main`/`leader`/`coder` và ba tester mở levels `low,high,max`;

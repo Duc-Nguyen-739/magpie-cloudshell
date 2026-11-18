@@ -103,13 +103,13 @@ token khi tải tarball GitHub → 404).
 | Group | Dùng cho | stays | levels | Model (thứ tự fallback) |
 |---|---|---|---|---|
 | `main` | OpenCode — chat thường ngày, **đang tắt** | `session` | `low,high,max` | `freepi/deepseek-v4.1-flash` → `workbuddy-ai/hy4flash-free` → `agy-cli/gemini-3.8-flash` → `agy-cli/gemini-2.5-flash-lite` → `autoclaw/zai_glm-5.3-flash` → `workbuddy-ai/glm-5.3-flash` |
-| `leader` | OpenChamber — quyết định + điều phối | `turn` | `low,high,max` | `xingchi/gpt-6.1-sol:high` → `agy-cli/claude-opus-4-6-thinking` → `workbuddy-ai/deepseek-v4.1-flash-sg` |
-| `review` | khảo sát codebase + viết plan | `turn` | `none,low,high,max` | `freepi/deepseek-v4.1-flash:high` → `workbuddy-ai/deepseek-v4.1-flash-sg` |
-| `reviewplan` | kiểm chứng/sửa plan + audit cuối | `turn` | `none,low,high,max` | `freepi/deepseek-v4.1-flash:high` → `workbuddy-ai/deepseek-v4.1-flash-sg` |
-| `coder` | viết code theo plan | `turn` | `low,high,max` | `freepi/deepseek-v4.1-flash:high` |
-| `tester` | chạy test, báo lỗi | `turn` | `low,high,max` | `freepi/deepseek-v4.1-flash` → `workbuddy-ai/glm-5.3-flash` |
-| `tester-2` | tester độc lập, chạy song song | `turn` | `low,high,max` | `workbuddy-ai/hy4flash-free` → `agnes/agnes-3.0-flash` → `agy-cli/gemini-3.8-flash` → `autoclaw/zai_glm-5.3-flash` |
-| `tester-3` | tester thứ ba, soi hợp đồng dữ liệu | `turn` | `low,high,max` | `kiro/claude-haiku-4.5` → `kilo/reflection/beam-free` → `autoclaw/zai_glm-5.3-flash` → `agy-cli/gemini-3.8-flash` → `workbuddy-ai/hy4flash-free` |
+| `leader` | OpenChamber — quyết định + điều phối | `turn` | `low,high,max` | `xingchi/gpt-6.1-sol:high` → `freepi6/deepseek-v4.1-flash` → `agy-cli/claude-opus-4-6-thinking` → `workbuddy-ai/deepseek-v4.1-flash-sg` |
+| `review` | khảo sát + brief hướng + viết plan | `turn` | `none,low,high,max` | `freepi/deepseek-v4.1-flash:high` → `workbuddy-ai/deepseek-v4.1-flash-sg:high` → `workbuddy-ai/hy4flash-free:high` |
+| `reviewplan` | gác hướng + kiểm chứng/sửa plan + audit cuối | `turn` | `none,low,high,max` | `freepi5/deepseek-v4.1-flash:high` → `workbuddy-ai/deepseek-v4.1-flash-sg:high` → `workbuddy-ai/hy4flash-free:high` |
+| `coder` | viết code theo plan | `turn` | `low,high,max` | `freepi/deepseek-v4.1-flash:high` → `workbuddy-ai/deepseek-v4.1-flash-sg:high` |
+| `tester` | chạy test, báo lỗi | `turn` | `low,high,max` | `freepi4/deepseek-v4.1-flash` → `workbuddy-ai/glm-5.3-flash` |
+| `tester-2` | tester độc lập, chạy song song | `turn` | `low,high,max` | `freepi2/deepseek-v4.1-flash` → `workbuddy-ai/hy4flash-free` → `autoclaw/zai_glm-5.3-flash` |
+| `tester-3` | tester thứ ba, soi hợp đồng dữ liệu | `turn` | `low,high,max` | `freepi3/deepseek-v4.1-flash` → `kiro/claude-haiku-4.5` → `autoclaw/zai_glm-5.3-flash` → `agy-cli/gemini-3.8-flash` → `workbuddy-ai/hy4flash-free` → `workbuddy-ai/deepseek-v4.1-flash-sg` |
 | `free` | **chỉ** cho việc nén của billion-context | — | — | `kilo/particle-ai/particle-1:free` → `cline/particle-ai/particle-1:free` → `openrouter/particle-ai/particle-1:free` (rotate) |
 
 Tám group dùng `routing=order`, `effort=auto`, classifier `opencode-zen/jev-1.13-free`;
@@ -149,8 +149,9 @@ cùng một model từ kilo/openrouter/cline. Chúng không được agent nào 
 
 - Provider `magpie`: khai trong `providers` của `opencode.json`, `baseURL:
   http://127.0.0.1:3425/v1`, `apiKey: magpie` (chuỗi giả — gateway local không cần key
-  thật), **29 model** do magpie sinh: 8 `group/*` (thiếu `group/main` vì group đang tắt)
-  + model lẻ của các provider đang bật (gồm `freepi2/…`, `freepi3/…`, `freepi4/…`, `freepi5/…`). `model: magpie/group/main`, agent `title` dùng
+  thật), **30 model** do magpie sinh: 8 `group/*` (thiếu `group/main` vì group đang tắt)
+  + model lẻ của các provider đang bật (gồm `freepi2/…`, `freepi3/…`, `freepi4/…`,
+  `freepi5/…`, `freepi6/…`). `model: magpie/group/main`, agent `title` dùng
   `magpie/workbuddy-ai/hy4flash-free`.
 - Provider gọi thẳng còn khai báo: `xingchi` (bật, dùng cho `group/leader`), còn
   `kiraai`, `takenbarbor`, `dsh` nằm trong `disabled_providers` cùng `kilo` (đã có
@@ -159,7 +160,8 @@ cùng một model từ kilo/openrouter/cline. Chúng không được agent nào 
   `group/leader#max`, chỉ `question` + 6 subagent), `review.md` (`group/review`),
   `reviewplan.md` (`group/reviewplan`), `coder.md` (`group/coder`), `tester.md`
   (`group/tester`), `tester2.md` (`group/tester-2`), `tester3.md`
-  (`group/tester-3`).
+  (`group/tester-3`). Mỗi agent có mục `## Skill`; Leader gửi `Skill: <id>` trong
+  prompt, agent tự gọi tool `skill`.
 - Skill: `~/.config/opencode/skills/magpie-skills` → symlink vào skill router của magpie;
   `magpie-setup` nằm trong bundle đó.
 
@@ -222,7 +224,7 @@ script không thêm khoá đó nữa — đó là hành vi đúng, không phải
 | settings.json | ✅ | chỉ thêm khoá thiếu |
 | `opencode-zen` bật, chỉ expose `jev-1.13-free`; `opencode-zen-free` tắt | ✅ | `setup-settings.sh` |
 | OpenCode + provider `magpie` | ✅ | magpie tự ghi `opencode.json` |
-| 7 agent `leader`, `review`, `reviewplan`, `coder`, `tester`, `tester2`, `tester3` | ✅ | `config/agents/` |
+| 7 agent `leader`, `review`, `reviewplan`, `coder`, `tester`, `tester2`, `tester3` | ✅ | `config/agents/`; mỗi agent có mục `## Skill` |
 | skill `magpie-setup` | ✅ (OpenCode) | Gemini/Antigravity: thêm qua Library page nếu muốn |
 | OpenChamber + cổng 3000 | ✅ | `install-openchamber.sh` |
 | `openchamber` / `openmagpie` + link kèm key | ✅ | wrapper + supervisor |
@@ -239,13 +241,23 @@ script không thêm khoá đó nữa — đó là hành vi đúng, không phải
 OpenCode    ─→ group/main (đang tắt) ─┐
 OpenChamber ─→ group/leader        ─┤
 Leader      ─→ group/leader        ─┼─→ gateway 127.0.0.1:3425
-Review      ─→ group/review        ─┤      ├─→ xingchi, workbuddy-ai, agy-cli
-Reviewplan  ─→ group/reviewplan    ─┤      ├─→ freepi, workbuddy-ai
-Coder       ─→ group/coder         ─┤      ├─→ freepi
-Tester      ─→ group/tester        ─┤      ├─→ freepi, workbuddy-ai
-Tester 2    ─→ group/tester-2      ─┤      ├─→ workbuddy-ai, agnes, agy-cli, autoclaw
-Tester 3    ─→ group/tester-3      ─┤      ├─→ kiro, kilo, autoclaw, agy-cli, workbuddy-ai
-billion-context ─→ group/free      ─┘      └─→ kilo, cline, openrouter
+Review      ─→ group/review        ─┤
+Reviewplan  ─→ group/reviewplan    ─┤
+Coder       ─→ group/coder         ─┤
+Tester      ─→ group/tester        ─┤
+Tester 2    ─→ group/tester-2      ─┤
+Tester 3    ─→ group/tester-3      ─┤
+billion-context ─→ group/free      ─┘
+
+Provider theo group:
+  leader      xingchi, freepi6, agy-cli, workbuddy-ai
+  review      freepi, workbuddy-ai
+  reviewplan  freepi5, workbuddy-ai
+  coder       freepi, workbuddy-ai
+  tester      freepi4, workbuddy-ai
+  tester-2    freepi2, workbuddy-ai, autoclaw
+  tester-3    freepi3, kiro, autoclaw, agy-cli, workbuddy-ai
+  free        kilo, cline, openrouter
 ```
 
 Mỗi group · classifier ─→ `opencode-zen/jev-1.13-free` (chỉ model này, không vào ladder)

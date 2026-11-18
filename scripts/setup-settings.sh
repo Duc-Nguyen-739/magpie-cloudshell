@@ -3,7 +3,8 @@
 #   - settings.json: theme, ngôn ngữ, vision model, image model, check-in, cỡ chữ…
 #   - provider: opencode-zen bật nhưng chỉ expose jev-1.13-free (classifier); opencode-zen-free tắt
 #     (free tier qua API key bị chặn, đường plugin cạn theo IP dùng chung — xem docs/zen-free.md);
-#     qoder tắt hẳn; kilo **bật** (group/tester-2 dùng kilo/reflection/beam-free);
+#     qoder/aihubmix/agnes tắt hẳn; kilo **bật** (group/free dùng particle-1:free);
+#     kiro **bật** (group/tester-3 dùng claude-haiku-4.5);
 #     workbuddy-ai chỉ expose deepseek-v4.1-flash-sg, glm-5.3-flash, hy4flash-free
 #
 # Chỉ **thêm khoá còn thiếu**, không ghi đè giá trị bạn đã đặt. Chạy lại vô hại.
@@ -50,7 +51,7 @@ if [ "$DRY" = 1 ]; then
     printf '  \033[2m[dry-run]\033[0m magpie provider models opencode-zen -%s\n' "$m"
   done < <(zen_drop_list)
   printf '  \033[2m[dry-run]\033[0m magpie provider off opencode-zen-free\n'
-  printf '  \033[2m[dry-run]\033[0m magpie provider off qoder antigravity copilot\n'
+  printf '  \033[2m[dry-run]\033[0m magpie provider off qoder antigravity copilot aihubmix agnes\n'
   printf '  \033[2m[dry-run]\033[0m magpie provider models workbuddy-ai deepseek-v4.1-flash-sg glm-5.3-flash hy4flash-free\n'
 else
   if magpie provider on opencode-zen >/dev/null 2>&1; then
@@ -72,9 +73,10 @@ else
     warn "không tắt được opencode-zen-free (chưa cài plugin?) — bỏ qua"
   fi
 
-  # qoder / antigravity / copilot không nằm trong ladder nào: tắt hẳn. kilo thì BẬT
-  # — tester-3 dùng kilo/reflection/beam-free, nên không được tắt.
-  for off_id in qoder antigravity copilot; do
+  # qoder / antigravity / copilot / aihubmix / agnes không nằm trong ladder nào: tắt
+  # hẳn. kilo thì BẬT — group/free dùng particle-1:free; kiro BẬT vì tester-3 dùng
+  # claude-haiku-4.5.
+  for off_id in qoder antigravity copilot aihubmix agnes; do
     if magpie provider off "$off_id" >/dev/null 2>&1; then
       ok "provider $off_id đang tắt"
     else
@@ -107,8 +109,12 @@ seed='{
   "pluginCheckins": {"autoclaw": true, "qoder": true},
   "updateEvery": 360,
   "visionEffort": "max",
-  "redact": "astrlink-guard",
-  "redactKinds": ["bucket", "home", "ip", "userhost"],
+  "redact": true,
+  "redactShape": true,
+  "redactModelName": "astrlink-guard",
+  "redactModelAuto": true,
+  "redactPersonal": true,
+  "redactKinds": {"bucket": true, "home": true, "ip": true, "userhost": true},
   "quotaLeft": true,
   "trayUsageEvery": 3,
   "textSize": 110

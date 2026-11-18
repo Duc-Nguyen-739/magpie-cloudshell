@@ -182,55 +182,63 @@ MAIN_MODELS=(
   workbuddy-ai/glm-5.3-flash
 )
 
-# leader — OpenChamber: lên plan và điều phối; sol ghim :high đứng đầu, Opus và
-# DeepSeek SG dự phòng. gpt-6-astra bị bỏ: pool upstream Xingchi trả 503 (2026-11-17).
+# leader — OpenChamber: lên plan và điều phối; sol ghim :high đứng đầu, FreePi6,
+# Opus và DeepSeek SG dự phòng. gpt-6-astra bị bỏ: pool upstream Xingchi trả 503
+# (2026-11-17). FreePi6 đứng sau sol để tài khoản FreePi chính không bị giành.
 LEADER_MODELS=(
   xingchi/gpt-6.1-sol:high
+  freepi6/deepseek-v4.1-flash
   agy-cli/claude-opus-4-6-thinking
   workbuddy-ai/deepseek-v4.1-flash-sg
 )
 
-# review — khảo sát codebase và viết plan. Freepi ghim :high, DeepSeek SG dự phòng;
-# người dùng tự thêm bậc sau. Levels none/low/high/max như đang chạy trên máy
+# review — khảo sát, brief hướng rồi viết plan. FreePi chính ghim :high; DeepSeek SG
+# và Hy4 cùng :high dự phòng. Levels none/low/high/max như đang chạy trên máy
 # (magpie mở levels khi đặt effort=auto), classifier jev như các group khác.
 REVIEW_MODELS=(
   freepi/deepseek-v4.1-flash:high
-  workbuddy-ai/deepseek-v4.1-flash-sg
+  workbuddy-ai/deepseek-v4.1-flash-sg:high
+  workbuddy-ai/hy4flash-free:high
 )
 
-# reviewplan — kiểm chứng/sửa plan và audit cuối. Cùng ladder với review; nên
-# thêm model khác family với review để việc kiểm chứng độc lập thật sự.
+# reviewplan — gác hướng, kiểm chứng/sửa plan và audit cuối. Dùng tài khoản FreePi5
+# để không giành slot với review; hai bậc WorkBuddy dự phòng.
 REVIEWPLAN_MODELS=(
-  freepi/deepseek-v4.1-flash:high
-  workbuddy-ai/deepseek-v4.1-flash-sg
+  freepi5/deepseek-v4.1-flash:high
+  workbuddy-ai/deepseek-v4.1-flash-sg:high
+  workbuddy-ai/hy4flash-free:high
 )
 
-# coder — viết code theo plan.
+# coder — viết code theo plan. FreePi chính ghim :high, DeepSeek SG dự phòng.
 CODER_MODELS=(
   freepi/deepseek-v4.1-flash:high
+  workbuddy-ai/deepseek-v4.1-flash-sg:high
 )
 
-# tester — kiểm tra và chạy test. Agnes đang tắt nên không đưa vào ladder.
+# tester — kiểm tra và chạy test. FreePi4 để ba tester chạy song song không giành
+# slot; Agnes đang tắt nên không đưa vào ladder.
 TESTER_MODELS=(
-  freepi/deepseek-v4.1-flash
+  freepi4/deepseek-v4.1-flash
   workbuddy-ai/glm-5.3-flash
 )
 
-# tester-2 — tester độc lập, chạy song song với tester.
+# tester-2 — tester độc lập, chạy song song với tester. FreePi2 đứng đầu; WorkBuddy
+# và AutoClaw dự phòng.
 TESTER2_MODELS=(
+  freepi2/deepseek-v4.1-flash
   workbuddy-ai/hy4flash-free
-  agnes/agnes-3.0-flash
-  agy-cli/gemini-3.8-flash
   autoclaw/zai_glm-5.3-flash
 )
 
-# tester-3 — tester thứ ba, soi hợp đồng dữ liệu và regression ngoài phạm vi.
+# tester-3 — tester thứ ba, soi hợp đồng dữ liệu và regression ngoài phạm vi. FreePi3
+# đứng đầu; Kiro, AutoClaw, Gemini và hai bậc WorkBuddy dự phòng.
 TESTER3_MODELS=(
+  freepi3/deepseek-v4.1-flash
   kiro/claude-haiku-4.5
-  kilo/reflection/beam-free
   autoclaw/zai_glm-5.3-flash
   agy-cli/gemini-3.8-flash
   workbuddy-ai/hy4flash-free
+  workbuddy-ai/deepseek-v4.1-flash-sg
 )
 
 # free — chỉ cho việc nén của billion-context: Particle-1 free trên ba provider,

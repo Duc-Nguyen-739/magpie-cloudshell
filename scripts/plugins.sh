@@ -12,9 +12,9 @@ PLUGINS=(
   "@magpie-community/opencode-workbuddy-auth"   # WorkBuddy / WorkBuddy AI
   "@magpie-community/opencode-agy-cli-auth"     # agy-cli (Antigravity) — group/leader
   "@magpie-community/opencode-cline-auth"       # Cline — group/free
-  "@magpie-community/opencode-kiro-auth"        # Kiro — group/free
-  "@magpie-community/opencode-agnes-auth"       # Agnes — group/tester (đang tắt)
-  "magpie-freepi-auth"                          # FreePi — group/review, reviewplan, coder
+  "@magpie-community/opencode-kiro-auth"        # Kiro — group/tester-3
+  "@magpie-community/opencode-agnes-auth"       # Agnes — không dùng, đang tắt
+  "magpie-freepi-auth"                          # FreePi — group/main, review, reviewplan, coder, leader, tester…
   "@magpie-community/opencode-zen-free-auth"    # OpenCode Zen Free
   "opencode-zen-freex"                          # phần phục vụ OpenCode Zen Free
   # qoder / zcode không cài trên máy tham chiếu (provider qoder đang tắt); cần thì

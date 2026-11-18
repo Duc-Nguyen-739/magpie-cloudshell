@@ -46,8 +46,9 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   classifier — free tier qua API key bị chặn ở upstream, đường plugin cũng cạn theo IP
   dùng chung; xem [`docs/zen-free.md`](docs/zen-free.md).
 - Chín routing group: `group/main` (chat thường ngày, `stays=session`), `group/leader`
-  (OpenChamber: quyết định + điều phối), `group/review` (khảo sát + viết plan),
-  `group/reviewplan` (kiểm chứng/sửa plan + audit cuối), `group/coder`, `group/tester`,
+  (OpenChamber: quyết định + điều phối), `group/review` (khảo sát + brief hướng +
+  viết plan), `group/reviewplan` (gác hướng + kiểm chứng/sửa plan + audit cuối),
+  `group/coder`, `group/tester`,
   `group/tester-2`, `group/tester-3`, `group/free` (chỉ dùng cho việc nén của
   billion-context). Tám group dùng classifier `opencode-zen/jev-1.13-free`,
   `effort=auto`; không group nào có rule. `main`/`leader`/`coder` và ba tester mở
@@ -63,34 +64,44 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   `autoclaw/zai_glm-5.3-flash` → `workbuddy-ai/glm-5.3-flash`. **Group này đang tắt**
   (`disabled` trong `providers.json`) nên gateway trả `not_found_error` cho
   `group/main`; bật lại bằng `magpie group on main` (hoặc trỏ OpenCode sang group khác).
-- `group/leader`: `xingchi/gpt-6.1-sol:high` → `agy-cli/claude-opus-4-6-thinking` →
-  `workbuddy-ai/deepseek-v4.1-flash-sg`. `xingchi/gpt-6-astra` đã bị bỏ khỏi group
+- `group/leader`: `xingchi/gpt-6.1-sol:high` → `freepi6/deepseek-v4.1-flash` →
+  `agy-cli/claude-opus-4-6-thinking` → `workbuddy-ai/deepseek-v4.1-flash-sg`.
+  `xingchi/gpt-6-astra` đã bị bỏ khỏi group
   (2026-11-17): model vẫn nằm trong danh mục Xingchi nhưng pool upstream trả 503, và
   vì nó đứng đầu nên mỗi lượt OpenChamber mất 34 s keepalive rồi mới nhảy sang sol.
   Ghim `:high` cho sol vì magpie gửi level đó thành `reasoning_effort` — đo được
   4,6 s → 2,0 s; để trống thì upstream dùng mặc định chậm hơn.
-- `group/review`: `freepi/deepseek-v4.1-flash:high` → `workbuddy-ai/deepseek-v4.1-flash-sg`
-  (`stays=turn`; người dùng tự thêm bậc sau bằng `magpie group set review models+=…`).
-- `group/reviewplan`: cùng ladder với review; nên thêm model khác family để kiểm chứng
-  độc lập.
-- `group/coder`: `freepi/deepseek-v4.1-flash:high`.
-- `group/tester`: `freepi/deepseek-v4.1-flash` → `workbuddy-ai/glm-5.3-flash`.
-- `group/tester-2`: `workbuddy-ai/hy4flash-free` → `agnes/agnes-3.0-flash` →
-  `agy-cli/gemini-3.8-flash` → `autoclaw/zai_glm-5.3-flash`.
-- `group/tester-3`: `kiro/claude-haiku-4.5` → `kilo/reflection/beam-free` →
+- `group/review`: `freepi/deepseek-v4.1-flash:high` →
+  `workbuddy-ai/deepseek-v4.1-flash-sg:high` → `workbuddy-ai/hy4flash-free:high`
+  (`stays=turn`; repo đã có ba bậc, thêm bằng `magpie group set review models+=…`).
+- `group/reviewplan`: `freepi5/deepseek-v4.1-flash:high` →
+  `workbuddy-ai/deepseek-v4.1-flash-sg:high` → `workbuddy-ai/hy4flash-free:high`;
+  nên thêm model khác family để kiểm chứng độc lập.
+- `group/coder`: `freepi/deepseek-v4.1-flash:high` →
+  `workbuddy-ai/deepseek-v4.1-flash-sg:high`.
+- `group/tester`: `freepi4/deepseek-v4.1-flash` → `workbuddy-ai/glm-5.3-flash`.
+- `group/tester-2`: `freepi2/deepseek-v4.1-flash` → `workbuddy-ai/hy4flash-free` →
+  `autoclaw/zai_glm-5.3-flash`.
+- `group/tester-3`: `freepi3/deepseek-v4.1-flash` → `kiro/claude-haiku-4.5` →
   `autoclaw/zai_glm-5.3-flash` → `agy-cli/gemini-3.8-flash` →
-  `workbuddy-ai/hy4flash-free`.
+  `workbuddy-ai/hy4flash-free` → `workbuddy-ai/deepseek-v4.1-flash-sg`.
+- FreePi2–6 chia cho các group để ba tester và review/reviewplan chạy song song không
+  giành slot "one request at a time" của cùng tài khoản: `reviewplan` FreePi5,
+  `tester` FreePi4, `tester-2` FreePi2, `tester-3` FreePi3, `leader` FreePi6.
 - Provider đang tắt: `aihubmix`, `copilot`, `agnes`, `opencode-zen-free`. WorkBuddy
   chỉ expose `deepseek-v4.1-flash-sg`, `glm-5.3-flash`, `hy4flash-free`; `kilo` **bật**
-  vì `group/tester-3` dùng `kilo/reflection/beam-free`; `aihubmix` đang tắt, nếu bật
+  vì `group/free` dùng `particle-1:free`; `kiro` bật vì `group/tester-3` dùng
+  `claude-haiku-4.5`; `aihubmix` đang tắt, nếu bật
   thì 36 model `-free` chỉ trả câu từ chối (tài khoản chưa nạp tiền) — xem mục lỗi
   thường gặp.
-- OpenCode khai **29 model** của provider `magpie` (8 `group/*` — thiếu `group/main`
-  vì group đang tắt — cộng model lẻ, trong đó có `freepi2/…`, `freepi3/…`, `freepi4/…`, `freepi5/…`), `model: magpie/group/main`, model phụ cho agent
+- OpenCode khai **30 model** của provider `magpie` (8 `group/*` — thiếu `group/main`
+  vì group đang tắt — cộng model lẻ, trong đó có `freepi2/…`, `freepi3/…`, `freepi4/…`,
+  `freepi5/…`, `freepi6/…`), `model: magpie/group/main`, model phụ cho agent
   `title` là `magpie/workbuddy-ai/hy4flash-free`. OpenChamber đặt
   `defaultModel: magpie/group/leader`, `defaultVariant: max`, `defaultAgent: leader`;
   agent `leader` + 6 subagent `review`, `reviewplan`, `coder`, `tester`, `tester2`,
-  `tester3`; skill `magpie-setup`.
+  `tester3`; mỗi agent có mục `## Skill`, Leader gửi `Skill: <id>` trong prompt;
+  skill `magpie-setup`.
 - Supervisor bash giữ gateway + web UI sống; hai lệnh `openchamber` / `openmagpie` in
   link web **đã kèm key**.
 - `billion-context` (plugin OpenCode, không phải magpie) nén hội thoại; config ở

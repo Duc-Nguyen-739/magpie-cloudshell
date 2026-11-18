@@ -1,9 +1,10 @@
-# Leader + pipeline review/reviewplan (cập nhật 2026-11-17)
+# Leader + pipeline review/reviewplan (cập nhật 2026-11-18)
 
 Tài liệu này ghi lại **cấu hình chuẩn trong repo** cho pipeline 7 agent:
 
 ```
-Leader → Review → Reviewplan (PLAN) → Coder → Tester ∥ Tester 2 ∥ Tester 3
+Leader → Review (brief hướng) → Leader duyệt → [task lớn: Reviewplan DIRECTION]
+       → Review (plan) → Reviewplan (PLAN) → Coder → Tester ∥ Tester 2 ∥ Tester 3
        → Reviewplan (AUDIT) → Leader → User duyệt → Coder commit/push + dọn plan
 ```
 
@@ -18,7 +19,14 @@ Leader → Review → Reviewplan (PLAN) → Coder → Tester ∥ Tester 2 ∥ Te
 User → Leader (quyết định, group/leader)
           │
           ▼
-       Review (khảo sát + viết plan, group/review)
+       Review — brief hướng (khảo sát, group/review)
+          │
+          ▼
+       Leader duyệt hướng ──(task lớn)──→ Reviewplan — MODE: DIRECTION
+          │                                      │ GO / STEER
+          │◄─────────────────────────────────────┘
+          ▼
+       Review — viết plan 13 mục (cùng session)
           │
           ▼
        Reviewplan — MODE: PLAN (kiểm chứng, tự sửa plan, group/reviewplan)
@@ -44,13 +52,21 @@ User → Leader (quyết định, group/leader)
 
 - **Leader không đọc file, không shell, không sửa gì.** Nó chỉ có `question` và
   sáu subagent: `review`, `reviewplan`, `coder`, `tester`, `tester2`, `tester3`.
-  Mọi thông tin về codebase do `review`/`reviewplan` mang về.
+  Mọi thông tin về codebase do `review`/`reviewplan` mang về. Leader tách yêu cầu
+  thành `R1..Rn`, dán vào mọi prompt, kiểm lại ở brief/plan/audit; mỗi prompt có
+  `Skill: <id>` hoặc `Skill: không` để agent tự nạp skill. Agent lỗi thì Leader tự
+  gọi lại hoặc chuyển việc cho agent còn làm được, không dừng pipeline.
 - **Review** là người duy nhất viết plan. Nó khảo sát codebase, ghi bằng chứng
-  `file:line`, viết plan 13 mục, tự chạy cổng chất lượng rồi báo Leader.
-- **Reviewplan** có hai mode. `PLAN`: kiểm chứng độc lập plan của Review; thấy sai
-  thì **tự sửa plan** (chỉ file plan), tự kiểm lại, rồi báo Leader. `AUDIT`: sau
-  khi ba tester ĐẠT, đối chiếu `git diff` với plan, soi phạm vi, secret, log,
-  debug, test rỗng, chạy lại lệnh test chính.
+  `file:line`, trả **brief hướng** (~20 dòng) rồi dừng. Leader duyệt brief (task
+  lớn thì Reviewplan gác bằng `MODE: DIRECTION`), sau đó Review viết plan 13 mục
+  trong **cùng session**, tự chạy cổng chất lượng rồi báo Leader.
+- **Reviewplan** có ba mode. `DIRECTION` (chỉ task lớn): gác brief hướng, kiểm
+  `file:line` có thật, hướng giải quyết từng `R`, lý do loại phương án khác, phạm
+  vi; trả `GO` / `STEER` / `CẦN ĐIỀU TRA`, **chỉ nêu vấn đề, không viết hướng
+  thay Review**. `PLAN`: kiểm chứng độc lập plan của Review; thấy sai thì **tự sửa
+  plan** (chỉ file plan), tự kiểm lại, rồi báo Leader. `AUDIT`: sau khi ba tester
+  ĐẠT, đối chiếu `git diff` với plan, soi phạm vi, secret, log, debug, test rỗng,
+  chạy lại lệnh test chính.
 - **Coder** chỉ đọc đúng file plan được giao, làm đúng thứ tự, chạy lệnh kiểm tra
   từng bước. Plan sai thì dừng, báo `file:dòng`, không tự chế.
 - **Ba tester** chạy song song trong một lượt, ba góc nhìn, không thấy nhau.
@@ -61,11 +77,14 @@ User → Leader (quyết định, group/leader)
 
 | Vòng | Ai làm | Tối đa | Hết vòng thì |
 |---|---|---|---|
+| Hướng | Reviewplan `DIRECTION` gác brief; Leader duyệt/steer | 2 brief, 2 lần gác | Dừng, hỏi user |
 | Plan | Reviewplan kiểm plan; nếu cần dữ kiện thì Review điều tra bổ sung rồi Reviewplan sửa | 2 vòng | Dừng, báo user, giữ plan |
 | Code | Coder sửa theo lỗi tester/audit | 3 vòng | Dừng, báo user, giữ plan |
 
-Reviewplan được tự sửa plan tối đa 2 lần trong một vòng plan; tự sửa không tính là
-một vòng, nhưng sửa xong vẫn không đạt thì lần đó tính là hết một vòng.
+Brief và vòng sửa brief không tính vào 2 vòng plan. Gác hướng tối đa 2 lần/task
+(lần đầu và một lần sau STEER); quá thì dừng, hỏi user. Reviewplan được tự sửa
+plan tối đa 2 lần trong một vòng plan; tự sửa không tính là một vòng, nhưng sửa
+xong vẫn không đạt thì lần đó tính là hết một vòng.
 
 ### Phát hiện lỗi thì giao ai
 
@@ -74,6 +93,9 @@ một vòng, nhưng sửa xong vẫn không đạt thì lần đó tính là h�
 | Review tự kiểm fail, hoặc thiếu dữ kiện | Review tự sửa/điều tra lại; vẫn thiếu thì Leader hỏi user |
 | Reviewplan thấy plan sai nhưng tự xác minh được | Reviewplan tự sửa plan + tự kiểm lại |
 | Reviewplan cần điều tra sâu hơn | Leader giao Review điều tra bổ sung → Reviewplan sửa (1 vòng plan) |
+| Reviewplan STEER hướng | Leader follow-up **cùng session review** để sửa brief/plan; không mở session mới |
+| Reviewplan CẦN ĐIỀU TRA | Leader follow-up cùng session review để điều tra thêm, rồi Reviewplan PLAN |
+| Agent lỗi | Gọi lại cùng session 2 lần → session mới 1 lần → chuyển việc cho agent còn làm được → báo user kèm lỗi nguyên văn |
 | Coder thấy plan sai giữa chừng | Dừng, báo `file:dòng` → Leader giao Reviewplan sửa plan → Coder làm tiếp |
 | Tester fail do code | Coder sửa, kèm lỗi nguyên văn của cả ba tester |
 | Tester fail do plan | Reviewplan sửa plan → Coder làm lại (1 vòng code) |
@@ -122,6 +144,13 @@ model: magpie/group/tester-3
 group của chúng vẫn mở levels `none,low,high,max` và freepi đã ghim `:high` trong
 ladder. `#max` của Leader chỉ dùng được trên OpenCode CLI/TUI; OpenChamber gửi
 model của phiên (`group/leader`) và chọn mức trong model picker.
+
+## Skill
+
+Leader không tự nạp skill. Trong mỗi prompt giao việc, Leader thêm một dòng
+`Skill: <id>` hoặc `Skill: không`; subagent gọi tool `skill` với đúng id trước khi
+làm. Bảng chọn skill nằm trong `config/agents/leader.md` mục "Điều phối skill".
+Cả bảy file agent đều có mục `## Skill` để nhắc điều này.
 
 ### Quyền của Leader
 
@@ -203,13 +232,13 @@ Chín group, mỗi vai một group (định nghĩa chuẩn trong `scripts/setup-
 
 | Group | Dùng cho | Model | Cấu hình |
 |---|---|---|---|
-| `group/leader` | Leader | `xingchi/gpt-6.1-sol:high` → Opus → DeepSeek SG | `order`, `turn`, levels `low,high,max`, classifier |
-| `group/review` | Review | FreePi DeepSeek V4.1 Flash `high` → DeepSeek SG | `order`, `turn`, levels `none,low,high,max`, classifier jev |
-| `group/reviewplan` | Reviewplan | FreePi DeepSeek V4.1 Flash `high` → DeepSeek SG | `order`, `turn`, levels `none,low,high,max`, classifier jev |
-| `group/coder` | Coder | FreePi `high` | `order`, `turn`, levels `low,high,max` |
-| `group/tester` | Tester | FreePi → GLM WorkBuddy | `order`, `turn`, levels `low,high,max` |
-| `group/tester-2` | Tester 2 | Hy4 → Agnes → Gemini 3.8 → GLM AutoClaw | `order`, `turn`, levels `low,high,max` |
-| `group/tester-3` | Tester 3 | Kiro Haiku → Beam free → GLM AutoClaw → Gemini 3.8 → Hy4 | `order`, `turn`, levels `low,high,max` |
+| `group/leader` | Leader | `xingchi/gpt-6.1-sol:high` → FreePi6 → Opus → DeepSeek SG | `order`, `turn`, levels `low,high,max`, classifier |
+| `group/review` | Review | FreePi DeepSeek V4.1 Flash `high` → DeepSeek SG `high` → Hy4 `high` | `order`, `turn`, levels `none,low,high,max`, classifier jev |
+| `group/reviewplan` | Reviewplan | FreePi5 DeepSeek V4.1 Flash `high` → DeepSeek SG `high` → Hy4 `high` | `order`, `turn`, levels `none,low,high,max`, classifier jev |
+| `group/coder` | Coder | FreePi `high` → DeepSeek SG `high` | `order`, `turn`, levels `low,high,max` |
+| `group/tester` | Tester | FreePi4 → GLM WorkBuddy | `order`, `turn`, levels `low,high,max` |
+| `group/tester-2` | Tester 2 | FreePi2 → Hy4 → GLM AutoClaw | `order`, `turn`, levels `low,high,max` |
+| `group/tester-3` | Tester 3 | FreePi3 → Kiro Haiku → GLM AutoClaw → Gemini 3.8 → Hy4 → DeepSeek SG | `order`, `turn`, levels `low,high,max` |
 | `group/main` | chat thường ngày (OpenCode) | FreePi → Hy4 → Gemini → Gemini Lite → GLM AutoClaw → GLM WorkBuddy | `order`, `session`, levels `low,high,max` |
 | `group/free` | nén của billion-context | Particle-1 free: Kilo → Cline → OpenRouter | `rotate`, không levels/classifier |
 
@@ -223,23 +252,28 @@ magpie group review
 magpie group reviewplan
 ```
 
-- `routing=order`, `stays=turn`, ladder `freepi/deepseek-v4.1-flash:high` →
-  `workbuddy-ai/deepseek-v4.1-flash-sg`.
+- `routing=order`, `stays=turn`; `review` dùng `freepi/deepseek-v4.1-flash:high` →
+  `workbuddy-ai/deepseek-v4.1-flash-sg:high` → `workbuddy-ai/hy4flash-free:high`;
+  `reviewplan` dùng `freepi5/deepseek-v4.1-flash:high` → hai bậc WorkBuddy như trên.
 - Levels `none,low,high,max` (magpie mở levels khi đặt `effort=auto`; freepi không
   expose mức reasoning nhưng vẫn ghim `:high`), classifier
   `opencode-zen/jev-1.13-free`, `effort=auto`.
-- Người dùng tự thêm model vào ladder sau:
+- Repo đã có ba bậc; thêm bằng
   `magpie group set review models+=<provider/model>`.
 - `scripts/setup-groups.sh` **chỉ tạo khi thiếu**; `--force` không reset hai group
   này, nên `finish.sh` không xoá ladder tự thêm.
 
-Review đọc nhiều file nên tốn quota; FreePi chỉ có 15.000 credit/ngày. Khi thêm
-bậc, nên đặt một model khác family ở cuối ladder để failover thật sự.
+Review đọc nhiều file nên tốn quota; FreePi chỉ có 15.000 credit/ngày, nên
+`reviewplan` dùng tài khoản FreePi5 thay vì giành slot với `review`. Khi thêm bậc,
+nên đặt một model khác family ở cuối ladder để failover thật sự.
 
 ## Vì sao cấu hình như vậy
 
 - **Leader chỉ điều phối** để mọi kết luận về code đều có người chịu trách nhiệm
   đọc file thật, và Leader không tự sửa rồi tự duyệt.
+- **Brief trước, plan sau** — Review trả brief hướng rồi dừng; Leader duyệt (task
+  lớn thì Reviewplan `DIRECTION` gác) trước khi Review viết 13 mục. Sai hướng lộ
+  ra sau ~20 dòng thay vì sau cả plan.
 - **Review viết plan, Reviewplan kiểm plan** — tách người viết khỏi người chấm.
   Reviewplan được sửa plan để không phải đốt một vòng chỉ vì lỗi chính tả/đường
   dẫn; nhưng mọi sửa đều ghi phụ lục để Leader biết.
@@ -259,16 +293,16 @@ Chạy `bash scripts/setup-groups.sh` (thêm `--force` để tạo lại bảy g
 
 ```sh
 magpie group add "Review" \
-  models=freepi/deepseek-v4.1-flash:high,workbuddy-ai/deepseek-v4.1-flash-sg \
+  models=freepi/deepseek-v4.1-flash:high,workbuddy-ai/deepseek-v4.1-flash-sg:high,workbuddy-ai/hy4flash-free:high \
   routing=order stays=turn
 magpie group set review levels=none,low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 magpie group add "Reviewplan" \
-  models=freepi/deepseek-v4.1-flash:high,workbuddy-ai/deepseek-v4.1-flash-sg \
+  models=freepi5/deepseek-v4.1-flash:high,workbuddy-ai/deepseek-v4.1-flash-sg:high,workbuddy-ai/hy4flash-free:high \
   routing=order stays=turn
 magpie group set reviewplan levels=none,low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 
 magpie group add "Leader" \
-  models=xingchi/gpt-6.1-sol:high,agy-cli/claude-opus-4-6-thinking,workbuddy-ai/deepseek-v4.1-flash-sg \
+  models=xingchi/gpt-6.1-sol:high,freepi6/deepseek-v4.1-flash,agy-cli/claude-opus-4-6-thinking,workbuddy-ai/deepseek-v4.1-flash-sg \
   routing=order stays=turn
 magpie group set leader levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
 ```
