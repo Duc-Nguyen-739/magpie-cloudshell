@@ -86,6 +86,22 @@ Brief và vòng sửa brief không tính vào 2 vòng plan. Gác hướng tối 
 plan tối đa 2 lần trong một vòng plan; tự sửa không tính là một vòng, nhưng sửa
 xong vẫn không đạt thì lần đó tính là hết một vòng.
 
+### Session
+
+`config/agents/leader.md` mở đầu bằng **Luật cứng — một session mỗi group**: mỗi
+`group/*` chỉ phục vụ một session sống tại một thời điểm; trước mọi lần gọi
+`subagent`, Leader đọc bảng session, không gọi khi group đang chạy, và truyền
+`sessionID` nếu đã có. Mọi mẫu gọi trong prompt đều có dòng `sessionID:`; lần đầu ghi
+`(mới)`. Idle không phải kết thúc — chỉ mở session mới khi session cũ đã kết thúc hẳn;
+không chắc thì coi như còn sống.
+
+Khi `review` đang lâu, Leader được giao việc khác cho `reviewplan`, `coder` hoặc
+tester — miễn đúng vai trò của họ — thay vì mở thêm một `review`. Ba tester vẫn chạy
+song song vì là ba group khác nhau; không gọi hai lần cho cùng một tester.
+
+`group/leader` cũng chỉ được có một session: đừng mở OpenChamber và một phiên Leader
+OpenCode cùng lúc nếu cả hai dùng `group/leader`.
+
 ### Phát hiện lỗi thì giao ai
 
 | Tình huống | Xử lý |
@@ -95,7 +111,7 @@ xong vẫn không đạt thì lần đó tính là hết một vòng.
 | Reviewplan cần điều tra sâu hơn | Leader giao Review điều tra bổ sung → Reviewplan sửa (1 vòng plan) |
 | Reviewplan STEER hướng | Leader follow-up **cùng session review** để sửa brief/plan; không mở session mới |
 | Reviewplan CẦN ĐIỀU TRA | Leader follow-up cùng session review để điều tra thêm, rồi Reviewplan PLAN |
-| Agent lỗi | Gọi lại cùng session 2 lần → session mới 1 lần → chuyển việc cho agent còn làm được → báo user kèm lỗi nguyên văn |
+| Agent lỗi | Gọi lại cùng session 2 lần (chờ session cũ dừng hẳn nếu đang chạy) → chỉ khi session cũ kết thúc mới mở session mới 1 lần; không chắc thì coi như còn sống → chuyển việc cho agent còn làm được → báo user kèm lỗi nguyên văn |
 | Coder thấy plan sai giữa chừng | Dừng, báo `file:dòng` → Leader giao Reviewplan sửa plan → Coder làm tiếp |
 | Tester fail do code | Coder sửa, kèm lỗi nguyên văn của cả ba tester |
 | Tester fail do plan | Reviewplan sửa plan → Coder làm lại (1 vòng code) |

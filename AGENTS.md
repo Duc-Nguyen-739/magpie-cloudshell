@@ -101,7 +101,11 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   `defaultModel: magpie/group/leader`, `defaultVariant: max`, `defaultAgent: leader`;
   agent `leader` + 6 subagent `review`, `reviewplan`, `coder`, `tester`, `tester2`,
   `tester3`; mỗi agent có mục `## Skill`, Leader gửi `Skill: <id>` trong prompt;
-  skill `magpie-setup`.
+  skill `magpie-setup`. `config/agents/leader.md` mở đầu bằng luật cứng: mỗi
+  `group/*` chỉ chạy một session tại một thời điểm; trước mọi lần gọi `subagent`,
+  Leader kiểm bảng session, truyền `sessionID` nếu đã có, không mở session thứ hai
+  khi session cũ còn chạy — group bận thì chờ hoặc giao group khác; idle không phải
+  kết thúc.
 - Supervisor bash giữ gateway + web UI sống; hai lệnh `openchamber` / `openmagpie` in
   link web **đã kèm key**.
 - `billion-context` (plugin OpenCode, không phải magpie) nén hội thoại; config ở
