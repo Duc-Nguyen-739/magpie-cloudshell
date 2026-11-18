@@ -189,9 +189,9 @@ khác nhau:
 | `freepi3` | `ngaynaochavao739-ui` |
 | `freepi4` | `ngaynaochavao73999-code` |
 
-> `free-pi` đã được gỡ khỏi máy này ngày 2026-11-18, nên hiện chỉ FreePi3 dùng tài
-> khoản này. Pool `~/.free-pi/agent/accounts.json` vẫn còn trên đĩa (không xoá dữ liệu);
-> nếu muốn đổi tài khoản, chạy `magpie plugin logout freepi3` rồi đăng nhập lại.
+> `free-pi` và thư mục `~/.free-pi` đã được xoá ngày 2026-11-18, nên hiện chỉ FreePi3
+> dùng tài khoản này. Nếu muốn đổi tài khoản, chạy `magpie plugin logout freepi3`
+> rồi đăng nhập lại.
 
 FreePi3 tách `x-session-id`, token, thư mục trạng thái và budget. **Không tách
 được IP**: nếu cả bốn đi ra cùng một địa chỉ mạng, upstream vẫn thấy chúng sau
