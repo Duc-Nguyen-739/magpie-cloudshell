@@ -179,19 +179,19 @@ the required minimum`. FreePi3 đọc `/client-version` và tự canh
 
 ### 6. Bốn tài khoản trên cùng một upstream
 
-`freepi`, `free-pi`, `freepi2` và `freepi3` cùng gọi `api.freepi.ai`, nhưng là bốn tài khoản
+`freepi`, `freepi2`, `freepi3` và `freepi4` cùng gọi `api.freepi.ai`, nhưng là bốn tài khoản
 khác nhau:
 
 | Provider | Tài khoản trên máy này |
 |---|---|
 | `freepi` | `ducnguyenvan05-source` |
-| `free-pi` | `Duc-Nguyen-739` |
 | `freepi2` | `ngaynaochavao7399-del` |
 | `freepi3` | `ngaynaochavao739-ui` |
+| `freepi4` | `ngaynaochavao73999-code` |
 
-> Lưu ý: tài khoản này cũng có trong pool `~/.free-pi/agent/accounts.json` của
-> `free-pi` (dù `free-pi` đang đăng nhập bằng `Duc-Nguyen-739`). Nếu muốn FreePi3
-> tách hẳn, chạy `magpie plugin logout freepi3` rồi đăng nhập một tài khoản khác.
+> `free-pi` đã được gỡ khỏi máy này ngày 2026-11-18, nên hiện chỉ FreePi3 dùng tài
+> khoản này. Pool `~/.free-pi/agent/accounts.json` vẫn còn trên đĩa (không xoá dữ liệu);
+> nếu muốn đổi tài khoản, chạy `magpie plugin logout freepi3` rồi đăng nhập lại.
 
 FreePi3 tách `x-session-id`, token, thư mục trạng thái và budget. **Không tách
 được IP**: nếu cả bốn đi ra cùng một địa chỉ mạng, upstream vẫn thấy chúng sau

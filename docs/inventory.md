@@ -44,7 +44,7 @@ Lệnh tiện dụng tự viết trong `~/.local/bin`:
 | `magpie-headless-start/stop/status` | điều khiển supervisor |
 | `magpie-headless` | chính vòng lặp supervisor (không gọi tay) |
 
-## Provider (18 hiện trong `magpie providers` — 14 bật, 4 tắt)
+## Provider (17 hiện trong `magpie providers` — 13 bật, 4 tắt)
 
 `providers.json` còn record `qoder` và `antigravity`, nhưng `magpie providers` không
 hiện vì thiếu plugin trên máy này.
@@ -54,7 +54,6 @@ hiện vì thiếu plugin trên máy này.
 | `workbuddy-ai` | WorkBuddy AI | OAuth web (plugin) | 3 / 23 | **bật**; expose `deepseek-v4.1-flash-sg`, `glm-5.3-flash`, `hy4flash-free` |
 | `autoclaw` | AutoClaw (Zhipu) | OAuth Google/z.ai (plugin) | 2 / 4 | **bật**; `zai_glm-5.3-flash`, `zaicoding_glm-5.3` |
 | `freepi` | FreePi | OAuth (plugin) | 1 / 18 | **bật**; `deepseek-v4.1-flash`, **một request tại một thời điểm** |
-| `free-pi` | free-pi | OAuth (plugin) | 1 / 9 | **bật**; tài khoản thứ hai của cùng `api.freepi.ai`, slot + budget riêng; **phải vá client version** — `docs/providers.md` |
 | `freepi2` | FreePi2 | OAuth (plugin riêng) | 1 / 18 | **bật**; tài khoản thứ ba, repo private `Duc-Nguyen-739/FreePiLogin2`, kho `~/.freepi2` + session id riêng; cài bằng clone + `magpie plugin add <thư mục>` — `docs/providers.md` |
 | `freepi3` | FreePi3 | OAuth (plugin riêng) | 1 / 18 | **bật**; tài khoản thứ tư, repo private `Duc-Nguyen-739/FreePiLogin3`, kho `~/.freepi3` — `docs/freepi3.md` |
 | `freepi4` | FreePi4 | OAuth (plugin riêng) | 1 / 18 | **bật**; tài khoản thứ năm, repo private `Duc-Nguyen-739/FreePiLogin4`, kho `~/.freepi4` — `docs/freepi4.md` |
@@ -72,7 +71,7 @@ hiện vì thiếu plugin trên máy này.
 | `copilot` | Copilot | OAuth GitHub | 1 / 24 | **tắt** |
 | `opencode-zen-free` | OpenCode Zen Free | plugin, key công khai | 8 / 15 | **tắt**; plugin vẫn cài, bật lại được |
 
-## Plugin (13)
+## Plugin (12)
 
 ```
 @magpie-community/opencode-autoclaw-auth@0.2.9    autoclaw, autoclaw-cn
@@ -81,7 +80,6 @@ hiện vì thiếu plugin trên máy này.
 @magpie-community/opencode-cline-auth@latest      cline
 @magpie-community/opencode-agnes-auth@latest      agnes
 magpie-freepi-auth@latest                         freepi
-magpie-free-pi@0.1.5 (đã vá)                      free-pi
 magpie-freepi2-auth (local clone)                  freepi2 (FreePi2)
 magpie-freepi3-auth (local clone)                  freepi3 (FreePi3)
 magpie-freepi4-auth (local clone)                  freepi4 (FreePi4)
@@ -148,7 +146,7 @@ cùng một model từ kilo/openrouter/cline. Chúng không được agent nào 
 
 - Provider `magpie`: khai trong `providers` của `opencode.json`, `baseURL:
   http://127.0.0.1:3425/v1`, `apiKey: magpie` (chuỗi giả — gateway local không cần key
-  thật), **29 model** do magpie sinh: 8 `group/*` (thiếu `group/main` vì group đang tắt)
+  thật), **28 model** do magpie sinh: 8 `group/*` (thiếu `group/main` vì group đang tắt)
   + model lẻ của các provider đang bật (gồm `freepi2/…`, `freepi3/…`, `freepi4/…`). `model: magpie/group/main`, agent `title` dùng
   `magpie/workbuddy-ai/hy4flash-free`.
 - Provider gọi thẳng còn khai báo: `xingchi` (bật, dùng cho `group/leader`), còn
@@ -216,7 +214,7 @@ script không thêm khoá đó nữa — đó là hành vi đúng, không phải
 | Hạng mục | Repo | Ghi chú |
 |---|---|---|
 | magpie binary | ✅ | installer chính thức hoặc `--from-source` (clone yetone/magpie) |
-| 13 plugin provider | ✅ | `scripts/plugins.sh` (cài xong tự vá `free-pi`, dọn pool trùng; FreePi2/3/4 clone từ repo private) |
+| 12 plugin provider | ✅ | `scripts/plugins.sh` (FreePi2/3/4 clone từ repo private) |
 | 9 routing group | ✅ | **giống hệt** cấu hình máy này, kể cả `group/free`; `review`/`reviewplan` chỉ tạo khi thiếu, `--force` không reset; riêng `group/main` do script tạo ở trạng thái **bật** (máy này tắt tay) |
 | settings.json | ✅ | chỉ thêm khoá thiếu |
 | `opencode-zen` bật, chỉ expose `jev-1.13-free`; `opencode-zen-free` tắt | ✅ | `setup-settings.sh` |

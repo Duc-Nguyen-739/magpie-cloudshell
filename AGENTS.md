@@ -23,15 +23,14 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
 ## Bạn đang dựng gì
 
 - magpie bản terminal trong `~/.local/bin` (không desktop, không systemd).
-- **18 provider** hiện trong `magpie providers`, **14 bật / 4 tắt** (`aihubmix`,
+- **17 provider** hiện trong `magpie providers`, **13 bật / 4 tắt** (`aihubmix`,
   `copilot`, `agnes`, `opencode-zen-free`). `providers.json` còn record `qoder` và
-  `antigravity` nhưng không hiện vì thiếu plugin. Mười ba plugin đang cài: AutoClaw (Zhipu),
-  WorkBuddy, agy-cli, cline, kiro, agnes, FreePi, free-pi, FreePi2, FreePi3, FreePi4,
+  `antigravity` nhưng không hiện vì thiếu plugin. Mười hai plugin đang cài: AutoClaw (Zhipu),
+  WorkBuddy, agy-cli, cline, kiro, agnes, FreePi, FreePi2, FreePi3, FreePi4,
   OpenCode Zen Free (2 plugin).
-  `free-pi` là tài khoản thứ hai của cùng `api.freepi.ai` — **phải chạy
-  `node scripts/patch-free-pi.mjs` và `node scripts/patch-free-pi-ads.mjs` sau mỗi lần
-  cài/cập nhật plugin**, nếu không mọi model trả 426 (client version) hoặc completion trả
-  403 `ads_required` (ad gate); xem `docs/providers.md`. `freepi2` là tài khoản thứ ba,
+  `free-pi` đã được gỡ khỏi máy này ngày 2026-11-18 theo yêu cầu; các script
+  `patch-free-pi.mjs`, `patch-free-pi-ads.mjs`, `setup-freepi-pair.mjs` vẫn còn trong
+  repo nếu cài lại. `freepi2` là tài khoản thứ ba,
   plugin **private** `Duc-Nguyen-739/FreePiLogin2` clone về `~/.local/src/FreePiLogin2`
   rồi `magpie plugin add` (không cài được bằng spec `github:` — bun tải tarball không
   kèm token nên 404); kho riêng `~/.freepi2`, session id riêng, mô tả tiếng Việt.
@@ -84,7 +83,7 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   vì `group/tester-3` dùng `kilo/reflection/beam-free`; `aihubmix` đang tắt, nếu bật
   thì 36 model `-free` chỉ trả câu từ chối (tài khoản chưa nạp tiền) — xem mục lỗi
   thường gặp.
-- OpenCode khai **29 model** của provider `magpie` (8 `group/*` — thiếu `group/main`
+- OpenCode khai **28 model** của provider `magpie` (8 `group/*` — thiếu `group/main`
   vì group đang tắt — cộng model lẻ, trong đó có `freepi2/…`, `freepi3/…`, `freepi4/…`), `model: magpie/group/main`, model phụ cho agent
   `title` là `magpie/workbuddy-ai/hy4flash-free`. OpenChamber đặt
   `defaultModel: magpie/group/leader`, `defaultVariant: max`, `defaultAgent: leader`;
@@ -138,7 +137,7 @@ Kiểm tra:
 ```sh
 magpie --version                  # có số phiên bản
 magpie healthcheck && echo ok     # exit 0
-magpie plugin list                # 13 plugin, "on"
+magpie plugin list                # 12 plugin, "on"
 command -v openchamber openmagpie magpie-headless-start
 ```
 

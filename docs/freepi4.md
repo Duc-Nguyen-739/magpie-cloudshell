@@ -1,7 +1,7 @@
 # FreePi4 — plugin riêng cho tài khoản FreePi thứ năm
 
 `FreePi4` là một provider **riêng** của magpie, dùng để đăng nhập một tài khoản
-[free-pi](https://api.freepi.ai) **khác** với bốn tài khoản đang có. Nó không
+[free-pi](https://api.freepi.ai) **khác** với ba tài khoản còn lại. Nó không
 phải bản sao của `freepi` hay `free-pi`: mã nguồn plugin nằm trong repo private
 <https://github.com/Duc-Nguyen-739/FreePiLogin4>, có icon riêng, mô tả tiếng Việt,
 và lưu trạng thái trong thư mục `~/.freepi4`.
@@ -177,21 +177,20 @@ the required minimum`. FreePi4 đọc `/client-version` và tự canh
 `x-client-version` theo `latest`, không ghim số như bản `free-pi` cũ. Nếu vẫn
 426, chạy `magpie plugin add ~/.local/src/FreePiLogin4` để nạp bản mới.
 
-### 6. Năm tài khoản trên cùng một upstream
+### 6. Bốn tài khoản trên cùng một upstream
 
-`freepi`, `free-pi`, `freepi2`, `freepi3` và `freepi4` cùng gọi `api.freepi.ai`, nhưng là năm tài khoản
+`freepi`, `freepi2`, `freepi3` và `freepi4` cùng gọi `api.freepi.ai`, nhưng là bốn tài khoản
 khác nhau:
 
 | Provider | Tài khoản trên máy này |
 |---|---|
 | `freepi` | `ducnguyenvan05-source` |
-| `free-pi` | `Duc-Nguyen-739` |
 | `freepi2` | `ngaynaochavao7399-del` |
 | `freepi3` | `ngaynaochavao739-ui` |
 | `freepi4` | `ngaynaochavao73999-code` |
 
 FreePi4 tách `x-session-id`, token, thư mục trạng thái và budget. **Không tách
-được IP**: nếu cả năm đi ra cùng một địa chỉ mạng, upstream vẫn thấy chúng sau
+được IP**: nếu cả bốn đi ra cùng một địa chỉ mạng, upstream vẫn thấy chúng sau
 cùng một IP, và mỗi JWT đều định danh tài khoản. Plugin không thể bảo đảm server
 không phát hiện. Nếu cần khác IP, đặt proxy riêng cho FreePi4:
 

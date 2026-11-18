@@ -37,7 +37,7 @@ Khi bạn chạy `magpie opencode group/main`, magpie sửa
 ```
 
 - `apiKey: "magpie"` là chuỗi giả — gateway local không kiểm tra key. Đừng đổi thành key thật.
-- Danh sách `models` do magpie sinh từ provider đang có: máy này **29 model** = 8
+- Danh sách `models` do magpie sinh từ provider đang có: máy này **28 model** = 8
   `group/*` + model lẻ của các provider đang bật (gồm `freepi2/…`, `freepi3/…`, `freepi4/…`). `group/main` **không** có trong danh
   sách vì group đó đang tắt (`disabled` trong `providers.json`), dù `model` ở trên vẫn
   trỏ vào nó — bật lại bằng `magpie group on main` thì magpie ghi lại file và nó xuất

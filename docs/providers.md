@@ -144,27 +144,27 @@ báo xong. Key không đi qua chat và không ghi log.
 Console token (`localStorage.getItem("token")` ở `platform.agnes-ai.com`) là tuỳ chọn, chỉ
 để đọc hạn mức; không có nó vẫn gọi model bình thường.
 
-### Cụm FreePi — `freepi`, `free-pi`, `freepi2`, `freepi3`, `freepi4`
+### Cụm FreePi — `freepi`, `freepi2`, `freepi3`, `freepi4`
 
-Năm plugin, cùng một upstream `api.freepi.ai`, **năm tài khoản khác nhau** — không phải
+Bốn plugin, cùng một upstream `api.freepi.ai`, **bốn tài khoản khác nhau** — không phải
 bản sao của nhau:
 
 | Plugin | Provider id | Tài khoản trên máy này | Model expose |
 |---|---|---|---|
 | `magpie-freepi-auth` | `freepi` | `ducnguyenvan05-source` (Free) | 1 / 18 — `deepseek-v4.1-flash` |
-| `magpie-free-pi` | `free-pi` | `Duc-Nguyen-739` (young) | 1 / 9 — `deepseek-v4.1-flash` (catalog 9 model; pick list tuỳ máy) |
 | `magpie-freepi2-auth` | `freepi2` | `ngaynaochavao7399-del` | 1 / 18 — `deepseek-v4.1-flash` |
 | `magpie-freepi3-auth` | `freepi3` | `ngaynaochavao739-ui` | 1 / 18 — `deepseek-v4.1-flash` |
 | `magpie-freepi4-auth` | `freepi4` | `ngaynaochavao73999-code` | 1 / 18 — `deepseek-v4.1-flash` |
 
 Mỗi tài khoản có budget riêng (15.000 credits/ngày; riêng FreePi2/FreePi3/FreePi4 là 6.000 trên tài khoản này) và **một slot đồng thời riêng**: gọi
-đồng thời năm provider thì cả năm trả 200, còn hai request cùng lúc trên **một** provider
-thì request thứ hai nhận `429 one request at a time`. Vì vậy năm tài khoản = năm slot +
-năm budget, không phải "đổi tài khoản" và không bị server chặn.
+đồng thời bốn provider thì cả bốn trả 200, còn hai request cùng lúc trên **một** provider
+thì request thứ hai nhận `429 one request at a time`. Vì vậy bốn tài khoản = bốn slot +
+bốn budget, không phải "đổi tài khoản" và không bị server chặn.
 
 **Tách rời nhau ở đâu.** Các provider chỉ dùng chung domain; phần đăng nhập, session,
 budget và slot là riêng từng cái (bảng dưới là hai provider gốc; FreePi2/FreePi3/FreePi4 có
-mục riêng bên dưới):
+mục riêng bên dưới). **`free-pi` đã được gỡ khỏi máy này ngày 2026-11-18** — phần
+`free-pi` dưới đây giữ làm tham khảo nếu cài lại:
 
 | | `freepi` | `free-pi` |
 |---|---|---|

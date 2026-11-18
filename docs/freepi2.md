@@ -177,19 +177,22 @@ the required minimum`. FreePi2 đọc `/client-version` và tự canh
 `x-client-version` theo `latest`, không ghim số như bản `free-pi` cũ. Nếu vẫn
 426, chạy `magpie plugin add ~/.local/src/FreePiLogin2` để nạp bản mới.
 
-### 6. Ba tài khoản trên cùng một upstream
+### 6. Bốn tài khoản trên cùng một upstream
 
-`freepi`, `free-pi` và `freepi2` cùng gọi `api.freepi.ai`, nhưng là ba tài khoản
+`freepi`, `freepi2`, `freepi3` và `freepi4` cùng gọi `api.freepi.ai`, nhưng là bốn tài khoản
 khác nhau:
 
 | Provider | Tài khoản trên máy này |
 |---|---|
 | `freepi` | `ducnguyenvan05-source` |
-| `free-pi` | `Duc-Nguyen-739` |
 | `freepi2` | `ngaynaochavao7399-del` |
+| `freepi3` | `ngaynaochavao739-ui` |
+| `freepi4` | `ngaynaochavao73999-code` |
+
+> `free-pi` đã được gỡ khỏi máy này ngày 2026-11-18.
 
 FreePi2 tách `x-session-id`, token, thư mục trạng thái và budget. **Không tách
-được IP**: nếu cả ba đi ra cùng một địa chỉ mạng, upstream vẫn thấy chúng sau
+được IP**: nếu cả bốn đi ra cùng một địa chỉ mạng, upstream vẫn thấy chúng sau
 cùng một IP, và mỗi JWT đều định danh tài khoản. Plugin không thể bảo đảm server
 không phát hiện. Nếu cần khác IP, đặt proxy riêng cho FreePi2:
 

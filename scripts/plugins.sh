@@ -15,7 +15,6 @@ PLUGINS=(
   "@magpie-community/opencode-kiro-auth"        # Kiro — group/free
   "@magpie-community/opencode-agnes-auth"       # Agnes — group/tester (đang tắt)
   "magpie-freepi-auth"                          # FreePi — group/review, reviewplan, coder
-  "magpie-free-pi"                              # free-pi — provider thứ hai, tài khoản riêng
   "@magpie-community/opencode-zen-free-auth"    # OpenCode Zen Free
   "opencode-zen-freex"                          # phần phục vụ OpenCode Zen Free
   # qoder / zcode không cài trên máy tham chiếu (provider qoder đang tắt); cần thì
@@ -80,35 +79,5 @@ install_private_plugin() {
 install_private_plugin "FreePi2" "FreePiLogin2" "freepi2" "${FREEPI2_DIR:-$HOME/.local/src/FreePiLogin2}"
 install_private_plugin "FreePi3" "FreePiLogin3" "freepi3" "${FREEPI3_DIR:-$HOME/.local/src/FreePiLogin3}"
 install_private_plugin "FreePi4" "FreePiLogin4" "freepi4" "${FREEPI4_DIR:-$HOME/.local/src/FreePiLogin4}"
-
-# free-pi ghim phiên bản client trong mã nguồn, server nâng mức tối thiểu là mọi
-# request chat bị 426 (trước cả khi chọn model). Vá lại sau mỗi lần cài/cập nhật.
-if magpie plugin list 2>/dev/null | grep -q 'magpie-free-pi'; then
-  say ""
-  say "vá free-pi (lấy client version từ /client-version)…"
-  if node "$REPO_DIR/scripts/patch-free-pi.mjs" >/dev/null 2>&1; then
-    say "  ✓ free-pi"
-  else
-    warn "không vá được free-pi — chạy tay: node scripts/patch-free-pi.mjs"
-    rc=1
-  fi
-
-  # Ad gate: freepi.ai trả 403 ads_required cho completion khi tài khoản chưa
-  # báo banner impression. magpie-freepi-auth đã báo; magpie-free-pi thì chưa.
-  if node "$REPO_DIR/scripts/patch-free-pi-ads.mjs" >/dev/null 2>&1; then
-    say "  ✓ free-pi: báo ad impression"
-  else
-    warn "không vá được ad gate free-pi — chạy tay: node scripts/patch-free-pi-ads.mjs"
-    rc=1
-  fi
-
-  # Hai provider freepi.ai phải tách rời: mỗi user_id đúng một entry trong pool
-  # của free-pi (đăng nhập lặp sinh entry trùng, budget vẫn chỉ một).
-  if node "$REPO_DIR/scripts/setup-freepi-pair.mjs" >/dev/null 2>&1; then
-    say "  ✓ free-pi: một tài khoản, không trùng"
-  else
-    warn "không dọn được pool free-pi — chạy tay: node scripts/setup-freepi-pair.mjs"
-  fi
-fi
 
 exit "$rc"

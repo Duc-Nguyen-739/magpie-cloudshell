@@ -62,20 +62,6 @@ np="$(magpie providers 2>/dev/null | grep -c . || true)"
 [ "$np" -gt 0 ] && ok "$np provider" || bad "chưa có provider nào"
 magpie providers 2>/dev/null | sed 's/^/      /'
 
-# free-pi: bản npm ghim client version, server nâng mức là 426 toàn bộ model.
-if magpie plugin list 2>/dev/null | grep -q 'magpie-free-pi'; then
-  if node "$REPO_DIR/scripts/patch-free-pi.mjs" --check >/dev/null 2>&1; then
-    ok "free-pi đã vá (client version lấy từ /client-version)"
-  else
-    warn "free-pi chưa vá — chat sẽ 426 khi server nâng mức tối thiểu (node scripts/patch-free-pi.mjs)"
-  fi
-  if node "$REPO_DIR/scripts/setup-freepi-pair.mjs" --check >/dev/null 2>&1; then
-    ok "free-pi: một entry cho mỗi tài khoản (không trùng pool)"
-  else
-    warn "pool free-pi có entry trùng user_id — chạy: node scripts/setup-freepi-pair.mjs"
-  fi
-fi
-
 # FreePi2/FreePi3: plugin riêng, kho riêng ~/.freepi2, ~/.freepi3.
 for pair in "FreePi2:freepi2" "FreePi3:freepi3" "FreePi4:freepi4"; do
   name="${pair%%:*}"
