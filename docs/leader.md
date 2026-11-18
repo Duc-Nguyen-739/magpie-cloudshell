@@ -54,7 +54,7 @@ User → Leader (quyết định, group/leader)
   sáu subagent: `review`, `reviewplan`, `coder`, `tester`, `tester2`, `tester3`.
   Mọi thông tin về codebase do `review`/`reviewplan` mang về. Leader tách yêu cầu
   thành `R1..Rn`, dán vào mọi prompt, kiểm lại ở brief/plan/audit; mỗi prompt có
-  `Skill: <id>` hoặc `Skill: không` để agent tự nạp skill. Agent lỗi thì Leader tự
+  `Skill: <id>`, `Skill: tự chọn` hoặc `Skill: không` để agent tự nạp skill. Agent lỗi thì Leader tự
   gọi lại hoặc chuyển việc cho agent còn làm được, không dừng pipeline.
 - **Review** là người duy nhất viết plan. Nó khảo sát codebase, ghi bằng chứng
   `file:line`, trả **brief hướng** (~20 dòng) rồi dừng. Leader duyệt brief (task
@@ -70,8 +70,9 @@ User → Leader (quyết định, group/leader)
 - **Coder** chỉ đọc đúng file plan được giao, làm đúng thứ tự, chạy lệnh kiểm tra
   từng bước. Plan sai thì dừng, báo `file:dòng`, không tự chế.
 - **Ba tester** chạy song song trong một lượt, ba góc nhìn, không thấy nhau.
-- **Commit/push chỉ xảy ra sau khi user duyệt.** Leader giao Coder commit, push,
-  rồi xoá thư mục plan trong cùng một lượt. Push lỗi thì giữ plan.
+- **Commit/push chỉ xảy ra sau khi user duyệt**, trừ khi project tự quy định khác
+  (`AGENTS.md` yêu cầu tự động commit + push sau verify — brief phải ghi rõ). Leader
+  giao Coder commit, push, rồi xoá thư mục plan trong cùng một lượt. Push lỗi thì giữ plan.
 
 ### Vòng lặp
 
@@ -97,7 +98,8 @@ không chắc thì coi như còn sống.
 
 Khi `review` đang lâu, Leader được giao việc khác cho `reviewplan`, `coder` hoặc
 tester — miễn đúng vai trò của họ — thay vì mở thêm một `review`. Ba tester vẫn chạy
-song song vì là ba group khác nhau; không gọi hai lần cho cùng một tester.
+song song vì là ba group khác nhau; trong một vòng, mỗi tester gọi một lần, vòng
+code sau gọi lại cả ba.
 
 `group/leader` cũng chỉ được có một session: đừng mở OpenChamber và một phiên Leader
 OpenCode cùng lúc nếu cả hai dùng `group/leader`.
@@ -164,8 +166,9 @@ model của phiên (`group/leader`) và chọn mức trong model picker.
 ## Skill
 
 Leader không tự nạp skill. Trong mỗi prompt giao việc, Leader thêm một dòng
-`Skill: <id>` hoặc `Skill: không`; subagent gọi tool `skill` với đúng id trước khi
-làm. Bảng chọn skill nằm trong `config/agents/leader.md` mục "Điều phối skill".
+`Skill: <id>`, `Skill: tự chọn` hoặc `Skill: không`; subagent gọi tool `skill` với
+đúng id trước khi làm. `tự chọn`: agent đọc danh sách skill của nó, chọn id khớp việc
+đang làm và ghi tên skill đã nạp ở đầu báo cáo. Bảng chọn skill nằm trong `config/agents/leader.md` mục "Điều phối skill".
 Cả bảy file agent đều có mục `## Skill` để nhắc điều này.
 
 ### Quyền của Leader

@@ -160,8 +160,9 @@ cùng một model từ kilo/openrouter/cline. Chúng không được agent nào 
   `group/leader#max`, chỉ `question` + 6 subagent), `review.md` (`group/review`),
   `reviewplan.md` (`group/reviewplan`), `coder.md` (`group/coder`), `tester.md`
   (`group/tester`), `tester2.md` (`group/tester-2`), `tester3.md`
-  (`group/tester-3`). Mỗi agent có mục `## Skill`; Leader gửi `Skill: <id>` trong
-  prompt, agent tự gọi tool `skill`.
+  (`group/tester-3`). Mỗi agent có mục `## Skill`; Leader gửi `Skill: <id>` (hoặc
+  `Skill: tự chọn` để agent tự khớp skill với việc đang làm) trong prompt, agent tự
+  gọi tool `skill`.
 - Skill: `~/.config/opencode/skills/magpie-skills` → symlink vào skill router của magpie;
   `magpie-setup` nằm trong bundle đó.
 

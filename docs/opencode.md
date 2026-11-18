@@ -91,8 +91,8 @@ các subagent đặt `permissions: subagent resource:"*" effect: deny` — khôn
 agent khác. Leader còn bị deny `read`, `glob`, `grep`, `edit`, `shell`, `webfetch`,
 `websearch`; chỉ giữ `question` và sáu subagent.
 
-Mỗi agent có mục `## Skill`: Leader gửi `Skill: <id>` (hoặc `Skill: không`) trong
-prompt, agent tự gọi tool `skill` trước khi làm. Leader không tự nạp skill.
+Mỗi agent có mục `## Skill`: Leader gửi `Skill: <id>` (hoặc `Skill: tự chọn`,
+`Skill: không`) trong prompt, agent tự gọi tool `skill` trước khi làm. Leader không tự nạp skill.
 
 ## Skill dùng chung
 
