@@ -179,7 +179,7 @@ the required minimum`. FreePi5 đọc `/client-version` và tự canh
 
 ### 6. Năm tài khoản trên cùng một upstream
 
-`freepi`, `freepi2`, `freepi3` và `freepi5` cùng gọi `api.freepi.ai`, nhưng là bốn tài khoản
+`freepi`, `freepi2`, `freepi3`, `freepi4` và `freepi5` cùng gọi `api.freepi.ai`, nhưng là năm tài khoản
 khác nhau:
 
 | Provider | Tài khoản trên máy này |
@@ -187,7 +187,8 @@ khác nhau:
 | `freepi` | `ducnguyenvan05-source` |
 | `freepi2` | `ngaynaochavao7399-del` |
 | `freepi3` | `ngaynaochavao739-ui` |
-| `freepi5` | `ngaynaochavao73999-code` |
+| `freepi4` | `ngaynaochavao73999-code` |
+| `freepi5` | `ngocson-ctrl` |
 
 FreePi5 tách `x-session-id`, token, thư mục trạng thái và budget. **Không tách
 được IP**: nếu cả năm đi ra cùng một địa chỉ mạng, upstream vẫn thấy chúng sau
@@ -233,7 +234,7 @@ bash scripts/doctor.sh | grep FreePi5
 Kỳ vọng:
 
 ```
-freepi5 (FreePi5, 18 models)  signed in as ngaynaochavao73999-code
+freepi5 (FreePi5, 18 models)  signed in as ngocson-ctrl
 ✓ FreePi5: session id riêng (~/.freepi5, quyền 600)
 ✓ FreePi5 đã đăng nhập
 ```

@@ -156,7 +156,7 @@ bản sao của nhau:
 | `magpie-freepi2-auth` | `freepi2` | `ngaynaochavao7399-del` | 1 / 18 — `deepseek-v4.1-flash` |
 | `magpie-freepi3-auth` | `freepi3` | `ngaynaochavao739-ui` | 1 / 18 — `deepseek-v4.1-flash` |
 | `magpie-freepi4-auth` | `freepi4` | `ngaynaochavao73999-code` | 1 / 18 — `deepseek-v4.1-flash` |
-| `magpie-freepi5-auth` | `freepi5` | *(đăng nhập để xem)* | 1 / 18 — `deepseek-v4.1-flash` |
+| `magpie-freepi5-auth` | `freepi5` | `ngocson-ctrl` | 1 / 18 — `deepseek-v4.1-flash` |
 
 Mỗi tài khoản có budget riêng (15.000 credits/ngày; riêng FreePi2/FreePi3/FreePi4/FreePi5 là 6.000 trên tài khoản này) và **một slot đồng thời riêng**: gọi
 đồng thời năm provider thì cả năm trả 200, còn hai request cùng lúc trên **một** provider
@@ -422,7 +422,7 @@ là hỏng. Mã nguồn FreePi2API gốc nằm trong `upstream/FreePi2API/` củ
 Chi tiết đầy đủ (cài, đăng nhập, vướng mắc, giới hạn): [`docs/freepi5.md`](freepi5.md).
 
 Bản sao logic của FreePi2 nhưng **cổng đăng nhập và kho dữ liệu hoàn toàn riêng**, để
-dùng tài khoản FreePi thứ sáu mà không đụng `freepi` / `free-pi` / `freepi2`:
+dùng tài khoản FreePi thứ sáu mà không đụng `freepi` / `freepi2` / `freepi3` / `freepi4`:
 
 | | `freepi5` |
 |---|---|
@@ -432,7 +432,7 @@ dùng tài khoản FreePi thứ sáu mà không đụng `freepi` / `free-pi` / `
 | JWT giữ ở | `~/.config/magpie/plugin-auth.json`, khoá `freepi5` |
 | `x-session-id` | `~/.freepi5/session-id` — UUID ngẫu nhiên, file 0600, thư mục 0700 |
 | Đổi thư mục | `FREEPI5_HOME=/đường/dẫn/khác` |
-| Tài khoản trên máy này | *(đăng nhập để xem)* — 6.000 credits/ngày, 1 slot |
+| Tài khoản trên máy này | `ngocson-ctrl` — 6.000 credits/ngày, 1 slot |
 | Client version | tự canh từ `/client-version` (như `freepi`) |
 | Ad gate | tự báo `GET /ads/next?slot=banner` → `POST /ads/impression` (như `freepi`) |
 

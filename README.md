@@ -1,7 +1,7 @@
 # magpie trên Cloud Shell — cài một lần, chỉ còn đăng nhập
 
-Dựng lại **đúng** cấu hình magpie đang chạy trên một máy Cloud Shell thật: 17 provider
-(13 bật), 9 routing group, OpenCode → `group/main`, OpenChamber → `group/leader`, chạy
+Dựng lại **đúng** cấu hình magpie đang chạy trên một máy Cloud Shell thật: 18 provider
+(14 bật), 9 routing group, OpenCode → `group/main`, OpenChamber → `group/leader`, chạy
 headless không cần systemd, và hai lệnh `openchamber` / `openmagpie` in ra **link web đã
 kèm key** — bấm là vào, không phải dán gì.
 
@@ -64,7 +64,7 @@ see [`AGENTS.md`](AGENTS.md). The exact setup reproduced: [`docs/inventory.md`](
 | Thành phần | Vị trí | Vai trò |
 |---|---|---|
 | magpie 0.1.x (terminal build) | `~/.local/bin/magpie` | gateway + web UI + CLI quản lý |
-| 12 plugin provider | `~/.config/magpie/plugins/` | AutoClaw, WorkBuddy, agy-cli, cline, kiro, agnes, FreePi, FreePi2, FreePi3, FreePi4, OpenCode Zen Free (2) |
+| 13 plugin provider | `~/.config/magpie/plugins/` | AutoClaw, WorkBuddy, agy-cli, cline, kiro, agnes, FreePi, FreePi2, FreePi3, FreePi4, FreePi5, OpenCode Zen Free (2) |
 | OpenCode v2 | `~/.opencode/bin/opencode` | agent code trong terminal |
 | OpenChamber | `~/.npm-global/bin/openchamber` | web UI cho OpenCode (cổng 3000) |
 | 7 agent | `~/.config/opencode/agents/` | `leader` + `review`, `reviewplan`, `coder`, `tester`, `tester2`, `tester3` |
@@ -111,16 +111,17 @@ cd magpie-cloudshell
 bash bootstrap.sh
 ```
 
-FreePi2/FreePi3/FreePi4 là ba plugin trong **repo private** `Duc-Nguyen-739/FreePiLogin2`,
-`FreePiLogin3`, `FreePiLogin4`: trước khi chạy `bootstrap.sh`, máy cần `gh auth login` bằng
-tài khoản đọc được các repo đó (hoặc clone sẵn vào `~/.local/src/FreePiLogin2`,
-`FreePiLogin3`, `FreePiLogin4`). Thiếu quyền thì `scripts/plugins.sh` chỉ cảnh báo và bỏ
-qua các plugin đó, provider còn lại vẫn cài bình thường.
+FreePi2/FreePi3/FreePi4/FreePi5 là bốn plugin trong **repo private**
+`Duc-Nguyen-739/FreePiLogin2`, `FreePiLogin3`, `FreePiLogin4`, `FreePiLogin5`: trước khi
+chạy `bootstrap.sh`, máy cần `gh auth login` bằng tài khoản đọc được các repo đó (hoặc
+clone sẵn vào `~/.local/src/FreePiLogin2`, `FreePiLogin3`, `FreePiLogin4`,
+`FreePiLogin5`). Thiếu quyền thì `scripts/plugins.sh` chỉ cảnh báo và bỏ qua các plugin
+đó, provider còn lại vẫn cài bình thường.
 
 `bootstrap.sh` chạy 9 bước, **chạy lại nhiều lần vẫn an toàn**:
 
 1. Cài magpie — bỏ qua nếu đã có (dùng `--from-source` để build từ repo chính chủ).
-2. Cài 12 plugin provider (lần đầu tải bun ~180 MB).
+2. Cài 13 plugin provider (lần đầu tải bun ~180 MB).
 3. Copy `openchamber`, `openmagpie`, `magpie-headless-*`, `magpie-finish` vào `~/.local/bin`
    (kèm bản sao scripts/config ở `~/.local/share/magpie-cloudshell`).
 4. Thêm khối PATH + tự bật vào `~/.bashrc` (đánh dấu `# >>> magpie-cloudshell >>>`).
@@ -183,6 +184,7 @@ Nếu bạn đăng nhập **trong web UI** (cách dùng trên Cloud Shell), lầ
 | FreePi2 | OAuth plugin — tài khoản thứ ba, **repo private** `Duc-Nguyen-739/FreePiLogin2`; `scripts/plugins.sh` tự clone về `~/.local/src/FreePiLogin2` rồi cài; kho riêng `~/.freepi2` | [`docs/freepi2.md`](docs/freepi2.md) |
 | FreePi3 | OAuth plugin — tài khoản thứ tư, **repo private** `Duc-Nguyen-739/FreePiLogin3`; clone `~/.local/src/FreePiLogin3`; kho riêng `~/.freepi3` | [`docs/freepi3.md`](docs/freepi3.md) |
 | FreePi4 | OAuth plugin — tài khoản thứ năm, **repo private** `Duc-Nguyen-739/FreePiLogin4`; clone `~/.local/src/FreePiLogin4`; kho riêng `~/.freepi4` | [`docs/freepi4.md`](docs/freepi4.md) |
+| FreePi5 | OAuth plugin — tài khoản thứ sáu, **repo private** `Duc-Nguyen-739/FreePiLogin5`; clone `~/.local/src/FreePiLogin5`; kho riêng `~/.freepi5` | [`docs/freepi5.md`](docs/freepi5.md) |
 
 ## Group + agent (tự động sau khi đăng nhập)
 
@@ -245,7 +247,7 @@ config/agents/              leader.md + review, reviewplan, coder, tester (OpenC
 scripts/
   install.sh                magpie CLI từ installer chính thức (MAGPIE_CLI=1)
   install-from-source.sh    clone repo chính chủ + make cli (cần Go)
-  plugins.sh                12 plugin provider (+ clone FreePi2/3/4)
+  plugins.sh                13 plugin provider (+ clone FreePi2/3/4/5)
   patch-free-pi.mjs         vá free-pi: client version lấy từ /client-version, không ghim
   setup-freepi-pair.mjs     tách riêng 2 provider freepi.ai: một entry cho mỗi user_id
   install-opencode.sh       OpenCode (opencode.ai/install)

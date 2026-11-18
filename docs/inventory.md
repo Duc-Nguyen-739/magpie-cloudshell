@@ -44,7 +44,7 @@ Lệnh tiện dụng tự viết trong `~/.local/bin`:
 | `magpie-headless-start/stop/status` | điều khiển supervisor |
 | `magpie-headless` | chính vòng lặp supervisor (không gọi tay) |
 
-## Provider (17 hiện trong `magpie providers` — 13 bật, 4 tắt)
+## Provider (18 hiện trong `magpie providers` — 14 bật, 4 tắt)
 
 `providers.json` còn record `qoder` và `antigravity`, nhưng `magpie providers` không
 hiện vì thiếu plugin trên máy này.
@@ -57,6 +57,7 @@ hiện vì thiếu plugin trên máy này.
 | `freepi2` | FreePi2 | OAuth (plugin riêng) | 1 / 18 | **bật**; tài khoản thứ ba, repo private `Duc-Nguyen-739/FreePiLogin2`, kho `~/.freepi2` + session id riêng; cài bằng clone + `magpie plugin add <thư mục>` — `docs/providers.md` |
 | `freepi3` | FreePi3 | OAuth (plugin riêng) | 1 / 18 | **bật**; tài khoản thứ tư, repo private `Duc-Nguyen-739/FreePiLogin3`, kho `~/.freepi3` — `docs/freepi3.md` |
 | `freepi4` | FreePi4 | OAuth (plugin riêng) | 1 / 18 | **bật**; tài khoản thứ năm, repo private `Duc-Nguyen-739/FreePiLogin4`, kho `~/.freepi4` — `docs/freepi4.md` |
+| `freepi5` | FreePi5 | OAuth (plugin riêng) | 1 / 18 | **bật**; tài khoản thứ sáu, repo private `Duc-Nguyen-739/FreePiLogin5`, kho `~/.freepi5` — `docs/freepi5.md` |
 | `agy-cli` | agy-cli | OAuth Google (plugin) | 3 / 5 | **bật**; `gemini-3.8-flash`, `gemini-2.5-flash-lite`, `claude-opus-4-6-thinking` |
 | `agnes` | Agnes | API key | 1 / 4 | **tắt** (`magpie provider on agnes`); `agnes-3.0-flash` |
 | `kilo` | Kilo Gateway | API key | 2 / 406 | **bật**; có `reflection/beam-free` và `particle-1:free` |
@@ -71,7 +72,7 @@ hiện vì thiếu plugin trên máy này.
 | `copilot` | Copilot | OAuth GitHub | 1 / 24 | **tắt** |
 | `opencode-zen-free` | OpenCode Zen Free | plugin, key công khai | 8 / 15 | **tắt**; plugin vẫn cài, bật lại được |
 
-## Plugin (12)
+## Plugin (13)
 
 ```
 @magpie-community/opencode-autoclaw-auth@0.2.9    autoclaw, autoclaw-cn
@@ -83,6 +84,7 @@ magpie-freepi-auth@latest                         freepi
 magpie-freepi2-auth (local clone)                  freepi2 (FreePi2)
 magpie-freepi3-auth (local clone)                  freepi3 (FreePi3)
 magpie-freepi4-auth (local clone)                  freepi4 (FreePi4)
+magpie-freepi5-auth (local clone)                  freepi5 (FreePi5)
 @magpie-community/opencode-agy-cli-auth@latest    agy-cli
 @magpie-community/opencode-zen-free-auth@latest   opencode-zen-free
 opencode-zen-freex@latest                         phục vụ opencode-zen-free
@@ -146,8 +148,8 @@ cùng một model từ kilo/openrouter/cline. Chúng không được agent nào 
 
 - Provider `magpie`: khai trong `providers` của `opencode.json`, `baseURL:
   http://127.0.0.1:3425/v1`, `apiKey: magpie` (chuỗi giả — gateway local không cần key
-  thật), **28 model** do magpie sinh: 8 `group/*` (thiếu `group/main` vì group đang tắt)
-  + model lẻ của các provider đang bật (gồm `freepi2/…`, `freepi3/…`, `freepi4/…`). `model: magpie/group/main`, agent `title` dùng
+  thật), **29 model** do magpie sinh: 8 `group/*` (thiếu `group/main` vì group đang tắt)
+  + model lẻ của các provider đang bật (gồm `freepi2/…`, `freepi3/…`, `freepi4/…`, `freepi5/…`). `model: magpie/group/main`, agent `title` dùng
   `magpie/workbuddy-ai/hy4flash-free`.
 - Provider gọi thẳng còn khai báo: `xingchi` (bật, dùng cho `group/leader`), còn
   `kiraai`, `takenbarbor`, `dsh` nằm trong `disabled_providers` cùng `kilo` (đã có
@@ -214,7 +216,7 @@ script không thêm khoá đó nữa — đó là hành vi đúng, không phải
 | Hạng mục | Repo | Ghi chú |
 |---|---|---|
 | magpie binary | ✅ | installer chính thức hoặc `--from-source` (clone yetone/magpie) |
-| 12 plugin provider | ✅ | `scripts/plugins.sh` (FreePi2/3/4 clone từ repo private) |
+| 13 plugin provider | ✅ | `scripts/plugins.sh` (FreePi2/3/4/5 clone từ repo private) |
 | 9 routing group | ✅ | **giống hệt** cấu hình máy này, kể cả `group/free`; `review`/`reviewplan` chỉ tạo khi thiếu, `--force` không reset; riêng `group/main` do script tạo ở trạng thái **bật** (máy này tắt tay) |
 | settings.json | ✅ | chỉ thêm khoá thiếu |
 | `opencode-zen` bật, chỉ expose `jev-1.13-free`; `opencode-zen-free` tắt | ✅ | `setup-settings.sh` |
