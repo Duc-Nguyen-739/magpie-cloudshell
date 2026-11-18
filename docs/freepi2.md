@@ -244,10 +244,10 @@ git -C ~/.local/src/FreePiLogin2 pull --ff-only
 magpie plugin add ~/.local/src/FreePiLogin2
 ```
 
-Gỡ plugin (token vẫn còn trong `plugin-auth.json`; đăng xuất bằng
-`magpie plugin logout freepi2` nếu muốn xoá token):
+Gỡ plugin:
 
 ```sh
+magpie plugin logout freepi2     # tuỳ chọn: xoá token khỏi plugin-auth.json
 magpie plugin rm ~/.local/src/FreePiLogin2
 ```
 
