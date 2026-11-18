@@ -72,7 +72,7 @@ hiện vì thiếu plugin trên máy này.
 | `copilot` | Copilot | OAuth GitHub | 1 / 24 | **tắt** |
 | `opencode-zen-free` | OpenCode Zen Free | plugin, key công khai | 8 / 15 | **tắt**; plugin vẫn cài, bật lại được |
 
-## Plugin (13)
+## Plugin (14)
 
 ```
 @magpie-community/opencode-autoclaw-auth@0.2.9    autoclaw, autoclaw-cn
@@ -85,6 +85,7 @@ magpie-freepi2-auth (local clone)                  freepi2 (FreePi2)
 magpie-freepi3-auth (local clone)                  freepi3 (FreePi3)
 magpie-freepi4-auth (local clone)                  freepi4 (FreePi4)
 magpie-freepi5-auth (local clone)                  freepi5 (FreePi5)
+magpie-freepi6-auth (local clone)                  freepi6 (FreePi6)
 @magpie-community/opencode-agy-cli-auth@latest    agy-cli
 @magpie-community/opencode-zen-free-auth@latest   opencode-zen-free
 opencode-zen-freex@latest                         phục vụ opencode-zen-free
@@ -216,7 +217,7 @@ script không thêm khoá đó nữa — đó là hành vi đúng, không phải
 | Hạng mục | Repo | Ghi chú |
 |---|---|---|
 | magpie binary | ✅ | installer chính thức hoặc `--from-source` (clone yetone/magpie) |
-| 13 plugin provider | ✅ | `scripts/plugins.sh` (FreePi2/3/4/5 clone từ repo private) |
+| 14 plugin provider | ✅ | `scripts/plugins.sh` (FreePi2/3/4/5/6 clone từ repo private) |
 | 9 routing group | ✅ | **giống hệt** cấu hình máy này, kể cả `group/free`; `review`/`reviewplan` chỉ tạo khi thiếu, `--force` không reset; riêng `group/main` do script tạo ở trạng thái **bật** (máy này tắt tay) |
 | settings.json | ✅ | chỉ thêm khoá thiếu |
 | `opencode-zen` bật, chỉ expose `jev-1.13-free`; `opencode-zen-free` tắt | ✅ | `setup-settings.sh` |

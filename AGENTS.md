@@ -25,8 +25,8 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
 - magpie bản terminal trong `~/.local/bin` (không desktop, không systemd).
 - **18 provider** hiện trong `magpie providers`, **14 bật / 4 tắt** (`aihubmix`,
   `copilot`, `agnes`, `opencode-zen-free`). `providers.json` còn record `qoder` và
-  `antigravity` nhưng không hiện vì thiếu plugin. Mười ba plugin đang cài: AutoClaw (Zhipu),
-  WorkBuddy, agy-cli, cline, kiro, agnes, FreePi, FreePi2, FreePi3, FreePi4, FreePi5,
+  `antigravity` nhưng không hiện vì thiếu plugin. Mười bốn plugin đang cài: AutoClaw (Zhipu),
+  WorkBuddy, agy-cli, cline, kiro, agnes, FreePi, FreePi2, FreePi3, FreePi4, FreePi5, FreePi6,
   OpenCode Zen Free (2 plugin).
   `free-pi` đã được gỡ khỏi máy này ngày 2026-11-18 theo yêu cầu; các script
   `patch-free-pi.mjs`, `patch-free-pi-ads.mjs`, `setup-freepi-pair.mjs` vẫn còn trong
@@ -35,10 +35,11 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   rồi `magpie plugin add` (không cài được bằng spec `github:` — bun tải tarball không
   kèm token nên 404); kho riêng `~/.freepi2`, session id riêng, mô tả tiếng Việt.
   Chi tiết cài/đăng nhập/vướng mắc: [`docs/freepi2.md`](docs/freepi2.md).
-  `freepi3`, `freepi4` và `freepi5` làm y hệt (`FreePiLogin3`, `FreePiLogin4`, `FreePiLogin5`;
-  kho `~/.freepi3`, `~/.freepi4`, `~/.freepi5`), tài khoản thứ tư, thứ năm và thứ sáu;
-  tài liệu [`docs/freepi3.md`](docs/freepi3.md), [`docs/freepi4.md`](docs/freepi4.md),
-  [`docs/freepi5.md`](docs/freepi5.md).
+  `freepi3`, `freepi4`, `freepi5` và `freepi6` làm y hệt (`FreePiLogin3`, `FreePiLogin4`,
+  `FreePiLogin5`, `FreePiLogin6`; kho `~/.freepi3`, `~/.freepi4`, `~/.freepi5`, `~/.freepi6`),
+  tài khoản thứ tư, thứ năm, thứ sáu và một tài khoản riêng; tài liệu
+  [`docs/freepi3.md`](docs/freepi3.md), [`docs/freepi4.md`](docs/freepi4.md),
+  [`docs/freepi5.md`](docs/freepi5.md), [`docs/freepi6.md`](docs/freepi6.md).
 - `settings.json` giống máy tham chiếu (theme dark, `vision=workbuddy-ai/hy4flash-free`
   + `visionEffort=max`, `redact=astrlink-guard`, `quotaLeft`, `textSize=110`, check-in
   AutoClaw + Qoder — qoder đang tắt nên chỉ còn AutoClaw có tác dụng); `opencode-zen` (API key) **bật nhưng chỉ mở `jev-1.13-free`** làm
@@ -138,7 +139,7 @@ Kiểm tra:
 ```sh
 magpie --version                  # có số phiên bản
 magpie healthcheck && echo ok     # exit 0
-magpie plugin list                # 13 plugin, "on"
+magpie plugin list                # 14 plugin, "on"
 command -v openchamber openmagpie magpie-headless-start
 ```
 

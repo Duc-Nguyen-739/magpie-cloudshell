@@ -58,7 +58,7 @@ status() {
   say "Plugin:"
   magpie plugin list 2>/dev/null | sed 's/^/  /'
   say ""
-  say "Đăng nhập: bash scripts/login.sh autoclaw|workbuddy|freepi2|freepi3|freepi4|freepi5|qoder|zcode|keys"
+  say "Đăng nhập: bash scripts/login.sh autoclaw|workbuddy|freepi2|freepi3|freepi4|freepi5|freepi6|qoder|zcode|keys"
 }
 
 # Server callback của AutoClaw chỉ nghe 127.0.0.1, nên trình duyệt phải ở cùng máy.
@@ -129,11 +129,12 @@ case "$1" in
     finish_after
     ;;
 
-  freepi2|freepi3|freepi4|freepi5)
+  freepi2|freepi3|freepi4|freepi5|freepi6)
     case "$1" in
       freepi3) NAME="FreePi3"; NUM="thứ tư" ;;
       freepi4) NAME="FreePi4"; NUM="thứ năm" ;;
       freepi5) NAME="FreePi5"; NUM="thứ sáu" ;;
+      freepi6) NAME="FreePi6"; NUM="riêng" ;;
       *)       NAME="FreePi2"; NUM="thứ ba" ;;
     esac
     PROVIDER="$1"
