@@ -189,6 +189,10 @@ khác nhau:
 | `freepi2` | `ngaynaochavao7399-del` |
 | `freepi3` | `ngaynaochavao739-ui` |
 
+> Lưu ý: tài khoản này cũng có trong pool `~/.free-pi/agent/accounts.json` của
+> `free-pi` (dù `free-pi` đang đăng nhập bằng `Duc-Nguyen-739`). Nếu muốn FreePi3
+> tách hẳn, chạy `magpie plugin logout freepi3` rồi đăng nhập một tài khoản khác.
+
 FreePi3 tách `x-session-id`, token, thư mục trạng thái và budget. **Không tách
 được IP**: nếu cả bốn đi ra cùng một địa chỉ mạng, upstream vẫn thấy chúng sau
 cùng một IP, và mỗi JWT đều định danh tài khoản. Plugin không thể bảo đảm server
