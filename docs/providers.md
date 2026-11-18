@@ -14,6 +14,8 @@ sửa cấu hình agent** — magpie tự ghi lại danh sách model.
 | `freepi` | FreePi | OAuth (plugin) | tài khoản FreePi | `magpie provider test freepi deepseek-v4.1-flash` |
 | `free-pi` | free-pi | OAuth (plugin) | tài khoản GitHub thứ hai | `magpie provider test free-pi particle` |
 | `freepi2` | FreePi2 | OAuth (plugin riêng, repo private) | tài khoản FreePi thứ ba | `magpie provider test freepi2 deepseek-v4.1-flash` |
+| `freepi3` | FreePi3 | OAuth (plugin riêng, repo private) | tài khoản FreePi thứ tư | `magpie provider test freepi3 deepseek-v4.1-flash` |
+| `freepi4` | FreePi4 | OAuth (plugin riêng, repo private) | tài khoản FreePi thứ năm | `magpie provider test freepi4 deepseek-v4.1-flash` |
 | `cline` | Cline | OAuth (plugin) | tài khoản Cline | `magpie accounts` |
 | `kiro` | Kiro | OAuth Google (plugin) | tài khoản Kiro | `magpie accounts` |
 | `agnes` | Agnes | plugin + API key `cpk-…` | key từ `platform.agnes-ai.com` | **tắt** (`magpie provider on agnes`) |
@@ -142,9 +144,9 @@ báo xong. Key không đi qua chat và không ghi log.
 Console token (`localStorage.getItem("token")` ở `platform.agnes-ai.com`) là tuỳ chọn, chỉ
 để đọc hạn mức; không có nó vẫn gọi model bình thường.
 
-### Cụm FreePi — `freepi`, `free-pi`, `freepi2`
+### Cụm FreePi — `freepi`, `free-pi`, `freepi2`, `freepi3`, `freepi4`
 
-Ba plugin, cùng một upstream `api.freepi.ai`, **ba tài khoản khác nhau** — không phải
+Năm plugin, cùng một upstream `api.freepi.ai`, **năm tài khoản khác nhau** — không phải
 bản sao của nhau:
 
 | Plugin | Provider id | Tài khoản trên máy này | Model expose |
@@ -152,14 +154,17 @@ bản sao của nhau:
 | `magpie-freepi-auth` | `freepi` | `ducnguyenvan05-source` (Free) | 1 / 18 — `deepseek-v4.1-flash` |
 | `magpie-free-pi` | `free-pi` | `Duc-Nguyen-739` (young) | 1 / 9 — `deepseek-v4.1-flash` (catalog 9 model; pick list tuỳ máy) |
 | `magpie-freepi2-auth` | `freepi2` | `ngaynaochavao7399-del` | 1 / 18 — `deepseek-v4.1-flash` |
+| `magpie-freepi3-auth` | `freepi3` | `ngaynaochavao739-ui` | 1 / 18 — `deepseek-v4.1-flash` |
+| `magpie-freepi4-auth` | `freepi4` | `ngaynaochavao73999-code` | 1 / 18 — `deepseek-v4.1-flash` |
 
-Mỗi tài khoản có budget riêng (15.000 credits/ngày; riêng FreePi2 là 6.000 trên tài khoản này) và **một slot đồng thời riêng**: gọi
-đồng thời ba provider thì cả ba trả 200, còn hai request cùng lúc trên **một** provider
-thì request thứ hai nhận `429 one request at a time`. Vì vậy ba tài khoản = ba slot +
-ba budget, không phải "đổi tài khoản" và không bị server chặn.
+Mỗi tài khoản có budget riêng (15.000 credits/ngày; riêng FreePi2/FreePi3/FreePi4 là 6.000 trên tài khoản này) và **một slot đồng thời riêng**: gọi
+đồng thời năm provider thì cả năm trả 200, còn hai request cùng lúc trên **một** provider
+thì request thứ hai nhận `429 one request at a time`. Vì vậy năm tài khoản = năm slot +
+năm budget, không phải "đổi tài khoản" và không bị server chặn.
 
-**Tách rời nhau ở đâu.** Hai provider chỉ dùng chung domain; phần đăng nhập, session,
-budget và slot là riêng từng cái:
+**Tách rời nhau ở đâu.** Các provider chỉ dùng chung domain; phần đăng nhập, session,
+budget và slot là riêng từng cái (bảng dưới là hai provider gốc; FreePi2/FreePi3/FreePi4 có
+mục riêng bên dưới):
 
 | | `freepi` | `free-pi` |
 |---|---|---|
@@ -285,6 +290,126 @@ server không phát hiện; nếu cần khác IP, đặt proxy riêng cho provid
 
 ```sh
 magpie plugin options ~/.local/src/FreePiLogin2 '{"proxy":"http://proxy-host:8080"}'
+```
+
+Đây là plugin cộng đồng không chính thức, dịch ngược từ `free-pi-cli`; upstream đổi
+là hỏng. Mã nguồn FreePi2API gốc nằm trong `upstream/FreePi2API/` của repo.
+
+### FreePi3 — `freepi3` (plugin riêng, repo private)
+
+Chi tiết đầy đủ (cài, đăng nhập, vướng mắc, giới hạn): [`docs/freepi3.md`](freepi3.md).
+
+Bản sao logic của FreePi2 nhưng **cổng đăng nhập và kho dữ liệu hoàn toàn riêng**, để
+dùng tài khoản FreePi thứ tư mà không đụng `freepi` / `free-pi` / `freepi2`:
+
+| | `freepi3` |
+|---|---|
+| Repo | <https://github.com/Duc-Nguyen-739/FreePiLogin3> (**private**) |
+| Plugin | `magpie-freepi3-auth` |
+| Tên hiển thị | **FreePi3** — icon riêng (tia chớp trên nền cam/đỏ + số 3), mô tả tiếng Việt |
+| JWT giữ ở | `~/.config/magpie/plugin-auth.json`, khoá `freepi3` |
+| `x-session-id` | `~/.freepi3/session-id` — UUID ngẫu nhiên, file 0600, thư mục 0700 |
+| Đổi thư mục | `FREEPI3_HOME=/đường/dẫn/khác` |
+| Tài khoản trên máy này | `ngaynaochavao739-ui` — 6.000 credits/ngày, 1 slot |
+| Client version | tự canh từ `/client-version` (như `freepi`) |
+| Ad gate | tự báo `GET /ads/next?slot=banner` → `POST /ads/impression` (như `freepi`) |
+
+**Cài (repo private).** Giống FreePi2, `magpie plugin add github:...` trả `404` vì bun
+tải tarball qua API GitHub mà không gửi token. Clone rồi trỏ vào thư mục:
+
+```sh
+gh repo clone Duc-Nguyen-739/FreePiLogin3 ~/.local/src/FreePiLogin3
+magpie plugin add ~/.local/src/FreePiLogin3
+```
+
+Cập nhật:
+
+```sh
+git -C ~/.local/src/FreePiLogin3 pull --ff-only
+magpie plugin rm ~/.local/src/FreePiLogin3
+magpie plugin add ~/.local/src/FreePiLogin3
+```
+
+**Đăng nhập.** Web UI → Settings → Providers → Add provider → **From plugins** →
+**FreePi3** → “Đăng nhập bằng mã thiết bị GitHub”. Trên Cloud Shell dùng web UI
+(`openmagpie`) thay vì CLI. `magpie providers` chỉ hiện FreePi3 **sau khi** đăng nhập;
+trước đó xem `magpie plugin list`.
+
+**Dùng.**
+
+```sh
+magpie provider test freepi3 deepseek-v4.1-flash   # ✓ chat
+magpie provider models freepi3                     # chọn thêm model (18 có sẵn)
+magpie group set main models+=freepi3/deepseek-v4.1-flash
+```
+
+**Giới hạn chống bị gộp tài khoản.** FreePi3 tách session id, JWT, client version và
+budget, nhưng **không tách được IP**: upstream vẫn thấy mọi request đi từ cùng một địa
+chỉ và mỗi JWT đều định danh tài khoản. Plugin không thể bảo đảm server không phát hiện;
+nếu cần khác IP, đặt proxy riêng:
+
+```sh
+magpie plugin options ~/.local/src/FreePiLogin3 '{"proxy":"http://proxy-host:8080"}'
+```
+
+Đây là plugin cộng đồng không chính thức, dịch ngược từ `free-pi-cli`; upstream đổi
+là hỏng. Mã nguồn FreePi2API gốc nằm trong `upstream/FreePi2API/` của repo.
+
+### FreePi4 — `freepi4` (plugin riêng, repo private)
+
+Chi tiết đầy đủ (cài, đăng nhập, vướng mắc, giới hạn): [`docs/freepi4.md`](freepi4.md).
+
+Bản sao logic của FreePi2 nhưng **cổng đăng nhập và kho dữ liệu hoàn toàn riêng**, để
+dùng tài khoản FreePi thứ năm mà không đụng `freepi` / `free-pi` / `freepi2`:
+
+| | `freepi4` |
+|---|---|
+| Repo | <https://github.com/Duc-Nguyen-739/FreePiLogin4> (**private**) |
+| Plugin | `magpie-freepi4-auth` |
+| Tên hiển thị | **FreePi4** — icon riêng (tia chớp trên nền tím/hồng + số 4), mô tả tiếng Việt |
+| JWT giữ ở | `~/.config/magpie/plugin-auth.json`, khoá `freepi4` |
+| `x-session-id` | `~/.freepi4/session-id` — UUID ngẫu nhiên, file 0600, thư mục 0700 |
+| Đổi thư mục | `FREEPI4_HOME=/đường/dẫn/khác` |
+| Tài khoản trên máy này | `ngaynaochavao73999-code` — 6.000 credits/ngày, 1 slot |
+| Client version | tự canh từ `/client-version` (như `freepi`) |
+| Ad gate | tự báo `GET /ads/next?slot=banner` → `POST /ads/impression` (như `freepi`) |
+
+**Cài (repo private).** Giống FreePi2, `magpie plugin add github:...` trả `404` vì bun
+tải tarball qua API GitHub mà không gửi token. Clone rồi trỏ vào thư mục:
+
+```sh
+gh repo clone Duc-Nguyen-739/FreePiLogin4 ~/.local/src/FreePiLogin4
+magpie plugin add ~/.local/src/FreePiLogin4
+```
+
+Cập nhật:
+
+```sh
+git -C ~/.local/src/FreePiLogin4 pull --ff-only
+magpie plugin rm ~/.local/src/FreePiLogin4
+magpie plugin add ~/.local/src/FreePiLogin4
+```
+
+**Đăng nhập.** Web UI → Settings → Providers → Add provider → **From plugins** →
+**FreePi4** → “Đăng nhập bằng mã thiết bị GitHub”. Trên Cloud Shell dùng web UI
+(`openmagpie`) thay vì CLI. `magpie providers` chỉ hiện FreePi4 **sau khi** đăng nhập;
+trước đó xem `magpie plugin list`.
+
+**Dùng.**
+
+```sh
+magpie provider test freepi4 deepseek-v4.1-flash   # ✓ chat
+magpie provider models freepi4                     # chọn thêm model (18 có sẵn)
+magpie group set main models+=freepi4/deepseek-v4.1-flash
+```
+
+**Giới hạn chống bị gộp tài khoản.** FreePi4 tách session id, JWT, client version và
+budget, nhưng **không tách được IP**: upstream vẫn thấy mọi request đi từ cùng một địa
+chỉ và mỗi JWT đều định danh tài khoản. Plugin không thể bảo đảm server không phát hiện;
+nếu cần khác IP, đặt proxy riêng:
+
+```sh
+magpie plugin options ~/.local/src/FreePiLogin4 '{"proxy":"http://proxy-host:8080"}'
 ```
 
 Đây là plugin cộng đồng không chính thức, dịch ngược từ `free-pi-cli`; upstream đổi

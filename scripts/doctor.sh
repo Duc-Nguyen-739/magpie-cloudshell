@@ -76,19 +76,23 @@ if magpie plugin list 2>/dev/null | grep -q 'magpie-free-pi'; then
   fi
 fi
 
-# FreePi2: plugin riêng, kho riêng ~/.freepi2, token khoá `freepi2`.
-if magpie plugin list 2>/dev/null | grep -q 'freepi2'; then
-  if [ -s "$HOME/.freepi2/session-id" ]; then
-    perm="$(stat -c '%a' "$HOME/.freepi2/session-id" 2>/dev/null || echo '?')"
-    [ "$perm" = "600" ] && ok "FreePi2: session id riêng (~/.freepi2, quyền 600)" \
-      || warn "FreePi2: ~/.freepi2/session-id quyền $perm (nên là 600)"
-  else
-    warn "FreePi2 chưa có ~/.freepi2/session-id — sẽ tạo ở lần đăng nhập đầu"
+# FreePi2/FreePi3: plugin riêng, kho riêng ~/.freepi2, ~/.freepi3.
+for pair in "FreePi2:freepi2" "FreePi3:freepi3" "FreePi4:freepi4"; do
+  name="${pair%%:*}"
+  provider="${pair##*:}"
+  if magpie plugin list 2>/dev/null | grep -q "$provider"; then
+    if [ -s "$HOME/.$provider/session-id" ]; then
+      perm="$(stat -c '%a' "$HOME/.$provider/session-id" 2>/dev/null || echo '?')"
+      [ "$perm" = "600" ] && ok "$name: session id riêng (~/.$provider, quyền 600)" \
+        || warn "$name: ~/.$provider/session-id quyền $perm (nên là 600)"
+    else
+      warn "$name chưa có ~/.$provider/session-id — sẽ tạo ở lần đăng nhập đầu"
+    fi
+    magpie providers 2>/dev/null | grep -q "$provider" \
+      && ok "$name đã đăng nhập" \
+      || warn "$name chưa đăng nhập — web UI → Add provider → $name"
   fi
-  magpie providers 2>/dev/null | grep -q 'freepi2' \
-    && ok "FreePi2 đã đăng nhập" \
-    || warn "FreePi2 chưa đăng nhập — web UI → Add provider → FreePi2"
-fi
+done
 
 head_ "Đăng nhập"
 signed="$(magpie accounts 2>/dev/null | grep -c '^●' || true)"

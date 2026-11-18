@@ -23,10 +23,11 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
 ## Bạn đang dựng gì
 
 - magpie bản terminal trong `~/.local/bin` (không desktop, không systemd).
-- **16 provider** hiện trong `magpie providers`, **12 bật / 4 tắt** (`aihubmix`,
+- **18 provider** hiện trong `magpie providers`, **14 bật / 4 tắt** (`aihubmix`,
   `copilot`, `agnes`, `opencode-zen-free`). `providers.json` còn record `qoder` và
-  `antigravity` nhưng không hiện vì thiếu plugin. Mười một plugin đang cài: AutoClaw (Zhipu),
-  WorkBuddy, agy-cli, cline, kiro, agnes, FreePi, free-pi, FreePi2, OpenCode Zen Free (2 plugin).
+  `antigravity` nhưng không hiện vì thiếu plugin. Mười ba plugin đang cài: AutoClaw (Zhipu),
+  WorkBuddy, agy-cli, cline, kiro, agnes, FreePi, free-pi, FreePi2, FreePi3, FreePi4,
+  OpenCode Zen Free (2 plugin).
   `free-pi` là tài khoản thứ hai của cùng `api.freepi.ai` — **phải chạy
   `node scripts/patch-free-pi.mjs` và `node scripts/patch-free-pi-ads.mjs` sau mỗi lần
   cài/cập nhật plugin**, nếu không mọi model trả 426 (client version) hoặc completion trả
@@ -35,6 +36,9 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   rồi `magpie plugin add` (không cài được bằng spec `github:` — bun tải tarball không
   kèm token nên 404); kho riêng `~/.freepi2`, session id riêng, mô tả tiếng Việt.
   Chi tiết cài/đăng nhập/vướng mắc: [`docs/freepi2.md`](docs/freepi2.md).
+  `freepi3` và `freepi4` làm y hệt (`FreePiLogin3`, `FreePiLogin4`; kho `~/.freepi3`,
+  `~/.freepi4`), tài khoản thứ tư và thứ năm; tài liệu [`docs/freepi3.md`](docs/freepi3.md),
+  [`docs/freepi4.md`](docs/freepi4.md).
 - `settings.json` giống máy tham chiếu (theme dark, `vision=workbuddy-ai/hy4flash-free`
   + `visionEffort=max`, `redact=astrlink-guard`, `quotaLeft`, `textSize=110`, check-in
   AutoClaw + Qoder — qoder đang tắt nên chỉ còn AutoClaw có tác dụng); `opencode-zen` (API key) **bật nhưng chỉ mở `jev-1.13-free`** làm
@@ -80,8 +84,8 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   vì `group/tester-3` dùng `kilo/reflection/beam-free`; `aihubmix` đang tắt, nếu bật
   thì 36 model `-free` chỉ trả câu từ chối (tài khoản chưa nạp tiền) — xem mục lỗi
   thường gặp.
-- OpenCode khai **27 model** của provider `magpie` (8 `group/*` — thiếu `group/main`
-  vì group đang tắt — cộng model lẻ, trong đó có `freepi2/deepseek-v4.1-flash`), `model: magpie/group/main`, model phụ cho agent
+- OpenCode khai **29 model** của provider `magpie` (8 `group/*` — thiếu `group/main`
+  vì group đang tắt — cộng model lẻ, trong đó có `freepi2/…`, `freepi3/…`, `freepi4/…`), `model: magpie/group/main`, model phụ cho agent
   `title` là `magpie/workbuddy-ai/hy4flash-free`. OpenChamber đặt
   `defaultModel: magpie/group/leader`, `defaultVariant: max`, `defaultAgent: leader`;
   agent `leader` + 6 subagent `review`, `reviewplan`, `coder`, `tester`, `tester2`,
@@ -134,7 +138,7 @@ Kiểm tra:
 ```sh
 magpie --version                  # có số phiên bản
 magpie healthcheck && echo ok     # exit 0
-magpie plugin list                # 11 plugin, "on"
+magpie plugin list                # 13 plugin, "on"
 command -v openchamber openmagpie magpie-headless-start
 ```
 

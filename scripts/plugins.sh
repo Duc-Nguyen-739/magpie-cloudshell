@@ -45,35 +45,41 @@ done
 say ""
 say "Đã cài $(magpie plugin list 2>/dev/null | grep -c '  on$' || true) plugin. Xem: magpie plugin list"
 
-# FreePi2 — plugin trong repo private. Không dùng spec `github:` được: bun tải
-# tarball qua api.github.com mà không gửi token nên GitHub trả 404 với repo private.
-# Cách chạy được: clone bằng gh rồi cài từ thư mục local.
-FREEPI2_DIR="${FREEPI2_DIR:-$HOME/.local/src/FreePiLogin2}"
-if magpie plugin list 2>/dev/null | grep -q 'freepi2'; then
-  say "đã có FreePi2"
-else
-  if [ ! -d "$FREEPI2_DIR/.git" ]; then
+# FreePi2/FreePi3 — plugin trong repo private. Không dùng spec `github:` được: bun
+# tải tarball qua api.github.com mà không gửi token nên GitHub trả 404 với repo
+# private. Cách chạy được: clone bằng gh rồi cài từ thư mục local.
+install_private_plugin() {
+  local label="$1" repo="$2" provider="$3" dir="$4"
+  if magpie plugin list 2>/dev/null | grep -q "$provider"; then
+    say "đã có $label"
+    return 0
+  fi
+  if [ ! -d "$dir/.git" ]; then
     if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
-      say "clone FreePi2 (repo private)…"
-      if gh repo clone Duc-Nguyen-739/FreePiLogin2 "$FREEPI2_DIR" >/dev/null 2>&1; then
+      say "clone $label (repo private)…"
+      if gh repo clone "Duc-Nguyen-739/$repo" "$dir" >/dev/null 2>&1; then
         say "  ✓ clone"
       else
-        warn "không clone được FreePiLogin2 — kiểm tra quyền đọc repo (gh auth login)"
+        warn "không clone được $repo — kiểm tra quyền đọc repo (gh auth login)"
       fi
     else
-      warn "FreePi2 là repo private: cần 'gh auth login' hoặc clone sẵn vào $FREEPI2_DIR"
+      warn "$label là repo private: cần 'gh auth login' hoặc clone sẵn vào $dir"
     fi
   fi
-  if [ -f "$FREEPI2_DIR/package.json" ]; then
-    say "cài FreePi2 từ $FREEPI2_DIR…"
-    if magpie plugin add "$FREEPI2_DIR" >/dev/null 2>&1; then
-      say "  ✓ FreePi2"
+  if [ -f "$dir/package.json" ]; then
+    say "cài $label từ $dir…"
+    if magpie plugin add "$dir" >/dev/null 2>&1; then
+      say "  ✓ $label"
     else
-      warn "không cài được FreePi2 — chạy tay: magpie plugin add $FREEPI2_DIR"
+      warn "không cài được $label — chạy tay: magpie plugin add $dir"
       rc=1
     fi
   fi
-fi
+}
+
+install_private_plugin "FreePi2" "FreePiLogin2" "freepi2" "${FREEPI2_DIR:-$HOME/.local/src/FreePiLogin2}"
+install_private_plugin "FreePi3" "FreePiLogin3" "freepi3" "${FREEPI3_DIR:-$HOME/.local/src/FreePiLogin3}"
+install_private_plugin "FreePi4" "FreePiLogin4" "freepi4" "${FREEPI4_DIR:-$HOME/.local/src/FreePiLogin4}"
 
 # free-pi ghim phiên bản client trong mã nguồn, server nâng mức tối thiểu là mọi
 # request chat bị 426 (trước cả khi chọn model). Vá lại sau mỗi lần cài/cập nhật.
