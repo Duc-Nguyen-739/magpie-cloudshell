@@ -194,8 +194,8 @@ cùng một IP, và mỗi JWT đều định danh tài khoản. Plugin không th
 không phát hiện. Nếu cần khác IP, đặt proxy riêng cho FreePi2:
 
 ```sh
-magpie plugin options magpie-freepi2-auth '{"proxy":"http://proxy-host:8080"}'
-magpie plugin options magpie-freepi2-auth off   # bỏ proxy
+magpie plugin options ~/.local/src/FreePiLogin2 '{"proxy":"http://proxy-host:8080"}'
+magpie plugin options ~/.local/src/FreePiLogin2 off   # bỏ proxy
 ```
 
 Đây là biện pháp giảm khả năng bị gộp, không phải bảo đảm tuyệt đối.

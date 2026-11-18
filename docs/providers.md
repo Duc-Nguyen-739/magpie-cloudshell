@@ -284,7 +284,7 @@ từ cùng một địa chỉ và mỗi JWT đều định danh tài khoản. Pl
 server không phát hiện; nếu cần khác IP, đặt proxy riêng cho provider này:
 
 ```sh
-magpie plugin options magpie-freepi2-auth '{"proxy":"http://proxy-host:8080"}'
+magpie plugin options ~/.local/src/FreePiLogin2 '{"proxy":"http://proxy-host:8080"}'
 ```
 
 Đây là plugin cộng đồng không chính thức, dịch ngược từ `free-pi-cli`; upstream đổi
