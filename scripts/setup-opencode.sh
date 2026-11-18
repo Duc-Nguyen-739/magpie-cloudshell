@@ -79,6 +79,11 @@ else
   fi
 fi
 
+# --------------------------------------------------------------- MCP servers
+if [ -x "$REPO_DIR/scripts/setup-mcp.sh" ]; then
+  bash "$REPO_DIR/scripts/setup-mcp.sh" || warn "setup-mcp.sh lỗi — bỏ qua"
+fi
+
 say ""
 say "Provider magpie trong opencode.jsonc do chính magpie ghi khi bạn chạy"
 say "'magpie opencode group/main' — không cần sửa tay. Xem docs/opencode.md."

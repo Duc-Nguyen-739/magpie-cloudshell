@@ -254,6 +254,7 @@ scripts/
   install-opencode.sh       OpenCode (opencode.ai/install)
   install-openchamber.sh    @openchamber/web vào ~/.npm-global
   setup-opencode.sh         agent leader + 6 subagent + skill magpie-setup
+  setup-mcp.sh              MCP: magpie-sessions/browser/search, Cloudflare docs, Chrome DevTools
   setup-settings.sh         settings.json + trạng thái provider (chỉ thêm khoá thiếu)
   autoclaw-link.sh          in link localhost/preview để đăng nhập AutoClaw
   agnes-link.sh             trang local để đăng nhập Agnes (dán API key)

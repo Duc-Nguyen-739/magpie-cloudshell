@@ -102,6 +102,14 @@ tác magpie đúng cách. Nguồn:
 [magpie-community/plugins](https://github.com/magpie-community/plugins/tree/main/skills/magpie-setup).
 `scripts/setup-opencode.sh` clone bản tương đương nếu máy chưa có.
 
+## MCP server
+
+`scripts/setup-mcp.sh` thêm năm server vào thư viện magpie rồi ghi vào OpenCode:
+`magpie-sessions`, `magpie-browser`, `magpie-web-search` (do magpie chạy, trỏ
+`MAGPIE_ADDR` về gateway), `cloudflare-docs` (remote) và `chrome-devtools`
+(`npx -y chrome-devtools-mcp@latest`, không hard-code đường dẫn). Server nào đã có
+thì bỏ qua; `magpie library sync` ở cuối ghi lại nếu file agent bị sửa tay.
+
 ## Kiểm tra
 
 ```sh
