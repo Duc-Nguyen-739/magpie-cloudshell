@@ -76,6 +76,20 @@ if magpie plugin list 2>/dev/null | grep -q 'magpie-free-pi'; then
   fi
 fi
 
+# FreePi2: plugin riêng, kho riêng ~/.freepi2, token khoá `freepi2`.
+if magpie plugin list 2>/dev/null | grep -q 'freepi2'; then
+  if [ -s "$HOME/.freepi2/session-id" ]; then
+    perm="$(stat -c '%a' "$HOME/.freepi2/session-id" 2>/dev/null || echo '?')"
+    [ "$perm" = "600" ] && ok "FreePi2: session id riêng (~/.freepi2, quyền 600)" \
+      || warn "FreePi2: ~/.freepi2/session-id quyền $perm (nên là 600)"
+  else
+    warn "FreePi2 chưa có ~/.freepi2/session-id — sẽ tạo ở lần đăng nhập đầu"
+  fi
+  magpie providers 2>/dev/null | grep -q 'freepi2' \
+    && ok "FreePi2 đã đăng nhập" \
+    || warn "FreePi2 chưa đăng nhập — web UI → Add provider → FreePi2"
+fi
+
 head_ "Đăng nhập"
 signed="$(magpie accounts 2>/dev/null | grep -c '^●' || true)"
 [ "$signed" -gt 0 ] && ok "$signed tài khoản đang dùng" || warn "chưa đăng nhập tài khoản nào (bash scripts/login.sh)"

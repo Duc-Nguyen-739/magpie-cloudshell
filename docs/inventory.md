@@ -44,7 +44,7 @@ Lệnh tiện dụng tự viết trong `~/.local/bin`:
 | `magpie-headless-start/stop/status` | điều khiển supervisor |
 | `magpie-headless` | chính vòng lặp supervisor (không gọi tay) |
 
-## Provider (15 hiện trong `magpie providers` — 11 bật, 4 tắt)
+## Provider (16 hiện trong `magpie providers` — 12 bật, 4 tắt)
 
 `providers.json` còn record `qoder` và `antigravity`, nhưng `magpie providers` không
 hiện vì thiếu plugin trên máy này.
@@ -55,6 +55,7 @@ hiện vì thiếu plugin trên máy này.
 | `autoclaw` | AutoClaw (Zhipu) | OAuth Google/z.ai (plugin) | 2 / 4 | **bật**; `zai_glm-5.3-flash`, `zaicoding_glm-5.3` |
 | `freepi` | FreePi | OAuth (plugin) | 1 / 18 | **bật**; `deepseek-v4.1-flash`, **một request tại một thời điểm** |
 | `free-pi` | free-pi | OAuth (plugin) | 4 / 9 | **bật**; tài khoản thứ hai của cùng `api.freepi.ai`, slot + budget riêng; **phải vá client version** — `docs/providers.md` |
+| `freepi2` | FreePi2 | OAuth (plugin riêng) | 1 / 18 | **bật**; tài khoản thứ ba, repo private `Duc-Nguyen-739/FreePiLogin2`, kho `~/.freepi2` + session id riêng; cài bằng clone + `magpie plugin add <thư mục>` — `docs/providers.md` |
 | `agy-cli` | agy-cli | OAuth Google (plugin) | 3 / 5 | **bật**; `gemini-3.8-flash`, `gemini-2.5-flash-lite`, `claude-opus-4-6-thinking` |
 | `agnes` | Agnes | API key | 1 / 4 | **tắt** (`magpie provider on agnes`); `agnes-3.0-flash` |
 | `kilo` | Kilo Gateway | API key | 2 / 406 | **bật**; có `reflection/beam-free` và `particle-1:free` |
@@ -69,7 +70,7 @@ hiện vì thiếu plugin trên máy này.
 | `copilot` | Copilot | OAuth GitHub | 1 / 24 | **tắt** |
 | `opencode-zen-free` | OpenCode Zen Free | plugin, key công khai | 8 / 15 | **tắt**; plugin vẫn cài, bật lại được |
 
-## Plugin (10)
+## Plugin (11)
 
 ```
 @magpie-community/opencode-autoclaw-auth@0.2.9    autoclaw, autoclaw-cn
@@ -79,6 +80,7 @@ hiện vì thiếu plugin trên máy này.
 @magpie-community/opencode-agnes-auth@latest      agnes
 magpie-freepi-auth@latest                         freepi
 magpie-free-pi@0.1.5 (đã vá)                      free-pi
+magpie-freepi2-auth (local clone)                  freepi2 (FreePi2)
 @magpie-community/opencode-agy-cli-auth@latest    agy-cli
 @magpie-community/opencode-zen-free-auth@latest   opencode-zen-free
 opencode-zen-freex@latest                         phục vụ opencode-zen-free
@@ -86,6 +88,9 @@ opencode-zen-freex@latest                         phục vụ opencode-zen-free
 
 `qoder` / `zcode` không còn plugin trên máy này (provider `qoder` đang tắt, model vẫn
 còn trong `providers.json`). AutoClaw **ghim 0.2.9** — bản vàng, xem mục cuối `AGENTS.md`.
+FreePi2 là plugin **duy nhất không cài từ npm**: repo private
+`Duc-Nguyen-739/FreePiLogin2`, clone về `~/.local/src/FreePiLogin2` rồi
+`magpie plugin add` đường dẫn đó (bun không gửi token khi tải tarball GitHub → 404).
 
 ## Routing group (9)
 
@@ -138,8 +143,8 @@ cùng một model từ kilo/openrouter/cline. Chúng không được agent nào 
 
 - Provider `magpie`: khai trong `providers` của `opencode.json`, `baseURL:
   http://127.0.0.1:3425/v1`, `apiKey: magpie` (chuỗi giả — gateway local không cần key
-  thật), **25 model** do magpie sinh: 8 `group/*` (thiếu `group/main` vì group đang tắt)
-  + model lẻ của 10 provider đang bật. `model: magpie/group/main`, agent `title` dùng
+  thật), **27 model** do magpie sinh: 8 `group/*` (thiếu `group/main` vì group đang tắt)
+  + model lẻ của các provider đang bật (gồm `freepi2/deepseek-v4.1-flash`). `model: magpie/group/main`, agent `title` dùng
   `magpie/workbuddy-ai/hy4flash-free`.
 - Provider gọi thẳng còn khai báo: `xingchi` (bật, dùng cho `group/leader`), còn
   `kiraai`, `takenbarbor`, `dsh` nằm trong `disabled_providers` cùng `kilo` (đã có
@@ -206,7 +211,7 @@ script không thêm khoá đó nữa — đó là hành vi đúng, không phải
 | Hạng mục | Repo | Ghi chú |
 |---|---|---|
 | magpie binary | ✅ | installer chính thức hoặc `--from-source` (clone yetone/magpie) |
-| 10 plugin provider | ✅ | `scripts/plugins.sh` (cài xong tự vá `free-pi`, dọn pool trùng) |
+| 11 plugin provider | ✅ | `scripts/plugins.sh` (cài xong tự vá `free-pi`, dọn pool trùng; FreePi2 clone từ repo private) |
 | 9 routing group | ✅ | **giống hệt** cấu hình máy này, kể cả `group/free`; `review`/`reviewplan` chỉ tạo khi thiếu, `--force` không reset; riêng `group/main` do script tạo ở trạng thái **bật** (máy này tắt tay) |
 | settings.json | ✅ | chỉ thêm khoá thiếu |
 | `opencode-zen` bật, chỉ expose `jev-1.13-free`; `opencode-zen-free` tắt | ✅ | `setup-settings.sh` |

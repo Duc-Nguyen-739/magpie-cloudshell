@@ -23,13 +23,18 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
 ## Bạn đang dựng gì
 
 - magpie bản terminal trong `~/.local/bin` (không desktop, không systemd).
-- **15 provider** hiện trong `magpie providers`, **11 bật / 4 tắt** (`aihubmix`,
+- **16 provider** hiện trong `magpie providers`, **12 bật / 4 tắt** (`aihubmix`,
   `copilot`, `agnes`, `opencode-zen-free`). `providers.json` còn record `qoder` và
-  `antigravity` nhưng không hiện vì thiếu plugin. Mười plugin đang cài: AutoClaw (Zhipu),
-  WorkBuddy, agy-cli, cline, kiro, agnes, FreePi, free-pi, OpenCode Zen Free (2 plugin).
+  `antigravity` nhưng không hiện vì thiếu plugin. Mười một plugin đang cài: AutoClaw (Zhipu),
+  WorkBuddy, agy-cli, cline, kiro, agnes, FreePi, free-pi, FreePi2, OpenCode Zen Free (2 plugin).
   `free-pi` là tài khoản thứ hai của cùng `api.freepi.ai` — **phải chạy
-  `node scripts/patch-free-pi.mjs` sau mỗi lần cài/cập nhật plugin**, nếu không mọi model
-  trả 426 (`docs/providers.md`).
+  `node scripts/patch-free-pi.mjs` và `node scripts/patch-free-pi-ads.mjs` sau mỗi lần
+  cài/cập nhật plugin**, nếu không mọi model trả 426 (client version) hoặc completion trả
+  403 `ads_required` (ad gate); xem `docs/providers.md`. `freepi2` là tài khoản thứ ba,
+  plugin **private** `Duc-Nguyen-739/FreePiLogin2` clone về `~/.local/src/FreePiLogin2`
+  rồi `magpie plugin add` (không cài được bằng spec `github:` — bun tải tarball không
+  kèm token nên 404); kho riêng `~/.freepi2`, session id riêng, mô tả tiếng Việt.
+  Chi tiết cài/đăng nhập/vướng mắc: [`docs/freepi2.md`](docs/freepi2.md).
 - `settings.json` giống máy tham chiếu (theme dark, `vision=workbuddy-ai/hy4flash-free`
   + `visionEffort=max`, `redact=astrlink-guard`, `quotaLeft`, `textSize=110`, check-in
   AutoClaw + Qoder — qoder đang tắt nên chỉ còn AutoClaw có tác dụng); `opencode-zen` (API key) **bật nhưng chỉ mở `jev-1.13-free`** làm
@@ -75,8 +80,8 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   vì `group/tester-3` dùng `kilo/reflection/beam-free`; `aihubmix` đang tắt, nếu bật
   thì 36 model `-free` chỉ trả câu từ chối (tài khoản chưa nạp tiền) — xem mục lỗi
   thường gặp.
-- OpenCode khai **25 model** của provider `magpie` (8 `group/*` — thiếu `group/main`
-  vì group đang tắt — cộng model lẻ), `model: magpie/group/main`, model phụ cho agent
+- OpenCode khai **27 model** của provider `magpie` (8 `group/*` — thiếu `group/main`
+  vì group đang tắt — cộng model lẻ, trong đó có `freepi2/deepseek-v4.1-flash`), `model: magpie/group/main`, model phụ cho agent
   `title` là `magpie/workbuddy-ai/hy4flash-free`. OpenChamber đặt
   `defaultModel: magpie/group/leader`, `defaultVariant: max`, `defaultAgent: leader`;
   agent `leader` + 6 subagent `review`, `reviewplan`, `coder`, `tester`, `tester2`,
@@ -129,7 +134,7 @@ Kiểm tra:
 ```sh
 magpie --version                  # có số phiên bản
 magpie healthcheck && echo ok     # exit 0
-magpie plugin list                # 10 plugin, "on"
+magpie plugin list                # 11 plugin, "on"
 command -v openchamber openmagpie magpie-headless-start
 ```
 
@@ -255,6 +260,7 @@ magpie provider test autoclaw zai_auto
 | `openchamber` không in link | PATH: binary npm che wrapper | `command -v openchamber` phải là `~/.local/bin/openchamber` |
 | Model list rỗng trong OpenCode | gateway chưa chạy | `openmagpie` rồi `magpie healthcheck` |
 | `free-pi` báo **426** `your free-pi-cli is below the required minimum`, "9 of 9 models didn't answer" | plugin npm ghim `x-client-version`; server đã nâng `min` | `node scripts/patch-free-pi.mjs` rồi `kill $(pgrep -f "magpie serve --web=0.0.0.0:3430")` — `docs/providers.md` |
+| `free-pi` báo **403** "Ads aren't showing for this account…" | plugin không báo banner impression; `magpie-freepi-auth` có, `magpie-free-pi` không | `node scripts/patch-free-pi-ads.mjs` rồi `magpie provider test free-pi` — `docs/providers.md` |
 | `freepi` và `free-pi` lẫn tài khoản / "one request at a time" dù đang rảnh | pool `~/.free-pi/agent/accounts.json` có nhiều entry cùng `user_id` (đăng nhập lặp), bộ đếm slot tưởng có nhiều tài khoản | `node scripts/setup-freepi-pair.mjs` — giữ entry mới nhất mỗi `user_id`, backup `.bak-…` |
 | OpenChamber báo **502** hoặc Xingchi **503** `Service temporarily unavailable` | model đó (`gpt-6-astra`) mất channel ở pool upstream; stream thì keepalive 34 s rồi mới lỗi | dùng `xingchi/gpt-6.1-sol:high`; chi tiết trong [`docs/providers.md`](docs/providers.md) |
 | `the routing group Main is switched off … not served` | group bị tắt (`disabled` trong `providers.json`) | `magpie group on main`, hoặc trỏ agent sang group đang bật |
