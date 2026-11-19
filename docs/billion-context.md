@@ -9,7 +9,7 @@ phải chẩn đoán lại.
 | | |
 |---|---|
 | Plugin OpenCode | `~/.config/opencode/plugins/billion-context/index.js` — chỉ re-export gói npm |
-| Gói npm | `~/.local/lib/node_modules/billion-context` (bản đang chạy: **0.1.215**) |
+| Gói npm | `~/.local/lib/node_modules/billion-context` (bản đang chạy: **0.1.216**) |
 | Config | `~/.config/billion-context/billion-context.json` |
 | Credential | `~/.config/billion-context/billion-context.json.summary-credentials.json` (key `magpie`) |
 | Server | `node …/dist/index.js start --host 127.0.0.1 --port 18787` (lane `opencode`) |
@@ -49,17 +49,21 @@ canceled the request`, tức **phía gọi tự huỷ**, không phải magpie tr
 ```json
 {
   "compress": {
-    "nudgeGrowthTokens": 30000,
+    "nudgeGrowthTokens": 100000,
+    "preserveRecentMessages": 8,
+    "preserveRecentTokens": 30000,
+    "preserveRecentTools": ["read"],
     "maxSummaryLength": 16000,
     "externalSummary": {
       "enabled": true,
-      "concurrency": 1,
+      "concurrency": 6,
       "targets": [
-        "magpie/group/free"
+        "magpie/group/free",
+        "magpie/workbuddy-ai/hy4flash-free"
       ],
       "budget": {
-        "totalTimeoutMs": 300000,
-        "targetTimeoutMs": 180000,
+        "totalTimeoutMs": 480000,
+        "targetTimeoutMs": 240000,
         "maxSummaryBytes": 65536
       }
     }
@@ -70,22 +74,70 @@ canceled the request`, tức **phía gọi tự huỷ**, không phải magpie tr
       "baseUrl": "http://127.0.0.1:3425/v1",
       "credentialRef": "magpie",
       "models": {
-        "group/free": { "contextWindow": 200000, "outputTokens": 8192 }
+        "group/free": { "contextWindow": 200000, "outputTokens": 8192 },
+        "workbuddy-ai/hy4flash-free": { "contextWindow": 960000, "outputTokens": 8192 }
       }
     }
   }
 }
 ```
 
+## Cấu hình cho 7 agent (2026-11-19)
+
+Bảy agent (leader, review, reviewplan, coder, tester, tester-2, tester-3) dùng chung một
+instance bili, nên `compress.*` là toàn cục. Mục tiêu: agent suy luận liền mạch, không bị
+nén cắt ngang giữa việc.
+
+- **`nudgeGrowthTokens: 100000`** — nén chỉ chạy khi có đủ 100k token khối nén được
+  **và** đã tăng thêm ít nhất 45k token kể từ mốc trước. Các model đang hoạt động có cửa
+  sổ hiệu dụng ~800k–1M (bili trừ headroom: 1M → 872k–917k), nên 100k chỉ là ~12%.
+  Phiên review trước đây nén 3 lần trong 60 request với mốc 30k; mốc 100k đẩy lần nén
+  đầu lên ~150–200k (system prompt 20–68k + 30k giữ lại + 100k khối nén), đủ để phần
+  lớn việc của subagent kết thúc mà không nén.
+- **`preserveRecentTokens: 30000`** + **`preserveRecentMessages: 8`** — giữ nguyên văn
+  30k token gần nhất và 8 tin nhắn gần nhất; phần đang suy luận không bị gộp.
+- **`preserveRecentTools: ["read"]`** — bỏ `read` khỏi danh sách "không bao giờ giữ"
+  mặc định, nên file vừa đọc vẫn nằm trong vùng bảo vệ thay vì bị nén ngay
+  (đúng khuyến nghị #1198/#1277 của bili cho workflow đọc nhiều file). `bash` vẫn
+  compressible để log dài không phình context.
+- **`concurrency: 6`** — trong 0.1.216 pool nén là process-wide và **không nhỏ hơn 4**:
+  đặt 1–3 chỉ là danh nghĩa, `effectiveConcurrency()` vẫn trả 4. Đặt 6 để đủ 6 range
+  nén song song; đã đo 6 request đồng thời với payload ~45k token:
+  `workbuddy-ai/hy4flash-free` 6/6 trong 19 s, `group/free` 6/6 trong 31 s. Nếu 7 agent
+  cùng nén một lúc, range thứ 7 chỉ **xếp hàng** chờ slot, không fail.
+- **`maxSummaryLength: 16000`** — giữ cap cũ; summary dài hơn bị từ chối nguyên khối.
+  Nếu sau này thấy summary mất chi tiết, nâng lên 24000 (vẫn dưới `outputTokens: 8192`
+  của target, ~6k token).
+- **`targetTimeoutMs: 240000` / `totalTimeoutMs: 480000`** — fold 100k lớn gấp ~3–4 lần
+  fold 22.9k trước đây, nên nới target lên 240 s và batch lên 480 s; nếu target đầu lỗi,
+  target dự phòng vẫn còn 240 s. Đừng để 25–30 s như mặc định cũ — đó là mức đã làm
+  `target-timeout` ở lần nén 97k token.
+
+Nén không bao giờ cắt một lượt đang stream: bili chỉ chèn nudge **giữa các lượt**, rồi
+gộp các range cũ. Vì vậy "không bị cắt ngang" ở đây nghĩa là giữ vùng làm việc gần
+nguyên vẹn và giảm số lần gộp, không phải tắt nén.
+
+### Khi `external-summary` báo `attempts=[t0:error]`
+
+Đây là lỗi từ upstream (429/5xx/refusal), **không phải** `target-timeout`. Log 0.1.216
+chỉ ghi `t0:error` mà không kèm chi tiết, nên đừng xử lý bằng cách tăng giây. Cách xử lý:
+
+1. Thêm target dự phòng (đã làm): `magpie/workbuddy-ai/hy4flash-free` sau `group/free`.
+   Range lỗi được thử lại trên WorkBuddy; range không nén được vẫn nằm trong
+   `compressibleRanges` và sẽ được thử lại ở nudge sau, không mất dữ liệu.
+2. Nếu cả hai target đều lỗi, gọi trực tiếp model nghi vấn với cùng payload để lấy
+   status thật (đừng tăng timeout: timeout có outcome `timeout` và log `target-timeout`).
+3. Lỗi 1/2 range trong một batch thường là tranh chấp/rate limit khi hai range nén song
+   song; target dự phòng là cách chữa, không phải tăng `concurrency` (pool đã tối thiểu 4).
+
 ## `group/free` — chọn model nén (đo 2026-11-17)
 
-> **Ladder hiện tại**: `kilo/particle-ai/particle-1:free` →
-> `cline/particle-ai/particle-1:free` → `openrouter/particle-ai/particle-1:free` →
-> `groq/openai/gpt-oss-20b` → `nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b`,
-> `routing=rotate`, `stays=auto`, levels tự suy `none,minimal,low,medium`. Ba bậc
-> Particle-1 là ladder chính; Groq và NVIDIA thêm 2026-11-19 làm dự phòng khi ba
-> provider kia hết quota. Không còn `workbuddy-ai/hy4flash-free` làm chốt chặn. Bảng đo
-> dưới đây là của ladder cũ, giữ để tham chiếu — **chưa đo lại** ladder mới.
+> **Ladder thực tế trên máy này (2026-11-19)**: `kilo/particle-ai/particle-1:free` →
+> `openrouter/particle-ai/particle-1:free` →
+> `nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b` → `workbuddy-ai/hy4flash-free`,
+> `routing=rotate`, `stays=off`. Cline và Groq không có provider trên máy nên
+> `setup-groups.sh` bỏ qua; WorkBuddy là bậc cuối. Bảng đo dưới đây là của ladder cũ,
+> giữ để tham chiếu — **chưa đo lại** ladder mới.
 
 Yêu cầu: chịu được **5–6 lượt nén cùng lúc**, nhanh, rẻ (free), và mỗi provider chỉ lấy
 **một** model nhanh nhất; `workbuddy-ai/hy4flash-free` là chốt chặn cuối khi các provider
@@ -117,13 +169,12 @@ Model bị loại vì không dùng được cho việc nén:
   `aihubmix/crouton-alpha-free` đã `404 model_retired`. Model trả phí thì
   `insufficient_user_quota`. Không dùng được cho tới khi nạp tiền.
 
-Thứ tự `group/free` hiện tại (routing `rotate`, mỗi provider một model):
+Thứ tự `group/free` thực tế trên máy này (routing `rotate`, mỗi provider một model):
 
 1. `kilo/particle-ai/particle-1:free`
-2. `cline/particle-ai/particle-1:free`
-3. `openrouter/particle-ai/particle-1:free`
-4. `groq/openai/gpt-oss-20b` — dự phòng
-5. `nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b` — dự phòng
+2. `openrouter/particle-ai/particle-1:free`
+3. `nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b` — dự phòng
+4. `workbuddy-ai/hy4flash-free` — bậc cuối
 
 Ladder cũ (đo trong bảng trên) là `cline/cline-free/solar-mini4` →
 `kilo/baidu/ernie-5.5-flash-preview:free` → `kiro/claude-haiku-4.5` →
@@ -135,11 +186,11 @@ tức toàn bộ model free dùng chung **50 request/ngày** (và 20/phút), hai
 tài khoản dùng chung đúng một bộ đếm. Đo lại 2026-11-17: `openrouter/openrouter/free` và
 `openrouter/baidu/ernie-5.5-flash-preview:free` đều `429 free-models-per-min` ngay ở
 request đơn. Vì vậy giữ **Free Models Router** (tự chọn model free còn sống, tốt hơn ghim
-một model như `particle-1`) ở vị trí áp chót — đó là lý do của ladder cũ. Ladder hiện tại
-ghim thẳng `openrouter/particle-ai/particle-1:free` và dùng `routing=rotate`, nên lượt nén
-chỉ chạm OpenRouter khoảng 1/3 số lần; đổi lại, không còn WorkBuddy làm chốt chặn.
-Hai bậc Groq/NVIDIA thêm 2026-11-19 để khi cả ba provider Particle-1 hết quota thì vẫn
-còn model trả lời, thay vì rơi thẳng vào `target-timeout`.
+một model như `particle-1`) ở vị trí áp chót — đó là lý do của ladder cũ. Ladder thực tế
+trên máy này ghim thẳng `openrouter/particle-ai/particle-1:free` và dùng `routing=rotate`,
+nên lượt nén chỉ chạm OpenRouter khoảng 1/3 số lần; WorkBuddy là bậc cuối. NVIDIA thêm
+2026-11-19 làm dự phòng khi các provider Particle-1 hết quota, thay vì rơi thẳng vào
+`target-timeout`.
 
 Đo cả group cũ: **6/6, p50 6,7 s, 688 ký tự**, không có reasoning token. Chưa đo lại
 ladder particle-1.
@@ -151,15 +202,16 @@ hiện trong magpie là một model khác nhau: `hy4flash-free` hết `targetTim
 
 Ba thay đổi, mỗi cái ứng với một lỗi đọc được trong `bili.log`:
 
-1. **`concurrency: 1`** — đây là nguyên nhân chính của `target-timeout` sau khi đã cắt
-   chuỗi. Một batch 3 range được bắn **song song** vào cùng một tài khoản WorkBuddy,
-   cùng lúc với request chính của agent đang stream; log 02:27:54 ghi
-   `499 after 1m59.963s` từ phía plugin, tức WorkBuddy vẫn đang xếp hàng chứ không trả
-   lỗi. Gọi đơn lẻ cùng payload 49k token chỉ mất **12,6 s** (đo 2026-11-17), nên độ
-   trễ là do tranh chấp, không phải kích thước. Serialize lại: 3 range × ~13 s vẫn thừa
-   budget.
-2. **`targetTimeoutMs` 180 s, `totalTimeoutMs` 300 s** — target đầu là model suy luận
-   (`high`), khi tài khoản bận nó có thể giữ request rất lâu; 120 s chưa đủ.
+1. **`concurrency`** — một batch 3 range từng bắn **song song** vào cùng một tài khoản
+   WorkBuddy, cùng lúc với request chính của agent đang stream; log 02:27:54 ghi
+   `499 after 1m59.963s` từ phía plugin, tức WorkBuddy xếp hàng chứ không trả lỗi. Gọi
+   đơn lẻ cùng payload 49k token chỉ mất **12,6 s** (đo 2026-11-17), nên độ trễ là do
+   tranh chấp, không phải kích thước. Trong 0.1.216 pool process-wide luôn tối thiểu 4;
+   đặt `concurrency: 1` **không** serialize. Nay đặt 6 (đã đo 6 request song song trên cả
+   hai target, tất cả trả trong ~9–10 s); range thứ 7 xếp hàng chờ slot, không fail.
+2. **`targetTimeoutMs` 240 s, `totalTimeoutMs` 480 s** — target đầu là model suy luận
+   (`high`), khi tài khoản bận nó có thể giữ request rất lâu; 120 s chưa đủ, và fold
+   100k cần nhiều thời gian hơn fold 30k. Batch 480 s để target dự phòng còn 240 s.
 3. **`maxSummaryLength` 16000** — plugin từ chối **nguyên khối** nếu bản tóm tắt dài hơn
    cap, và log cũ có `summary 13632/14155 chars exceeds cap 12000`. Nới cap là để model
    viết dư một chút vẫn qua. Lưu ý: cap hiệu lực là
@@ -167,11 +219,11 @@ Ba thay đổi, mỗi cái ứng với một lỗi đọc được trong `bili.l
    `summaryMaxChars: 2500` cho một range thì nâng cap toàn cục **không** cứu được range
    đó — muốn cứu phải có target thứ hai chịu viết ngắn.
 
-Target duy nhất là `magpie/group/free`. Với `routing=rotate`, mỗi lượt nén đi một
-provider khác nhau; nếu cả ba cùng bị limit thì **không còn** `workbuddy-ai/hy4flash-free`
-làm chốt chặn như ladder cũ. Theo dõi `bili.log`; nếu thấy nén hỏng vì 429 hàng loạt,
-thêm lại `workbuddy-ai/hy4flash-free` vào cuối ladder
-(`magpie group set free models+=workbuddy-ai/hy4flash-free`).
+Target thứ nhất là `magpie/group/free`; target thứ hai là
+`magpie/workbuddy-ai/hy4flash-free` (thêm 2026-11-19) để range lỗi được thử lại trên
+WorkBuddy thay vì hỏng cả batch. Với `routing=rotate`, mỗi lượt nén đi một provider khác
+nhau; nếu cả hai target cùng bị limit thì range vẫn nằm trong `compressibleRanges` và
+được thử lại ở nudge sau.
 
 Đo trực tiếp qua gateway (`max_tokens: 4000`, non-stream, 346 KB ≈ 62k token đầu vào):
 `hy4flash-free` **10,8 s**, `deepseek-v4.1-flash-sg` 7,6 s; gọi ngắn (50 token) có lúc
@@ -196,8 +248,9 @@ thêm lại `workbuddy-ai/hy4flash-free` vào cuối ladder
 
 ## Sau khi sửa config: phải reload
 
-Server đọc `externalSummary` lúc khởi động. Sửa file xong mà không reload thì lần nén kế
-tiếp vẫn dùng budget cũ (đây chính là lý do lần sửa đầu "không có tác dụng").
+Server đọc config lúc khởi động. Sửa file xong phải reload: từ 0.1.216,
+`POST /__bili/config/reload` nạp lại cả `compress` (`opts.compress = reloaded.compress`),
+không chỉ routes/provider. Log xác nhận sau reload: `nudge idle ... interval=100000`.
 
 ```sh
 curl -sS -X POST http://127.0.0.1:18787/__bili/config/reload
@@ -205,7 +258,7 @@ curl -sS -X POST http://127.0.0.1:18787/__bili/config/reload
 ```
 
 Không cần kill server: nó đang proxy toàn bộ request model của phiên OpenCode, kill sẽ làm
-đứt phiên. Reload chỉ thay routes + provider trong bộ nhớ.
+đứt phiên. Reload thay routes, provider và `compress` trong bộ nhớ.
 
 Kiểm tra lần nén kế tiếp:
 
@@ -214,14 +267,21 @@ tail -5 ~/.local/state/billion-context/bili.log | grep external-summary
 # completed 3/3 range(s); batch=finished result=success attempts=[t0:success]
 ```
 
+Đã xác nhận end-to-end ngày **2026-11-19**: nén thật một range 55 tin nhắn (~22.9k token)
+qua `magpie/group/free` → `completed 1/1 range(s); attempts=[t0:success]`, summary
+12.221 ký tự (dưới cap 16.000), tiết kiệm ~36k token. Bốn model trong ladder đều trả lời
+được khi gọi riêng; nhớ đặt `max_tokens` ≥ 500 vì model suy luận tiêu hết budget nhỏ
+vào reasoning token và trả `content` rỗng.
+
 ## Chọn tham số nào khi vẫn lỗi
 
 | Log nói | Sửa |
 |---|---|
+| `attempts=[t0:error]` | lỗi upstream (429/5xx/refusal), không phải timeout; thêm target dự phòng như `magpie/workbuddy-ai/hy4flash-free` — xem mục trên |
 | `target-timeout` | tăng `budget.targetTimeoutMs`, hoặc đưa model nhanh lên đầu `targets` |
 | `batch-deadline` | tăng `budget.totalTimeoutMs`, hoặc giảm số range mỗi batch |
 | summary bị từ chối vì dài | tăng `compress.maxSummaryLength`, hoặc giảm `summaryMaxChars` từng range |
 | `maxSummaryBytes` | tăng lên (tối đa 1 MiB) nếu summary hợp lệ vẫn bị cắt |
 
 Giới hạn schema: `totalTimeoutMs` 100–600000, `targetTimeoutMs` 100–`totalTimeoutMs`,
-`maxSummaryBytes` 128–1048576, `concurrency` 1–32.
+`maxSummaryBytes` 128–1048576, `concurrency` 1–32 (1–3 không thu nhỏ pool dưới 4).
