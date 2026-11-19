@@ -91,15 +91,22 @@ xong vẫn không đạt thì lần đó tính là hết một vòng.
 
 `config/agents/leader.md` mở đầu bằng **Luật cứng — một session mỗi group**: mỗi
 `group/*` chỉ phục vụ một session sống tại một thời điểm; trước mọi lần gọi
-`subagent`, Leader đọc bảng session, không gọi khi group đang chạy, và truyền
-`sessionID` nếu đã có. Mọi mẫu gọi trong prompt đều có dòng `sessionID:`; lần đầu ghi
-`(mới)`. Idle không phải kết thúc — chỉ mở session mới khi session cũ đã kết thúc hẳn;
-không chắc thì coi như còn sống.
+`subagent`, Leader in ledger 6 dòng, không gọi khi group đang chạy, và truyền
+`sessionID` nếu đã có. Chưa có thì **bỏ hẳn tham số**, không ghi `(mới)`. Idle không
+phải kết thúc — chỉ mở session mới khi session cũ đã kết thúc hẳn; không chắc thì coi
+như còn sống.
 
 Khi `review` đang lâu, Leader được giao việc khác cho `reviewplan`, `coder` hoặc
 tester — miễn đúng vai trò của họ — thay vì mở thêm một `review`. Ba tester vẫn chạy
 song song vì là ba group khác nhau; trong một vòng, mỗi tester gọi một lần, vòng
-code sau gọi lại cả ba.
+code sau gọi lại cả ba. Khi có nhiều việc độc lập, Leader có thể chạy `review` và
+`reviewplan` song song (hai group khác nhau); cùng một plan vẫn tuần tự brief → plan →
+PLAN → AUDIT.
+
+Khi chạy song song, Leader giữ **khóa tài nguyên**: chỉ một agent dùng
+`chrome-devtools` tại một thời điểm (`tester3` sở hữu UI; `reviewplan` AUDIT chỉ mở
+khi `tester3` rảnh; `coder` chỉ self-check trước handoff); mỗi tester chỉ tạo file test
+riêng `<slug>.testerN.test.*`; DB/port/test suite dùng chung thì xếp hàng.
 
 `group/leader` cũng chỉ được có một session: đừng mở OpenChamber và một phiên Leader
 OpenCode cùng lúc nếu cả hai dùng `group/leader`.
