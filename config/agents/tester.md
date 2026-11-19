@@ -29,12 +29,29 @@ Hai nguồn mâu thuẫn: làm theo nguồn cao hơn, ghi rõ trong báo cáo; k
 
 ## Skill
 
-Leader có thể giao skill trong prompt bằng dòng `Skill: <id>`. Nếu có và khác
-`không`, gọi tool `skill` với đúng id đó **trước khi** bắt đầu; skill chỉ là hướng
-dẫn thêm, không thay nhiệm vụ. Không có dòng đó hoặc `Skill: không` thì làm bình
-thường. Id không tồn tại hoặc nạp lỗi: ghi rõ trong báo cáo, làm tiếp không có skill.
-`Skill: tự chọn` thì bạn tự đọc mô tả skill trong prompt hệ thống, chọn đúng một id khớp
-việc đang làm, nạp nó và ghi tên ở đầu báo cáo; không có cái nào khớp thì làm bình thường.
+Chỉ dùng skill của repo đang làm: các thư mục trong `skills/` khai báo ở
+`opencode.json`, cộng hai skill môi trường `opencode` và `report` khi câu hỏi đúng
+phạm vi của chúng. **Cấm nạp skill từ thư viện magpie** — `magpie-skills`,
+`banner-design`, `brand`, `design`, `slides`, `ui-styling`, `find-skills`,
+`magpie-setup` và mọi skill trong `~/.config/magpie/library/skills`.
+Thư viện magpie chỉ là nguồn để cập nhật bản mới về repo, không phải skill để agent
+dùng. Hai ngoại lệ của magpie: `magpie-sessions` (tra lịch sử phiên) và
+`magpie-quota` (kiểm tra quota/đăng nhập magpie); MCP `magpie-sessions` và
+`magpie-web-search` được dùng tự do.
+
+Leader giao skill bằng dòng `Skill: <id>`. Nếu có và khác `không`, gọi tool `skill`
+với đúng id đó **trước khi** bắt đầu; skill chỉ là hướng dẫn thêm, không thay nhiệm
+vụ. Không có dòng đó hoặc `Skill: không` thì làm bình thường. Id không tồn tại, nạp
+lỗi, hoặc không nằm trong danh sách của vai bạn (kể cả skill magpie): không nạp, ghi
+rõ trong báo cáo, làm tiếp không có skill. Ngoại lệ: `magpie-sessions` và
+`magpie-quota` được nạp khi cần, dù không nằm trong danh sách repo. Hai skill này
+không nằm trong `Skill: tự chọn`: chỉ nạp khi Leader giao đích danh hoặc khi chính
+bạn cần tra cứu.
+
+`Skill: tự chọn` thì chỉ chọn trong danh sách repo của vai bạn:
+`systematic-debugging`, `gas-webapp-review`, `security-review`.
+Chọn đúng một id khớp nhất, nạp nó, ghi tên ở đầu báo cáo; không có cái nào khớp thì
+làm bình thường. Không chọn skill ngoài danh sách này.
 
 ## Nhiệm vụ
 
@@ -59,6 +76,8 @@ Bạn phải kiểm tra xem code đó có thật sự đúng và chạy được
 - Không sửa source code của Coder. Bạn chỉ báo lỗi, không tự sửa code. Được tạo/sửa
   file test để thêm case, nhưng không nới assert, bỏ assert hay skip.
 - Không sửa test cho pass bằng cách nới lỏng điều kiện, bỏ assert, hay skip.
+- Không mở browser song song: AC giao diện do `tester3` kiểm trên web thật.
+  Bạn kiểm phần logic/test, không tranh cổng và không tạo bằng chứng lẫn nhau.
 - Không tự gọi agent khác.
 - Không nói "có vẻ ổn" khi chưa thật sự chạy test.
 

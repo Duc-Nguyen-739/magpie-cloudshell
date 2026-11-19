@@ -242,12 +242,15 @@ TESTER3_MODELS=(
 )
 
 # free — chỉ cho việc nén của billion-context: Particle-1 free trên ba provider,
-# routing=rotate, không levels, không classifier, không stays.
-# Xem docs/billion-context.md.
+# rồi hai model free thêm sau (Groq, NVIDIA) để có bậc dự phòng khi ba provider
+# kia hết quota. routing=rotate, không classifier, không stays; magpie tự suy
+# levels none/minimal/low/medium từ các model này. Xem docs/billion-context.md.
 FREE_MODELS=(
   kilo/particle-ai/particle-1:free
   cline/particle-ai/particle-1:free
   openrouter/particle-ai/particle-1:free
+  groq/openai/gpt-oss-20b
+  nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b
 )
 
 # Group từng có trong định nghĩa nhưng nay đã bỏ. `group add` không xoá group thừa,

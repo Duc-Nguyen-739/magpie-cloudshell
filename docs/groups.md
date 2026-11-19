@@ -11,7 +11,8 @@ Chín group. Tám group dùng `routing=order`, `effort=auto`, classifier
 ba tester mở levels `low,high,max`; `review`/`reviewplan` mở
 `none,low,high,max` (Freepi không expose mức reasoning nhưng magpie vẫn mở levels khi
 đặt `effort=auto`). `group/free` là group riêng của billion-context: plain,
-`routing=rotate`, chỉ để việc nén gọi một phát.
+`routing=rotate`, chỉ để việc nén gọi một phát; magpie tự suy levels
+`none,minimal,low,medium` từ năm model của nó.
 
 ### `group/main` — chat thường ngày
 
@@ -22,7 +23,7 @@ magpie group add "Main" \
   models=freepi/deepseek-v4.1-flash,workbuddy-ai/hy4flash-free,agy-cli/gemini-3.8-flash,agy-cli/gemini-2.5-flash-lite,autoclaw/zai_glm-5.3-flash,workbuddy-ai/glm-5.3-flash \
   routing=order stays=session
 magpie group set main levels=low,high,max classifier=opencode-zen/jev-1.13-free effort=auto
-# máy tham chiếu đang TẮT group này: magpie group off main (gateway trả not_found_error)
+# group đang BẬT; tắt tạm bằng magpie group off main (gateway trả not_found_error)
 ```
 
 ### `group/leader` — OpenChamber: plan + điều phối
@@ -119,14 +120,19 @@ magpie group set tester-3 levels=low,high,max classifier=opencode-zen/jev-1.13-f
 
 ### `group/free` — chỉ cho việc nén của billion-context
 
-Không classifier, không levels, không `stays`: mỗi lần nén là một request độc lập, chọn
-model free nhanh nhất còn sống. Đo 6 request song song, mỗi provider một model.
+Không classifier, không `stays`: mỗi lần nén là một request độc lập, chọn model free
+nhanh nhất còn sống. Ba model Particle-1 (Kilo, Cline, OpenRouter) là ladder chính;
+Groq và NVIDIA là bậc dự phòng khi ba provider kia hết quota. Đo 6 request song song,
+mỗi provider một model.
 
 ```sh
 magpie group add "free" \
-  models=kilo/particle-ai/particle-1:free,cline/particle-ai/particle-1:free,openrouter/particle-ai/particle-1:free \
+  models=kilo/particle-ai/particle-1:free,cline/particle-ai/particle-1:free,openrouter/particle-ai/particle-1:free,groq/openai/gpt-oss-20b,nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b \
   routing=rotate
 ```
+
+`levels` của group này do magpie tự suy từ các model (`none,minimal,low,medium`), không
+phải tay đặt — đừng cố ghim levels cho nó.
 
 Bảng đo và lý do chọn nằm trong [`billion-context.md`](billion-context.md).
 
@@ -135,8 +141,8 @@ Bảng đo và lý do chọn nằm trong [`billion-context.md`](billion-context.
 `aihubmix`, `copilot`, `agnes` và `opencode-zen-free` đang tắt vì không nằm trong group
 nào; `qoder`/`antigravity` chỉ còn record trong `providers.json` và không hiện vì thiếu
 plugin. `kilo` **bật** vì `group/free` dùng `particle-1:free`; `kiro` bật vì
-`group/tester-3` dùng `claude-haiku-4.5`; `cline`, `openrouter` bật vì `group/free`
-cần. `aihubmix`
+`group/tester-3` dùng `claude-haiku-4.5`; `cline`, `openrouter`, `groq`, `nvidia` bật vì
+`group/free` cần. `aihubmix`
 nếu bật thì 36 model `-free` chỉ trả câu từ chối (tài khoản chưa nạp tiền) — đừng đưa vào
 group nào. `opencode-zen` vẫn bật nhưng **chỉ**
 giữ `jev-1.13-free` làm classifier, không phải rung fallback: script đọc danh sách đang
@@ -156,7 +162,8 @@ ba tester chạy song song mà không tranh nhau một ladder.
 
 - `main`: FreePi trước (free 15k token/ngày), rồi Hy4 flash (free, 1M), Gemini 3.8
   Flash, Gemini 2.5 Flash-Lite, GLM-5.3 Flash của AutoClaw, cuối là WorkBuddy
-  GLM-5.3-Flash. **Group đang tắt trên máy tham chiếu** vì FreePi đầu ladder hay 429.
+  GLM-5.3-Flash. Group đang **bật**; nếu FreePi đầu ladder 429 nhiều thì tắt tạm bằng
+  `magpie group off main`.
 - `leader`: `xingchi/gpt-6.1-sol:high` trước (đo được 2,0 s so với 4,6 s khi để
   mặc định), FreePi6, Opus và DeepSeek SG dự phòng.
 - `review`/`reviewplan`: FreePi DeepSeek V4.1 Flash; `reviewplan` dùng tài khoản

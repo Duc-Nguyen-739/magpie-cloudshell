@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # setup-opencode.sh — thêm agent Leader + 6 subagent (review, reviewplan, coder,
-# tester, tester2, tester3) và skill magpie-setup vào OpenCode.
+# tester, tester2, tester3) vào OpenCode. Không cài skill: agent chỉ nạp skill của
+# project đang làm, cộng hai skill môi trường opencode/report.
 # Không ghi đè file đã có; muốn cập nhật thì xoá file cũ rồi chạy lại.
 set -uo pipefail
 
@@ -60,24 +61,9 @@ install_agent tester
 install_agent tester2
 install_agent tester3
 
-# ------------------------------------------------------- skill magpie-setup
-# Nguồn chính thức: https://github.com/magpie-community/plugins/tree/main/skills/magpie-setup
-SKILL_DIR="$CONF/skills/magpie-setup"
-if [ -d "$SKILL_DIR" ]; then
-  say "skill magpie-setup đã có"
-else
-  tmp="$(mktemp -d)"
-  trap 'rm -rf "$tmp"' EXIT
-  if git clone --depth 1 --filter=blob:none --sparse \
-       https://github.com/magpie-community/plugins "$tmp/plugins" >/dev/null 2>&1 \
-     && git -C "$tmp/plugins" sparse-checkout set skills/magpie-setup >/dev/null 2>&1; then
-    mkdir -p "$CONF/skills"
-    cp -r "$tmp/plugins/skills/magpie-setup" "$SKILL_DIR"
-    ok "$SKILL_DIR"
-  else
-    warn "không tải được skill (mạng?) — bỏ qua, không ảnh hưởng cài đặt"
-  fi
-fi
+# Skill: repo này không cài skill vào OpenCode. Thư viện magpie (13 skill) do
+# `magpie library` quản lý và hand over thành symlink trong ~/.config/opencode/skills;
+# agent không nạp chúng (xem docs/opencode.md).
 
 # --------------------------------------------------------------- MCP servers
 if [ -x "$REPO_DIR/scripts/setup-mcp.sh" ]; then

@@ -49,7 +49,7 @@ canceled the request`, tức **phía gọi tự huỷ**, không phải magpie tr
 ```json
 {
   "compress": {
-    "nudgeGrowthTokens": 32000,
+    "nudgeGrowthTokens": 30000,
     "maxSummaryLength": 16000,
     "externalSummary": {
       "enabled": true,
@@ -79,10 +79,13 @@ canceled the request`, tức **phía gọi tự huỷ**, không phải magpie tr
 
 ## `group/free` — chọn model nén (đo 2026-11-17)
 
-> **Ladder hiện tại** (sau khi người dùng đổi): `kilo/particle-ai/particle-1:free` →
-> `cline/particle-ai/particle-1:free` → `openrouter/particle-ai/particle-1:free`,
-> `routing=rotate`. Không còn `workbuddy-ai/hy4flash-free` làm chốt chặn. Bảng đo dưới
-> đây là của ladder cũ, giữ để tham chiếu — **chưa đo lại** ladder mới.
+> **Ladder hiện tại**: `kilo/particle-ai/particle-1:free` →
+> `cline/particle-ai/particle-1:free` → `openrouter/particle-ai/particle-1:free` →
+> `groq/openai/gpt-oss-20b` → `nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b`,
+> `routing=rotate`, `stays=auto`, levels tự suy `none,minimal,low,medium`. Ba bậc
+> Particle-1 là ladder chính; Groq và NVIDIA thêm 2026-11-19 làm dự phòng khi ba
+> provider kia hết quota. Không còn `workbuddy-ai/hy4flash-free` làm chốt chặn. Bảng đo
+> dưới đây là của ladder cũ, giữ để tham chiếu — **chưa đo lại** ladder mới.
 
 Yêu cầu: chịu được **5–6 lượt nén cùng lúc**, nhanh, rẻ (free), và mỗi provider chỉ lấy
 **một** model nhanh nhất; `workbuddy-ai/hy4flash-free` là chốt chặn cuối khi các provider
@@ -119,6 +122,8 @@ Thứ tự `group/free` hiện tại (routing `rotate`, mỗi provider một mod
 1. `kilo/particle-ai/particle-1:free`
 2. `cline/particle-ai/particle-1:free`
 3. `openrouter/particle-ai/particle-1:free`
+4. `groq/openai/gpt-oss-20b` — dự phòng
+5. `nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b` — dự phòng
 
 Ladder cũ (đo trong bảng trên) là `cline/cline-free/solar-mini4` →
 `kilo/baidu/ernie-5.5-flash-preview:free` → `kiro/claude-haiku-4.5` →
@@ -133,6 +138,8 @@ request đơn. Vì vậy giữ **Free Models Router** (tự chọn model free c�
 một model như `particle-1`) ở vị trí áp chót — đó là lý do của ladder cũ. Ladder hiện tại
 ghim thẳng `openrouter/particle-ai/particle-1:free` và dùng `routing=rotate`, nên lượt nén
 chỉ chạm OpenRouter khoảng 1/3 số lần; đổi lại, không còn WorkBuddy làm chốt chặn.
+Hai bậc Groq/NVIDIA thêm 2026-11-19 để khi cả ba provider Particle-1 hết quota thì vẫn
+còn model trả lời, thay vì rơi thẳng vào `target-timeout`.
 
 Đo cả group cũ: **6/6, p50 6,7 s, 688 ký tự**, không có reasoning token. Chưa đo lại
 ladder particle-1.

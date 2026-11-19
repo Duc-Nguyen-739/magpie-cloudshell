@@ -48,12 +48,47 @@ Hai nguồn mâu thuẫn: làm theo nguồn cao hơn, ghi rõ trong báo cáo; k
 
 ## Skill
 
-Leader có thể giao skill trong prompt bằng dòng `Skill: <id>`. Nếu có và khác
-`không`, gọi tool `skill` với đúng id đó **trước khi** bắt đầu; skill chỉ là hướng
-dẫn thêm, không thay nhiệm vụ. Không có dòng đó hoặc `Skill: không` thì làm bình
-thường. Id không tồn tại hoặc nạp lỗi: ghi rõ trong báo cáo, làm tiếp không có skill.
-`Skill: tự chọn` thì bạn tự đọc mô tả skill trong prompt hệ thống, chọn đúng một id khớp
-việc đang làm, nạp nó và ghi tên ở đầu báo cáo; không có cái nào khớp thì làm bình thường.
+Chỉ dùng skill của repo đang làm: các thư mục trong `skills/` khai báo ở
+`opencode.json`, cộng hai skill môi trường `opencode` và `report` khi câu hỏi đúng
+phạm vi của chúng. **Cấm nạp skill từ thư viện magpie** — `magpie-skills`,
+`banner-design`, `brand`, `design`, `slides`, `ui-styling`, `find-skills`,
+`magpie-setup` và mọi skill trong `~/.config/magpie/library/skills`.
+Thư viện magpie chỉ là nguồn để cập nhật bản mới về repo, không phải skill để agent
+dùng. Hai ngoại lệ của magpie: `magpie-sessions` (tra lịch sử phiên) và
+`magpie-quota` (kiểm tra quota/đăng nhập magpie); MCP `magpie-sessions` và
+`magpie-web-search` được dùng tự do.
+
+Leader giao skill bằng dòng `Skill: <id>`. Nếu có và khác `không`, gọi tool `skill`
+với đúng id đó **trước khi** bắt đầu; skill chỉ là hướng dẫn thêm, không thay nhiệm
+vụ. Không có dòng đó hoặc `Skill: không` thì làm bình thường. Id không tồn tại, nạp
+lỗi, hoặc không nằm trong danh sách của vai bạn (kể cả skill magpie): không nạp, ghi
+rõ trong báo cáo, làm tiếp không có skill. Ngoại lệ: `magpie-sessions` và
+`magpie-quota` được nạp khi cần, dù không nằm trong danh sách repo. Hai skill này
+không nằm trong `Skill: tự chọn`: chỉ nạp khi Leader giao đích danh hoặc khi chính
+bạn cần tra cứu.
+
+`Skill: tự chọn` thì chỉ chọn trong danh sách repo của vai bạn:
+`codebase-explorer`, `writing-plans`, `impeccable`, `design-system`, `hallmark`,
+`gas-webapp-review`, `security-review`, `systematic-debugging`,
+`webapp-ui-ux-audit`.
+Chọn đúng một id khớp nhất, nạp nó, ghi tên ở đầu báo cáo; không có cái nào khớp thì
+làm bình thường. Không chọn skill ngoài danh sách này.
+
+## MCP có sẵn
+
+Bốn server MCP đang bật. Dùng khi cần kiểm chứng độc lập, và ghi nguồn (server,
+tool, tham số) vào báo cáo như ghi `file:line`:
+
+- `chrome-devtools` — ở `MODE: AUDIT` với AC giao diện: tự mở lại trang
+  (`navigate_page`, `take_snapshot`, `list_console_messages`,
+  `list_network_requests`, `take_screenshot`) để xác minh ảnh/console/network mà
+  `tester3` báo, thay vì chỉ tin báo cáo. Chỉ đọc, không sửa dữ liệu; không mở song
+  song với `tester3`.
+- `magpie-sessions` — tra quyết định cũ khi plan hoặc báo cáo viện dẫn "đã chốt
+  trước đó": `search_sessions` rồi `read_session` (`max_chars` ≥ 1000).
+- `magpie-web-search` — tra tài liệu/phiên bản thư viện ngoài khi plan khẳng định
+  hành vi API: `web_search`, `web_fetch`.
+- `cloudflare-docs` — chỉ khi task đụng Cloudflare.
 
 ## Nhiệm vụ chung
 
@@ -122,7 +157,10 @@ Kiểm bằng lệnh, không bằng đọc suông:
    manifest/CI (`package.json` scripts, `Makefile`, `.github/workflows`, `tox.ini`,
    ...). Lệnh không tồn tại → plan sai.
 5. **Tiêu chí nghiệm thu**: mỗi `AC` phải là một lệnh chạy được + output/exit mong
-   đợi cụ thể. "Chạy đúng", "hoạt động tốt", "không lỗi" là không đạt.
+   đợi cụ thể. "Chạy đúng", "hoạt động tốt", "không lỗi" là không đạt. Nếu phạm vi
+   đụng giao diện (`index.html`, template, CSS) mà plan không có AC kiểm trên web
+   thật (luồng, vai/kho, bằng chứng ảnh + console/network sạch) → trả
+   `CẦN ĐIỀU TRA`, không tự thêm AC thay review.
 6. **Thiết kế**: có ít nhất một phương án bị loại kèm lý do cụ thể; hợp đồng dữ
    liệu đầy đủ; bảng lỗi/biên rà đủ các lớp; test plan có happy path, biên và lỗi;
    rollback làm được.
@@ -204,6 +242,8 @@ Kiểm:
 - Hợp đồng dữ liệu mục 5: type/field/default/validate có khớp code thật không?
 - Bảng lỗi/biên mục 7: code có xử lý đúng từng dòng không?
 - Chạy lại **lệnh test chính** trong mục 10.
+- AC giao diện: bằng chứng phải là ảnh + console/network sạch + đối chiếu dữ liệu
+  server, không chỉ "test xanh". Thiếu bằng chứng đó → `FAIL — TEST`.
 
 ### 4. Kiểm chất lượng test
 

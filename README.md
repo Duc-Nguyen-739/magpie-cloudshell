@@ -1,7 +1,7 @@
 # magpie trên Cloud Shell — cài một lần, chỉ còn đăng nhập
 
-Dựng lại **đúng** cấu hình magpie đang chạy trên một máy Cloud Shell thật: 18 provider
-(14 bật), 9 routing group, OpenCode → `group/main`, OpenChamber → `group/leader`, chạy
+Dựng lại **đúng** cấu hình magpie đang chạy trên một máy Cloud Shell thật: 21 provider
+(17 bật), 9 routing group, OpenCode → `group/main`, OpenChamber → `group/leader`, chạy
 headless không cần systemd, và hai lệnh `openchamber` / `openmagpie` in ra **link web đã
 kèm key** — bấm là vào, không phải dán gì.
 
@@ -68,7 +68,7 @@ see [`AGENTS.md`](AGENTS.md). The exact setup reproduced: [`docs/inventory.md`](
 | OpenCode v2 | `~/.opencode/bin/opencode` | agent code trong terminal |
 | OpenChamber | `~/.npm-global/bin/openchamber` | web UI cho OpenCode (cổng 3000) |
 | 7 agent | `~/.config/opencode/agents/` | `leader` + `review`, `reviewplan`, `coder`, `tester`, `tester2`, `tester3` |
-| skill | `~/.config/opencode/skills/magpie-skills` | bundle skill, có `magpie-setup` |
+| skill thư viện | `~/.config/magpie/library/skills/` | 13 skill; agent **không** nạp, chỉ hai ngoại lệ `magpie-sessions`/`magpie-quota` |
 | wrapper | `~/.local/bin/openchamber`, `openmagpie`, `magpie-headless-*` | bật + in link kèm key |
 | dữ liệu magpie | `~/.config/magpie/` (600) | provider, group, auth, web-key |
 | log | `~/.local/state/magpie/headless.log` | log supervisor |
@@ -253,8 +253,8 @@ scripts/
   setup-freepi-pair.mjs     tách riêng 2 provider freepi.ai: một entry cho mỗi user_id
   install-opencode.sh       OpenCode (opencode.ai/install)
   install-openchamber.sh    @openchamber/web vào ~/.npm-global
-  setup-opencode.sh         agent leader + 6 subagent + skill magpie-setup
-  setup-mcp.sh              MCP: magpie-sessions/browser/search, Cloudflare docs, Chrome DevTools
+  setup-opencode.sh         agent leader + 6 subagent (không cài skill)
+  setup-mcp.sh              MCP: magpie-sessions/search, Cloudflare docs, Chrome DevTools (magpie-browser tắt)
   setup-settings.sh         settings.json + trạng thái provider (chỉ thêm khoá thiếu)
   autoclaw-link.sh          in link localhost/preview để đăng nhập AutoClaw
   agnes-link.sh             trang local để đăng nhập Agnes (dán API key)

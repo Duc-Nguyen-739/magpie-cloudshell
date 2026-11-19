@@ -259,10 +259,10 @@ Chín group, mỗi vai một group (định nghĩa chuẩn trong `scripts/setup-
 | `group/tester-2` | Tester 2 | FreePi2 → Hy4 → GLM AutoClaw | `order`, `turn`, levels `low,high,max` |
 | `group/tester-3` | Tester 3 | FreePi3 → Kiro Haiku → GLM AutoClaw → Gemini 3.8 → Hy4 → DeepSeek SG | `order`, `turn`, levels `low,high,max` |
 | `group/main` | chat thường ngày (OpenCode) | FreePi → Hy4 → Gemini → Gemini Lite → GLM AutoClaw → GLM WorkBuddy | `order`, `session`, levels `low,high,max` |
-| `group/free` | nén của billion-context | Particle-1 free: Kilo → Cline → OpenRouter | `rotate`, không levels/classifier |
+| `group/free` | nén của billion-context | Particle-1 free: Kilo → Cline → OpenRouter → Groq → NVIDIA | `rotate`, `auto`, không classifier |
 
-`group/main` đang `disabled` trên máy tham chiếu (OpenCode trỏ vào nhưng gateway
-trả not found) — bật bằng `magpie group on main`.
+`group/main` **đang bật** trên máy tham chiếu và là model mặc định của OpenCode; tắt
+tạm bằng `magpie group off main` (gateway trả not found cho tới khi bật lại).
 
 ### `group/review` và `group/reviewplan`
 
@@ -352,8 +352,8 @@ group có hiệu lực ngay ở lượt kế tiếp, không cần restart gatewa
   bảy group cố định và xoá `code`/`glm`/`deepseek` còn sót. Nó **không** reset
   `review`/`reviewplan`; muốn reset hai group này thì `magpie group rm review`,
   `magpie group rm reviewplan` rồi chạy lại script.
-- `--force` cũng tạo lại `group/main` và có thể **bật lại** group đang `disabled`.
-  Trên máy tham chiếu, `group/main` cố ý tắt; đừng chạy `--force` nếu muốn giữ.
+- `--force` cũng tạo lại `group/main` ở trạng thái bật. Trên máy tham chiếu group này
+  đang bật và là model mặc định của OpenCode; chỉ tắt tay khi cần.
 - `scripts/setup-opencode.sh` không ghi đè file agent đã có. Máy đã có
   `leader.md` cũ thì phải xoá/đổi tên trước, hoặc sửa tay; nếu không, bản mới
   không được cài.

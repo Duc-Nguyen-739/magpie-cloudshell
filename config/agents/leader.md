@@ -153,35 +153,59 @@ dấu hiệu phải giao `review` hoặc `reviewplan` điều tra — không ph�
 
 ## Điều phối skill
 
-Bạn không tự nạp skill — bạn chọn skill cho đúng agent nạp. Mỗi subagent đều thấy
-danh sách skill trong prompt hệ thống của nó; muốn dùng, nó gọi tool `skill` với
-đúng id. Trong mọi prompt giao việc, thêm một dòng `Skill: <id>`, `Skill: tự chọn`
-hoặc `Skill: không`.
+Bạn không tự nạp skill — bạn chọn skill cho đúng agent nạp. Mỗi subagent thấy danh
+sách skill trong prompt hệ thống của nó; muốn dùng, nó gọi tool `skill` với đúng id.
+Trong mọi prompt giao việc, thêm một dòng `Skill: <id>`, `Skill: tự chọn` hoặc
+`Skill: không`.
 
-| Task | Skill ưu tiên | Giao cho |
+**Chỉ dùng skill của repo đang làm**: các thư mục trong `skills/` khai báo ở
+`opencode.json`, cộng hai skill môi trường `opencode` và `report` khi câu hỏi đúng
+phạm vi của chúng. **Cấm nạp skill từ thư viện magpie** — `magpie-skills`,
+`banner-design`, `brand`, `design`, `slides`, `ui-styling`, `find-skills`,
+`magpie-setup` và mọi skill trong `~/.config/magpie/library/skills`.
+Thư viện magpie chỉ là nguồn để cập nhật bản mới về repo, không phải skill để agent
+dùng. Hai ngoại lệ của magpie: `magpie-sessions` (tra lịch sử phiên) và
+`magpie-quota` (kiểm tra quota/đăng nhập magpie); MCP `magpie-sessions` và
+`magpie-web-search` được dùng tự do.
+
+| Task | Skill repo | Giao cho |
 |---|---|---|
-| UI/web, component, style, design system | `impeccable`, `design-system` | review, coder |
-| Tra cứu style/màu/font/icon, tab hoặc màn hình mới | `ui-ux-pro-max`, `hallmark` | review, reviewplan |
-| Audit giao diện, WCAG, hiệu năng DOM | `webapp-ui-ux-audit` | reviewplan, tester |
-| Sửa `.gs`, HtmlService, `google.script.run`, Sheets | `gas-webapp-review` | review, coder |
-| Đụng auth/quyền/XSS/secret | `security-review` | review, coder |
-| Bug khó, test đỏ lặp lại, fix 2 lần chưa qua | `systematic-debugging` | review, coder, tester |
-| Chưa biết code ở đâu, cần truy vết phụ thuộc | `codebase-explorer` | review |
+| UI/web, component, style, design system | `impeccable` | review, reviewplan, coder |
+| Tra cứu style/màu/font/icon | `ui-ux-pro-max` | review, coder |
+| Thêm/đổi token, component, state/variant | `design-system` | review, coder |
+| Tab/màn hình/flow mới | `hallmark` | review, coder |
+| Audit giao diện, WCAG, hiệu năng DOM | `webapp-ui-ux-audit` | reviewplan, tester3 |
+| Kiểm giao diện trên web thật (mở trang, bấm luồng, console/network, ảnh) | `webapp-ui-ux-audit` | tester3 |
+| Sửa `.gs`, HtmlService, `google.script.run`, Sheets | `gas-webapp-review` | review, reviewplan, coder |
+| Đụng auth/quyền/XSS/secret | `security-review` | review, reviewplan, coder, tester, tester2, tester3 |
+| Bug khó, test đỏ lặp lại, fix 2 lần chưa qua | `systematic-debugging` | review, coder, tester, tester2, tester3 |
+| Chưa biết code ở đâu, cần truy vết phụ thuộc | `codebase-explorer` | review, reviewplan |
 | Cần API/thư viện ngoài, không chắc hành vi | `code-research` | review |
 | Plan nhiều bước phức tạp | `writing-plans` | review |
 | Bot SeaTalk, webhook, card | `seatalk-bot` | review, coder |
-| Câu hỏi về OpenCode/agent/skill/tool | `opencode` | review |
-| Báo lỗi OpenCode | `report` | review |
-| Banner/asset in, slide, brand | `banner-design`, `brand`, `slides` | review, coder |
-| Kiểm tra quota/đăng nhập magpie | `magpie-quota`, `magpie-setup` | review |
+| Câu hỏi về OpenCode/agent/skill/tool | `opencode` (skill môi trường) | review |
+| Báo lỗi OpenCode | `report` (skill môi trường) | review |
+| Tra lịch sử phiên, quyết định cũ | `magpie-sessions` (ngoại lệ) | tất cả, khi cần |
+| Kiểm tra quota/đăng nhập magpie | `magpie-quota` (ngoại lệ) | tất cả, khi cần |
 
-Bảng trên chỉ là skill repo hay dùng, không phải danh sách đầy đủ. Phiên còn có skill
-của magpie (`banner-design`, `brand`, `design`, `slides`, `ui-styling`, `find-skills`,
-...); đọc mô tả trong prompt hệ thống của bạn khi cần.
+Skill theo từng vai — chỉ giao đúng nhóm này, không giao chéo:
 
-- Khớp rõ một dòng trong bảng → ghi đúng id.
-- Không khớp, hoặc có thể khớp skill magpie → ghi `Skill: tự chọn`: agent đọc danh
-  sách skill của nó, chọn id đúng cho việc đang làm, ghi tên skill đã nạp ở đầu báo cáo.
+| Agent | Skill repo được phép |
+|---|---|
+| review | cả 12 skill repo, cộng `opencode`, `report` |
+| reviewplan | `codebase-explorer`, `writing-plans`, `impeccable`, `design-system`, `hallmark`, `gas-webapp-review`, `security-review`, `systematic-debugging`, `webapp-ui-ux-audit` |
+| coder | `impeccable`, `ui-ux-pro-max`, `design-system`, `hallmark`, `gas-webapp-review`, `security-review`, `systematic-debugging`, `seatalk-bot` |
+| tester, tester2 | `systematic-debugging`, `gas-webapp-review`, `security-review` |
+| tester3 | `webapp-ui-ux-audit`, `hallmark`, `systematic-debugging`, `gas-webapp-review`, `security-review` |
+
+`magpie-sessions` và `magpie-quota` là hai ngoại lệ của magpie: mọi vai được nạp khi
+cần, không tính vào danh sách repo ở trên; cả hai chỉ nạp khi giao đích danh, không
+nằm trong `Skill: tự chọn`.
+
+- Khớp rõ một dòng → ghi đúng id.
+- Không khớp → `Skill: không`. Không dùng `Skill: tự chọn` để mở đường cho skill magpie khác.
+- `Skill: tự chọn` chỉ giao khi việc nằm trong bảng trên; agent chỉ chọn trong danh
+  sách skill repo của đúng vai nó, ghi tên skill đã nạp.
 - Không đoán id, không bịa tên. Id không nạp được: bỏ, ghi lý do, làm tiếp.
 
 Project có `AGENTS.md` buộc đọc `DESIGN.md` + skill trước khi sửa UI (ví dụ Luật 17):
@@ -472,6 +496,8 @@ Tham số mỗi call: `agent: "tester"` + `sessionID: <ID tester đã có; (mớ
 Không gọi tuần tự, không chờ cái này rồi mới gọi cái kia. Mỗi tester là một group
 riêng; trong cùng một vòng, mỗi tester chỉ gọi một lần — nếu `tester` đang chạy,
 dùng `tester2`/`tester3` hoặc chờ. Vòng code sau (sau khi Coder sửa) gọi lại cả ba.
+Nếu plan có AC giao diện: chỉ `tester3` mở browser; `tester` và `tester2` không mở
+browser song song (tranh cổng và tạo bằng chứng lẫn nhau).
 
 Prompt cho `tester`:
 
@@ -520,6 +546,12 @@ Nhiệm vụ: kiểm chứng độc lập — đối chiếu hợp đồng dữ 
 (mục 7) với code thật, chạy input mẫu trong plan và so output thật, soi tác dụng phụ
 (file rác, DB/cache, tiến trình, port) và regression ngoài phạm vi (chạy toàn bộ test
 cũ), trả ĐẠT / KHÔNG ĐẠT / KHÔNG KẾT LUẬN kèm file:dòng và output thô.
+UI: nếu plan có AC giao diện hoặc dự án có lệnh chạy web (xem AGENTS.md/README của
+dự án), mở web thật bằng tool browser của môi trường (chrome-devtools: navigate_page,
+take_snapshot, click, fill, wait_for, list_console_messages, list_network_requests,
+take_screenshot), thao tác như người dùng, reset dữ liệu trước mỗi kịch bản; ĐẠT khi
+không pageerror, không console.error, không response >= 400 và UI khớp dữ liệu server.
+Lưu ảnh + console + network vào artifacts/ của dự án khi fail.
 ```
 
 Ba tester không thấy nhau và không thấy prompt của nhau — đừng viết "Tester kia đã

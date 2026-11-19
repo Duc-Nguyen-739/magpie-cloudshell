@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # finish.sh — bước cuối sau khi đã đăng nhập provider:
 # cấu hình magpie, tạo/cập nhật chín group, trỏ agent vào group/main + group/leader,
-# rồi kiểm tra.
+# rồi kiểm tra. MCP do scripts/setup-opencode.sh gọi scripts/setup-mcp.sh khi cài.
 #
 #   bash scripts/finish.sh
 #

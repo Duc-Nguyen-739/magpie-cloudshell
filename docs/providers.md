@@ -22,6 +22,8 @@ sửa cấu hình agent** — magpie tự ghi lại danh sách model.
 | `agnes` | Agnes | plugin + API key `cpk-…` | key từ `platform.agnes-ai.com` | **tắt** (`magpie provider on agnes`) |
 | `kilo` | Kilo Gateway | API key `eyJ…` | key từ kilo.ai | `magpie provider test kilo` |
 | `openrouter` | OpenRouter | API key `sk-or-…` | key từ openrouter.ai | `magpie provider test openrouter` |
+| `groq` | Groq | API key `gsk_…` | key từ console.groq.com | `magpie provider test groq openai/gpt-oss-20b` |
+| `nvidia` | NVIDIA NIM | API key `nvapi-…` | key từ build.nvidia.com | `magpie provider test nvidia nvidia/nemotron-3.5-super-vl-120b-a12b` |
 | `xingchi` | Xingchi custom | API key + `baseAPI` riêng | key + endpoint `api.xingchiapi.com` | `magpie provider test xingchi gpt-6.1-sol` |
 | `aihubmix` | AiHubMix | API key `sk-e…` | key + **đã nạp tiền** | **tắt**; nếu bật, 36 model `-free` trả câu từ chối khi chưa nạp — xem dưới |
 | `opencode-zen` | OpenCode Zen | API key `oc_…` | key từ opencode.ai | đang **bật**, chỉ expose `jev-1.13-free` (classifier) |
