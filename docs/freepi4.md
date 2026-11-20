@@ -184,12 +184,54 @@ khác nhau:
 
 | Provider | Tài khoản trên máy này |
 |---|---|
-| `freepi` | `ducnguyenvan05-source` |
-| `freepi2` | `ngaynaochavao7399-del` |
-| `freepi3` | `ngaynaochavao739-ui` |
-| `freepi4` | `ngaynaochavao73999-code` |
-| `freepi5` | `ngocson-ctrl` |
-| `freepi6` | *(đăng nhập để xem)* |
+| `freepi` | `Duc-Nguyen-739` |
+| `freepi2` | `huenguyen-code` |
+| `freepi3` | `hoangphat-coder` |
+| `freepi4` | `phucth2002-spec` |
+| `freepi5` | `ngocson-coder` |
+| `freepi6` | `haiquan-tbs` |
+
+Tên account là ảnh chụp lúc đăng nhập; đăng nhập lại có thể đổi. Kiểm tra bằng
+`GET /me` hoặc `magpie accounts`.
+
+### 6b. 429 `concurrent` — một slot, hàng đợi
+
+FreePi chỉ cho **một request sinh token** trên mỗi account tại một thời điểm.
+Request thứ hai đến khi request trước còn stream trả:
+
+```json
+{"code":"concurrent","message":"one request at a time, 12,412 credits left today","limit":"concurrent"}
+```
+
+Đây **không phải hết credit**. Đặt magpie xếp hàng thay vì gửi song song:
+
+```sh
+magpie provider account-concurrency freepi4 phucth2002-spec 1
+magpie provider queue freepi4 32 0
+magpie provider rpm freepi4 off
+```
+
+- `account-concurrency … 1`: mỗi account chỉ một request ra upstream.
+- `queue … 32 0`: tối đa 32 request chờ; `0` = chờ bao lâu cũng được.
+- `rpm … off`: không giới hạn thêm request/phút.
+
+Magpie giữ slot đến khi **đọc hết reply** rồi mới gửi request kế; request đang chờ
+không bị tính là lỗi và không làm account bị rest. Kiểm tra:
+
+```sh
+magpie provider account-concurrency freepi4   # at most 1 at once (its own)
+magpie provider queue freepi4                 # 32 waiting, as long as it takes
+```
+
+Plugin cũng đặt `magpie.maxConcurrency = 1` trong `package.json` để account mới
+mặc định một slot. Ngoài ra plugin giữ **1 giây** sau khi body đóng và retry
+429 `concurrent` tối đa **5 lần** (2/4/8/15/30 giây, jitter ±20%) để xử lý
+trường hợp server còn giữ lock sau khi client đã đọc hết reply. Nếu account đổi
+tên sau khi đăng nhập lại, đặt lại `account-concurrency` với tên mới.
+
+Lưu ý: hàng đợi giữ turn, nhưng OpenCode có timeout riêng (~2 phút). Vì vậy vẫn
+giữ **một session review** tại một thời điểm và không gửi tin nhắn mới vào session
+đang chạy; nếu không, request cuối có thể bị OpenCode huỷ (499), không phải 429.
 
 FreePi4 tách `x-session-id`, token, thư mục trạng thái và budget. **Không tách
 được IP**: nếu cả sáu đi ra cùng một địa chỉ mạng, upstream vẫn thấy chúng sau

@@ -154,17 +154,28 @@ bản sao của nhau:
 
 | Plugin | Provider id | Tài khoản trên máy này | Model expose |
 |---|---|---|---|
-| `magpie-freepi-auth` | `freepi` | `ducnguyenvan05-source` (Free) | 1 / 18 — `deepseek-v4.1-flash` |
-| `magpie-freepi2-auth` | `freepi2` | `ngaynaochavao7399-del` | 1 / 18 — `deepseek-v4.1-flash` |
-| `magpie-freepi3-auth` | `freepi3` | `ngaynaochavao739-ui` | 1 / 18 — `deepseek-v4.1-flash` |
-| `magpie-freepi4-auth` | `freepi4` | `ngaynaochavao73999-code` | 1 / 18 — `deepseek-v4.1-flash` |
-| `magpie-freepi5-auth` | `freepi5` | `ngocson-ctrl` | 1 / 18 — `deepseek-v4.1-flash` |
-| `magpie-freepi6-auth` | `freepi6` | *(đăng nhập để xem)* | 1 / 18 — `deepseek-v4.1-flash` |
+| `magpie-freepi-auth` | `freepi` | `Duc-Nguyen-739` (Free) | 1 / 24 — `deepseek-v4.1-flash` |
+| `magpie-freepi2-auth` | `freepi2` | `huenguyen-code` | 1 / 24 — `deepseek-v4.1-flash` |
+| `magpie-freepi3-auth` | `freepi3` | `hoangphat-coder` | 1 / 24 — `deepseek-v4.1-flash` |
+| `magpie-freepi4-auth` | `freepi4` | `phucth2002-spec` | 1 / 24 — `deepseek-v4.1-flash` |
+| `magpie-freepi5-auth` | `freepi5` | `ngocson-coder` | 1 / 24 — `deepseek-v4.1-flash` |
+| `magpie-freepi6-auth` | `freepi6` | `haiquan-tbs` | 1 / 24 — `deepseek-v4.1-flash` |
 
-Mỗi tài khoản có budget riêng (15.000 credits/ngày; riêng FreePi2/FreePi3/FreePi4/FreePi5/FreePi6 là 6.000 trên tài khoản này) và **một slot đồng thời riêng**: gọi
-đồng thời sáu provider thì cả sáu trả 200, còn hai request cùng lúc trên **một** provider
-thì request thứ hai nhận `429 one request at a time`. Vì vậy sáu tài khoản = sáu slot +
-sáu budget, không phải "đổi tài khoản" và không bị server chặn.
+Mỗi tài khoản có budget riêng (15.000 credits/ngày; riêng FreePi2/FreePi3/FreePi4/FreePi5/FreePi6 là 6.000 trên tài khoản này) và **một slot đồng thời riêng**. Magpie đã đặt
+`account-concurrency 1` + queue cho **cả sáu**, nên request thứ hai trên cùng provider
+**xếp hàng** chứ không nhận 429; request chỉ bị 429 nếu queue đầy hoặc retry đã hết.
+Sáu tài khoản = sáu slot + sáu budget, không phải "đổi tài khoản" và không bị server chặn.
+
+Cấu hình đang áp cho cả sáu (đổi `<id>` và `<handle>` theo bảng trên):
+
+```sh
+magpie provider account-concurrency <id> <handle> 1
+magpie provider queue <id> 32 0
+magpie provider rpm <id> off
+```
+
+Plugin FreePi4 (và bốn plugin local FreePi2/3/5/6) còn giữ 1 giây sau mỗi reply và
+retry 429 `concurrent` tối đa 5 lần; `freepi` là plugin npm nên chỉ có queue của magpie.
 
 **Tách rời nhau ở đâu.** Các provider chỉ dùng chung domain; phần đăng nhập, session,
 budget và slot là riêng từng cái (bảng dưới là hai provider gốc; FreePi2/FreePi3/FreePi4/FreePi5/FreePi6 có
@@ -176,7 +187,7 @@ mục riêng bên dưới). **`free-pi` đã được gỡ khỏi máy này ngà
 | Plugin | `magpie-freepi-auth` | `magpie-free-pi` (đã vá) |
 | JWT giữ ở | auth store của magpie (khoá theo provider id) | `~/.free-pi/agent/accounts.json` (0600) |
 | `x-session-id` | hằng số `magpie-freepi` | `~/.free-pi/agent/session-id` |
-| Tài khoản / budget | `ducnguyenvan05-source` — 15.000 credits/ngày | `Duc-Nguyen-739` — 15.000 credits/ngày |
+| Tài khoản / budget | `Duc-Nguyen-739` — 15.000 credits/ngày | `Duc-Nguyen-739` — 15.000 credits/ngày |
 | Slot đồng thời | 1 | 1 |
 | Client version | tự canh từ `/client-version` (12h/lần) | bản vá đọc `/client-version` mỗi request |
 
