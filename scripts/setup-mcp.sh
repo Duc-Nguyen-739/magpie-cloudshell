@@ -72,8 +72,14 @@ fi
 # Máy headless (Cloud Shell) không có Chrome: chrome-devtools-mcp không mở được
 # trình duyệt. Dùng chrome-headless-shell trong cache puppeteer và ghi đè cục bộ
 # bằng `mcp here` — entry npx của thư viện vẫn nguyên cho máy có Chrome.
+#
+# Điều kiện là *file mà chrome-devtools-mcp tự gọi* (/opt/google/chrome/chrome,
+# channel stable), không phải `command -v google-chrome`: trên máy này
+# ~/.local/bin/google-chrome là symlink sang chrome-for-testing, nên phép thử theo
+# PATH tưởng có Chrome trong khi MCP vẫn báo "Could not find Google Chrome
+# executable for channel 'stable' at: /opt/google/chrome/chrome" và mọi tool chết.
 CHROME_BIN="${CHROME_HEADLESS_SHELL:-$(find "$HOME/.cache/puppeteer/chrome-headless-shell" -name chrome-headless-shell -type f 2>/dev/null | head -1)}"
-if ! command -v google-chrome >/dev/null 2>&1 && ! command -v chromium >/dev/null 2>&1 && [ -n "$CHROME_BIN" ]; then
+if [ ! -x /opt/google/chrome/chrome ] && [ -n "$CHROME_BIN" ]; then
   CT_DIR="$HOME/.local/share/chrome-devtools-mcp"
   CT_JS="$CT_DIR/node_modules/chrome-devtools-mcp/out/Default/gen/src/bin/chrome-devtools-mcp.js"
   if [ ! -f "$CT_JS" ]; then

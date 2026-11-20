@@ -12,3 +12,7 @@ web-key
 # Log / state cục bộ
 *.log
 state/
+
+# Python test/lint cache
+__pycache__/
+*.pyc

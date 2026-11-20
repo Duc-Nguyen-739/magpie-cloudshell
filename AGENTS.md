@@ -106,28 +106,48 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   `defaultModel: magpie/group/leader`, `defaultVariant: max`, `defaultAgent: leader`
   trong `~/.config/openchamber/settings.json`; agent `leader` + 6 subagent `review`,
   `reviewplan`, `coder`, `tester`, `tester2`, `tester3`; mỗi agent có mục `## Skill`,
-  Leader gửi `Skill: <id>` trong prompt. `config/agents/leader.md` mở đầu bằng luật cứng: mỗi
-  `group/*` chỉ chạy một session tại một thời điểm; trước mọi lần gọi `subagent`,
-  Leader kiểm bảng session, truyền `sessionID` nếu đã có, không mở session thứ hai
-  khi session cũ còn chạy — group bận thì chờ hoặc giao group khác; idle không phải
-  kết thúc.
+  Leader gửi `Skill: <id> (required|optional)` trong prompt. `config/agents/leader.md`
+  mở đầu bằng luật Session: mỗi `group/*` chỉ chạy **một lượt thực thi tại một thời
+  điểm** — hai lượt Review, Coder, Tester… cùng lúc đều có thể lỗi tài khoản. **Mỗi
+  lần gọi (mỗi turn/vòng) = session mới**: sau khi agent trả báo cáo, lượt thực thi
+  kết thúc và agent về idle — không phải session bị xóa; theo chính sách pipeline,
+  lần giao việc tiếp theo mở session mới, không truyền `sessionID`, không dùng lại
+  session cũ. Group đang chạy thì chờ hoặc giao group khác; nếu việc mới ưu tiên hơn,
+  chỉ dừng bằng công cụ hủy có thật, chờ trạng thái dừng được xác nhận rồi mở session
+  mới — không mở session thứ hai và không tự đoán là đã dừng.
+- Cập nhật profile: `bash scripts/setup-opencode.sh --sync --no-mcp` (backup vào
+  `~/.config/opencode/agents/backups/<timestamp>/`, giữ dòng `model:` cục bộ, ghi
+  atomic từng file, không đụng group/MCP). Kiểm trước/sau bằng
+  `python3 scripts/check-agents.py` và `python3 -m unittest discover -s tests -p
+  'test_*.py'`; không nhúng `--sync` vào `finish.sh`.
 - Skill: agent **chỉ** nạp skill của repo đang làm (các thư mục trong `skills/` khai
   báo ở `opencode.json`) cộng hai skill môi trường `opencode`, `report`. **Cấm** nạp
   skill từ thư viện magpie (`magpie-skills`, `banner-design`, `brand`, `design`,
   `slides`, `ui-styling`, `find-skills`, `magpie-setup`, …) — thư viện chỉ là nguồn
-  để cập nhật bản mới về repo. Hai ngoại lệ của magpie được nạp khi giao đích danh:
-  `magpie-sessions`, `magpie-quota`. Mỗi vai có danh sách riêng cho `Skill: tự chọn`
-  (coder: `impeccable`, `ui-ux-pro-max`, `design-system`, `hallmark`,
-  `gas-webapp-review`, `security-review`, `systematic-debugging`, `seatalk-bot`;
-  review: cả 12 skill repo + `opencode`, `report`; reviewplan: `codebase-explorer`,
-  `writing-plans`, `impeccable`, `design-system`, `hallmark`, `gas-webapp-review`,
-  `security-review`, `systematic-debugging`, `webapp-ui-ux-audit`; tester/tester2:
-  `systematic-debugging`, `gas-webapp-review`, `security-review`; tester3:
-  `webapp-ui-ux-audit`, `hallmark` + ba skill tester). Id ngoài danh sách thì không
-  nạp, ghi lý do, làm tiếp.
-- Bốn MCP đang bật trong library magpie (`magpie-sessions`, `magpie-web-search`,
-  `cloudflare-docs`, `chrome-devtools`) ghi vào gemini, agy, opencode; OpenChamber
-  dùng chung config OpenCode nên cũng thấy. `chrome-devtools` dùng
+  để cập nhật bản mới về repo. Hai ngoại lệ của magpie được nạp khi giao đích danh
+  **và có trong catalog**: `magpie-sessions`, `magpie-quota`. Mỗi vai có danh sách
+  riêng cho `Skill: tự chọn` (coder: `impeccable`, `ui-ux-pro-max`, `design-system`,
+  `hallmark`, `gas-webapp-review`, `security-review`, `systematic-debugging`,
+  `seatalk-bot`; review: các skill repo thực sự có + `opencode`, `report`; reviewplan:
+  `codebase-explorer`, `writing-plans`, `impeccable`, `design-system`, `hallmark`,
+  `gas-webapp-review`, `security-review`, `systematic-debugging`,
+  `webapp-ui-ux-audit`; tester/tester2: `systematic-debugging`, `gas-webapp-review`,
+  `security-review`; tester3: `webapp-ui-ux-audit`, `hallmark` + ba skill tester).
+  Leader ghi `required`/`optional`: required thiếu → `BLOCKED`, optional thiếu → cảnh
+  báo và làm tiếp. Id ngoài danh sách thì không nạp, ghi lý do.
+- Permission agent (OpenCode V2, rule cuối thắng): Leader deny read/glob/grep/edit/
+  shell/webfetch/websearch/skill/execute; Review có shell allowlist chỉ đọc; Reviewplan/
+  Coder/tester có deny-list lệnh phá huỷ; tester chỉ ghi file test ownership `testerN`;
+  `tester`/`tester2` deny `chrome-devtools_*` (giữ dấu gạch ngang; underscore
+  **không** khớp), `tester3` giữ browser. Đây là best-effort, **không phải sandbox** —
+  shell vẫn chạy bằng quyền user host. `ask` bị OpenChamber auto-accept trên máy này,
+  nên ranh giới cứng dùng `deny`, không dựa vào `ask`.
+- Năm MCP đang bật trong library magpie (`magpie-sessions`, `magpie-vision`,
+  `magpie-web-search`, `cloudflare-docs`, `chrome-devtools`) ghi vào gemini, agy,
+  opencode; OpenChamber dùng chung config OpenCode nên cũng thấy. **Danh sách là
+  động**: chỉ dùng server/tool thật sự có trong phiên; thiếu server cho một cổng thì
+  ghi `BLOCKED`, không bịa. Cả bảy prompt agent có mục `## MCP có sẵn` nói rõ vai nào
+  dùng server nào. `chrome-devtools` dùng
   `chrome-headless-shell` trong `~/.cache/puppeteer` qua `mcp here` (cờ
   `--headless --isolated --chromeArg=--no-sandbox --no-page-id-routing`);
   `magpie-web-search` dùng You.com miễn phí không key (`magpie search add you`).

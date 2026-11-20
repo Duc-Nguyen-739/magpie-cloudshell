@@ -62,11 +62,15 @@ np="$(magpie providers 2>/dev/null | grep -c . || true)"
 [ "$np" -gt 0 ] && ok "$np provider" || bad "chưa có provider nào"
 magpie providers 2>/dev/null | sed 's/^/      /'
 
-# FreePi2/FreePi3: plugin riêng, kho riêng ~/.freepi2, ~/.freepi3.
+# FreePi2…FreePi6: plugin riêng, kho riêng ~/.freepiN. Chụp danh sách một lần:
+# `magpie plugin list | grep -q` dưới pipefail hay hỏng vì magpie chết SIGPIPE
+# khi grep thoát sớm, làm vài provider bị bỏ qua một cách ngẫu nhiên.
+freepi_plugins="$(magpie plugin list 2>/dev/null || true)"
+freepi_providers="$(magpie providers 2>/dev/null || true)"
 for pair in "FreePi2:freepi2" "FreePi3:freepi3" "FreePi4:freepi4" "FreePi5:freepi5" "FreePi6:freepi6"; do
   name="${pair%%:*}"
   provider="${pair##*:}"
-  if magpie plugin list 2>/dev/null | grep -q "$provider"; then
+  if [[ "$freepi_plugins" == *"$provider"* ]]; then
     if [ -s "$HOME/.$provider/session-id" ]; then
       perm="$(stat -c '%a' "$HOME/.$provider/session-id" 2>/dev/null || echo '?')"
       [ "$perm" = "600" ] && ok "$name: session id riêng (~/.$provider, quyền 600)" \
@@ -74,7 +78,7 @@ for pair in "FreePi2:freepi2" "FreePi3:freepi3" "FreePi4:freepi4" "FreePi5:freep
     else
       warn "$name chưa có ~/.$provider/session-id — sẽ tạo ở lần đăng nhập đầu"
     fi
-    magpie providers 2>/dev/null | grep -q "$provider" \
+    [[ "$freepi_providers" == *"$provider"* ]] \
       && ok "$name đã đăng nhập" \
       || warn "$name chưa đăng nhập — web UI → Add provider → $name"
   fi
@@ -118,6 +122,21 @@ for a in leader review reviewplan coder tester tester2 tester3; do
   f="$HOME/.config/opencode/agents/$a.md"
   [ -f "$f" ] && ok "agent $a" || warn "thiếu $f (bash scripts/setup-opencode.sh)"
 done
+
+if command -v python3 >/dev/null 2>&1 && [ -f "$REPO_DIR/scripts/check-agents.py" ] && [ -d "$REPO_DIR/config/agents" ]; then
+  if python3 "$REPO_DIR/scripts/check-agents.py" --source "$REPO_DIR/config/agents" >/dev/null 2>&1; then
+    ok "7 agent profiles hợp lệ (contract/permissions)"
+  else
+    bad "agent profiles lỗi contract/permissions — chạy: python3 scripts/check-agents.py"
+  fi
+  if [ -f "$REPO_DIR/scripts/sync-agents.py" ]; then
+    if python3 "$REPO_DIR/scripts/sync-agents.py" --source "$REPO_DIR/config/agents" --target "$HOME/.config/opencode/agents" --check >/dev/null 2>&1; then
+      ok "agent profiles khớp source"
+    else
+      warn "agent profiles lệch source — chạy: bash scripts/setup-opencode.sh --sync --no-mcp"
+    fi
+  fi
+fi
 
 head_ "Cổng"
 if curl -fsS -o /dev/null -m 2 "http://127.0.0.1:$OC_PORT/" 2>/dev/null; then

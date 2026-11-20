@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "roles": {
+    "leader": {
+      "mode": "primary",
+      "model_prefix": "magpie/group/leader",
+      "description_max": 420
+    },
+    "review": {
+      "mode": "subagent",
+      "model_prefix": "magpie/group/review",
+      "description_max": 420
+    },
+    "reviewplan": {
+      "mode": "subagent",
+      "model_prefix": "magpie/group/reviewplan",
+      "description_max": 420
+    },
+    "coder": {
+      "mode": "subagent",
+      "model_prefix": "magpie/group/coder",
+      "description_max": 420
+    },
+    "tester": {
+      "mode": "subagent",
+      "model_prefix": "magpie/group/tester",
+      "description_max": 420
+    },
+    "tester2": {
+      "mode": "subagent",
+      "model_prefix": "magpie/group/tester-2",
+      "description_max": 420
+    },
+    "tester3": {
+      "mode": "subagent",
+      "model_prefix": "magpie/group/tester-3",
+      "description_max": 420
+    }
+  },
+  "task_modes": ["CONSULT", "PLAN", "CHANGE", "RELEASE"],
+  "outcomes": ["PASS", "FAIL", "BLOCKED", "N/A"],
+  "counters": {
+    "brief_attempt": 2,
+    "direction_attempt": 2,
+    "plan_attempt": 2,
+    "plan_repairs": 2,
+    "code_iteration": 3,
+    "infra_retry": 1
+  },
+  "required_gates": [
+    "requirements_coverage",
+    "functional_tests",
+    "independent_review",
+    "final_audit",
+    "release_approval"
+  ]
+}

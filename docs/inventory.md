@@ -160,12 +160,15 @@ cùng một model từ kilo/openrouter/cline. Chúng không được agent nào 
   `kiraai`, `takenbarbor`, `dsh` nằm trong `disabled_providers` cùng `kilo` (đã có
   `kilo/reflection/beam-free` qua magpie nên không gọi thẳng nữa).
 - Agent tự viết trong `~/.config/opencode/agents/`: `leader.md` (primary,
-  `group/leader#max`, chỉ `question` + 6 subagent), `review.md` (`group/review`),
-  `reviewplan.md` (`group/reviewplan`), `coder.md` (`group/coder`), `tester.md`
-  (`group/tester`), `tester2.md` (`group/tester-2`), `tester3.md`
-  (`group/tester-3`). Mỗi agent có mục `## Skill`; Leader gửi `Skill: <id>` (hoặc
-  `Skill: tự chọn` để agent tự khớp skill với việc đang làm) trong prompt, agent tự
-  gọi tool `skill`.
+  `group/leader#max`, chỉ `question` + 6 subagent + MCP đọc; deny read/glob/grep/
+  edit/shell/webfetch/websearch/skill/execute), `review.md` (`group/review`; shell
+  allowlist chỉ đọc, chỉ ghi plan), `reviewplan.md` (`group/reviewplan`; shell
+  deny-list, chỉ ghi plan), `coder.md` (`group/coder`; deny sửa plan/force-push),
+  `tester.md` (`group/tester`; chỉ ghi test ownership `tester1`), `tester2.md`
+  (`group/tester-2`; ownership `tester2`), `tester3.md` (`group/tester-3`; ownership
+  `tester3`, lái browser). Mỗi agent có mục `## Skill`; Leader gửi
+  `Skill: <id> (required|optional)` (hoặc `Skill: tự chọn` để agent tự khớp skill với
+  việc đang làm) trong prompt, agent tự gọi tool `skill`.
 - Skill: agent **chỉ** nạp skill của repo đang làm (`skills/` khai ở `opencode.json`)
   cộng `opencode`, `report`; **cấm** skill thư viện magpie (xem `docs/opencode.md`).
   `~/.config/opencode/skills/magpie-skills` vẫn là symlink vào skill router của magpie
@@ -177,7 +180,7 @@ cùng một model từ kilo/openrouter/cline. Chúng không được agent nào 
 | | |
 |---|---|
 | Instructions | chưa có |
-| MCP servers | 4 bật → gemini, agy, opencode: `magpie-sessions`, `magpie-web-search`, `cloudflare-docs`, `chrome-devtools`; `magpie-browser` **tắt** (cần Chrome/Edge thật + extension, bật lại bằng `MAGPIE_MCP_BROWSER=1` + `magpie library mcp on magpie-browser`). Gemini CLI còn 2 MCP riêng của Cloud Shell: data-agent-kit, notebooks |
+| MCP servers | 5 bật → gemini, agy, opencode: `magpie-sessions`, `magpie-vision`, `magpie-web-search`, `cloudflare-docs`, `chrome-devtools`; `magpie-browser` **tắt** (cần Chrome/Edge thật + extension, bật lại bằng `MAGPIE_MCP_BROWSER=1` + `magpie library mcp on magpie-browser`). Gemini CLI còn 2 MCP riêng của Cloud Shell: data-agent-kit, notebooks |
 | Skills | 13 skill thư viện → gemini, agy, opencode: `banner-design`, `brand`, `design`, `design-system`, `find-skills`, `hallmark`, `impeccable`, `magpie-quota`, `magpie-sessions`, `magpie-setup`, `slides`, `ui-styling`, `ui-ux-pro-max`. Agent **không** nạp các skill này (trừ hai ngoại lệ `magpie-sessions`, `magpie-quota`); thư viện chỉ là nguồn cập nhật về repo |
 | Web search | You.com (miễn phí, không key, 100 lượt/ngày) |
 | Gateway keys | chưa có (chưa chia sẻ ra máy khác) |

@@ -245,6 +245,8 @@ Agent đọc model lúc khởi động → sau khi đổi group/model, mở phi�
 bootstrap.sh                cài đặt một lần
 AGENTS.md                   playbook cho AI agent (đọc là cài được hết)
 config/agents/              leader.md + review, reviewplan, coder, tester (OpenCode)
+config/agent-contract.json  contract cho validator/test của 7 agent
+tests/                      regression offline cho profile + installer
 scripts/
   install.sh                magpie CLI từ installer chính thức (MAGPIE_CLI=1)
   install-from-source.sh    clone repo chính chủ + make cli (cần Go)
@@ -253,7 +255,9 @@ scripts/
   setup-freepi-pair.mjs     tách riêng 2 provider freepi.ai: một entry cho mỗi user_id
   install-opencode.sh       OpenCode (opencode.ai/install)
   install-openchamber.sh    @openchamber/web vào ~/.npm-global
-  setup-opencode.sh         agent leader + 6 subagent (không cài skill)
+  setup-opencode.sh         agent leader + 6 subagent (không cài skill; --sync để cập nhật có backup)
+  check-agents.py           lint contract/permissions của 7 agent profile
+  sync-agents.py            đồng bộ profile an toàn (check/dry-run/apply/install-missing)
   setup-mcp.sh              MCP: magpie-sessions/search, Cloudflare docs, Chrome DevTools (magpie-browser tắt)
   setup-settings.sh         settings.json + trạng thái provider (chỉ thêm khoá thiếu)
   autoclaw-link.sh          in link localhost/preview để đăng nhập AutoClaw
