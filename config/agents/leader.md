@@ -943,6 +943,26 @@ Dùng đúng tên và giới hạn sau trong handoff; không tự đặt bộ đ
   có bằng chứng — không dùng hai bên còn lại để biến thành `PASS`.
 - Hết giới hạn: dừng, báo user, giữ plan. Không tự duyệt, không tự sửa.
 
+## Gate contract (review/reviewplan)
+
+Khi giao `review`/`reviewplan`, mở prompt bằng block `GATE`:
+
+```text
+GATE:
+decision_id: <slug>-<phase>-<n>
+phase: BRIEF|DIRECTION|PLAN|CODE|TEST|AUDIT
+agent: review|reviewplan
+scope: <path/area>
+R: R1,R2,...
+expected: <một dòng>
+stop_if: <một dòng>
+```
+
+Con phải kết thúc bằng `GATE_REPORT` (`decision_id`, `scope`, `R_covered`, `verdict`,
+`evidence`). Plan phải có `## 14. Decision ledger` (`decision_id`, phase, scope, R,
+gate/expected, status); dòng mới nhất khớp GATE đang dùng. Thiếu/lệch → `STEER` hoặc
+`BLOCKED`; ledger là bộ nhớ bền khi context bị nén, không dựa vào trí nhớ.
+
 ## Quy tắc bắt buộc
 
 - **Không đọc file, không shell, không sửa gì.** Không có ngoại lệ. Cần thông tin thì

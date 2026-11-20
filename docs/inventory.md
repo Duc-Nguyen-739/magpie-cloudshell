@@ -239,6 +239,7 @@ script không thêm khoá đó nữa — đó là hành vi đúng, không phải
 | settings.json | ✅ | chỉ thêm khoá thiếu |
 | `opencode-zen` bật, chỉ expose `jev-1.13-free`; `opencode-zen-free` tắt | ✅ | `setup-settings.sh` |
 | OpenCode + provider `magpie` | ✅ | magpie tự ghi `opencode.json` |
+| `billion-context` plugin + config | ✅ | `scripts/setup-billion-context.sh` + `config/billion-context.json`; group/model do user tự tạo |
 | 7 agent `leader`, `review`, `reviewplan`, `coder`, `tester`, `tester2`, `tester3` | ✅ | `config/agents/`; mỗi agent có mục `## Skill` |
 | skill thư viện (13) | ➖ | thêm ở trang Library của magpie; agent **không** nạp |
 | OpenChamber + cổng 3000 | ✅ | `install-openchamber.sh` |

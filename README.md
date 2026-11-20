@@ -129,7 +129,8 @@ clone sẵn vào `~/.local/src/FreePiLogin2`, `FreePiLogin3`, `FreePiLogin4`,
 6. Bật gateway + web UI, in link đã kèm key.
 7. Cấu hình magpie giống máy tham chiếu: `settings.json` (theme dark, vision, imageGen,
    check-in AutoClaw, cỡ chữ…), bật `opencode-zen` nhưng chỉ expose `jev-1.13-free`,
-   tắt `opencode-zen-free`.
+   tắt `opencode-zen-free`; cài `billion-context` + config nén (template
+   `config/billion-context.json`, script `scripts/setup-billion-context.sh`).
 8. Tạo group + trỏ agent nếu đã có model (chưa có thì đăng nhập xong sẽ tự tạo).
 9. In việc còn lại: đăng nhập.
 
@@ -260,6 +261,7 @@ scripts/
   sync-agents.py            đồng bộ profile an toàn (check/dry-run/apply/install-missing)
   setup-mcp.sh              MCP: magpie-sessions/search, Cloudflare docs, Chrome DevTools (magpie-browser tắt)
   setup-settings.sh         settings.json + trạng thái provider (chỉ thêm khoá thiếu)
+  setup-billion-context.sh  cài package + plugin shim + config billion-context
   autoclaw-link.sh          in link localhost/preview để đăng nhập AutoClaw
   agnes-link.sh             trang local để đăng nhập Agnes (dán API key)
   agnes-login.mjs           server của trang đó

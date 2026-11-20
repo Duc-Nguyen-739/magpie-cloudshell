@@ -117,6 +117,9 @@ step "6/9 · bật gateway + web UI"
 # ------------------------------------------------------- 7. cấu hình magpie
 step "7/9 · cấu hình magpie (settings, provider tắt)"
 bash "$REPO_DIR/scripts/setup-settings.sh" || warn "chưa đặt được settings"
+if [ "$MINIMAL" != 1 ]; then
+  bash "$REPO_DIR/scripts/setup-billion-context.sh" || warn "billion-context chưa cài được"
+fi
 
 # ------------------------------------------------ 8. group + agent (nếu có model)
 step "8/9 · routing group + agent"

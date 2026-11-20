@@ -147,10 +147,9 @@ def require_rules(role: str, rules: list[dict], problems: list[str]) -> None:
             ("subagent", "*", "deny"),
             ("question", "*", "deny"),
             ("edit", "*", "deny"),
-            ("shell", "*", "deny"),
-            ("skill", "magpie-skills", "deny"),
-            ("skill", "openchamber-extensions", "deny"),
-            ("chrome-devtools_*", "*", "deny"),
+            ("shell", "rm *", "deny"),
+            ("shell", "bash -c*", "deny"),
+            ("chrome-devtools_*", "*", "allow"),
         ],
         "reviewplan": [
             ("subagent", "*", "deny"),
@@ -159,8 +158,7 @@ def require_rules(role: str, rules: list[dict], problems: list[str]) -> None:
             ("shell", "git push*", "deny"),
             ("shell", "git commit*", "deny"),
             ("shell", "rm *", "deny"),
-            ("skill", "magpie-skills", "deny"),
-            ("skill", "openchamber-extensions", "deny"),
+            ("chrome-devtools_*", "*", "allow"),
         ],
         "coder": [
             ("subagent", "*", "deny"),

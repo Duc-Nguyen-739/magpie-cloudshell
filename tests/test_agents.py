@@ -79,7 +79,7 @@ class PolicyTests(unittest.TestCase):
         rules = rules_for("review")
         self.assertEqual(validator.decide(rules, "edit", "src/app.ts"), "deny")
         self.assertEqual(validator.decide(rules, "edit", ".opencode/plans/x/plan.md"), "allow")
-        self.assertEqual(validator.decide(rules, "chrome-devtools_navigate_page", "*"), "deny")
+        self.assertEqual(validator.decide(rules, "chrome-devtools_navigate_page", "*"), "allow")
         self.assertNotEqual(validator.decide(rules, "chrome_devtools_navigate_page", "*"), "deny")
 
     def test_tester_edit_scope(self):

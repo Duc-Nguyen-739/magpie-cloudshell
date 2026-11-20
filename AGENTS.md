@@ -5,6 +5,13 @@ WSL, container). Việc của con người chỉ là **đăng nhập provider**;
 
 Đọc hết file này trước khi chạy. Lệnh nằm trong `scripts/`.
 
+## Phạm vi: settings, không cài model mới
+
+Khi đồng bộ/cập nhật repo, **không** thêm cài đặt model/provider hay ladder model mới.
+Người dùng tự đăng nhập provider và tự thêm model vào group (kể cả `group/compress`).
+Repo chỉ đồng bộ **settings**: config billion-context, agent prompt, OpenCode config, script cài đặt.
+Các model/group đã có trong repo chỉ là tham chiếu, không phải yêu cầu cài đặt.
+
 ## Nguồn chính thức — khi cần tra thêm
 
 | | |
@@ -158,10 +165,13 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   [`docs/opencode.md`](docs/opencode.md) mục MCP server.
 - Supervisor bash giữ gateway + web UI sống; hai lệnh `openchamber` / `openmagpie` in
   link web **đã kèm key**.
-- `billion-context` (plugin OpenCode, không phải magpie) nén hội thoại; config ở
+- `billion-context` (plugin OpenCode, không phải magpie) nén hội thoại; config mẫu
+  [`config/billion-context.json`](config/billion-context.json), cài bằng
+  `scripts/setup-billion-context.sh`; config chạy ở
   `~/.config/billion-context/billion-context.json`, sửa xong phải
   `curl -X POST 127.0.0.1:18787/__bili/config/reload`; xem
-  [`docs/billion-context.md`](docs/billion-context.md).
+  [`docs/billion-context.md`](docs/billion-context.md). Target nén là
+  `magpie/group/compress`; group/model do người dùng tự tạo.
 - Đích chính xác của cấu hình: [`docs/inventory.md`](docs/inventory.md).
 
 ## Thứ tự làm
