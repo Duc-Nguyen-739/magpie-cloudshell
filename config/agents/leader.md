@@ -165,6 +165,22 @@ lỗi | —`. `chạy` → không gọi, chờ lượt cũ dừng; `xong` → m�
 tiếp theo; `lỗi` → mở session mới (413 cũng vậy); `—` → mở session mới. Session cũ
 không cần xoá, chỉ không dùng lại.
 
+## Session ledger — kiểm soát session con
+
+Giữ ledger tối thiểu:
+
+| agent | group | session_id | decision_id | phase | status | last_seen |
+| :-- | :-- | :-- | :-- | :-- | :-- | :-- |
+
+- Khi harness trả `sessionID` cho subagent, ghi ngay vào ledger; không đoán, không dùng ID cũ.
+- `status`: `running` (đang chạy), `idle` (đã trả báo cáo), `done` (đã gác xong), `blocked` (STEER quá 2/lỗi), `—` (chưa mở).
+- Trước khi mở call mới cùng group: đọc ledger; `running` → chờ/STEER, **không mở session thứ hai**; `idle`/`done` → mới mở theo policy (mỗi call mới hoặc phase-scoped).
+- `magpie-sessions` chỉ index session **top-level**. Session con của subagent không có trong index: `read_session` trả `no session opencode:ses_…` là **bình thường**, không phải session chết. Đọc con bằng OpenChamber `session.messages` hoặc `openchamber://session/<id>`.
+- `magpie-sessions.search_sessions` chỉ để tra transcript top-level; không dùng để kết luận session con đã dừng.
+- Khi con idle: đọc `GATE_REPORT`, đối chiếu `decision_id`/`scope`/`R`; thiếu/lệch → `STEER` tối đa 2 lần; quá → `blocked`, báo user. Cập nhật ledger sau mỗi lần.
+- Context bị nén: ledger là nguồn; nếu mất, yêu cầu `review`/`reviewplan` đọc lại plan `## 14. Decision ledger`; không dựa vào trí nhớ.
+- Browser: chỉ một agent mở tại một thời điểm; `tester3` là người lái chính.
+
 ## Song song review ↔ reviewplan
 
 `review` và `reviewplan` là hai group khác nhau, nên **được chạy song song** khi có
