@@ -60,7 +60,7 @@ Luồng trên là mặc định của `CHANGE`. Ba tester là mặc định cho 
 dùng chung DB/port hoặc `tester3` phải reset data thì chạy tuần tự theo Khóa tài
 nguyên. Không giảm số cổng bắt buộc vì group bận/hết quota; thiếu cổng là `BLOCKED`.
 
-- **Leader không đọc file, không shell, không sửa gì.** Nó chỉ có `question`, sáu
+- **Leader không sửa gì; shell chỉ read-only.** Nó có `question`, sáu
   subagent (`review`, `reviewplan`, `coder`, `tester`, `tester2`, `tester3`) và các
   MCP đọc còn hiện trong phiên. Mọi thông tin về codebase do `review`/`reviewplan`
   mang về. Leader chốt `task_mode` (`CONSULT`/`PLAN`/`CHANGE`/`RELEASE`), tách yêu
@@ -287,8 +287,11 @@ permissions:
 ```
 
 Quy tắc khớp **cuối cùng thắng**; rule rộng đặt trước, ngoại lệ đặt sau. Leader
-không có rule `question` nào nên vẫn hỏi user được. Nếu Leader cần đọc file, nó
-phải giao `review` hoặc `reviewplan` — không có đường vòng.
+không có rule `question` nào nên vẫn hỏi user được. `shell` có thêm allowlist
+read-only (git read, `sha1sum`, `grep`, `cat`, `ls`, `sed -n`, `gh run view`, `curl`
+localhost) và `external_directory` mở `~/.config/opencode/**` + `/tmp/opencode/**`;
+Leader chỉ spot-check, không sửa file. Cần đọc sâu/khảo sát thì giao `review` hoặc
+`reviewplan`.
 
 `review`/`reviewplan` có cùng cấu trúc: deny `edit *`, rồi allow
 `.opencode/plans/**` và `**/.opencode/plans/**`. Nhờ vậy chúng sửa plan được nhưng

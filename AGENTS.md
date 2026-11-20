@@ -143,7 +143,8 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   Leader ghi `required`/`optional`: required thiếu → `BLOCKED`, optional thiếu → cảnh
   báo và làm tiếp. Id ngoài danh sách thì không nạp, ghi lý do.
 - Permission agent (OpenCode V2, rule cuối thắng): Leader deny read/glob/grep/edit/
-  shell/webfetch/websearch/skill/execute; Review có shell allowlist chỉ đọc; Reviewplan/
+  webfetch/websearch/skill/execute; shell allowlist chỉ đọc (git read, sha1sum, grep,
+  cat, gh run view…); Review có shell allowlist chỉ đọc; Reviewplan/
   Coder/tester có deny-list lệnh phá huỷ; tester chỉ ghi file test ownership `testerN`;
   `tester`/`tester2` deny `chrome-devtools_*` (giữ dấu gạch ngang; underscore
   **không** khớp), `tester3` giữ browser. Đây là best-effort, **không phải sandbox** —

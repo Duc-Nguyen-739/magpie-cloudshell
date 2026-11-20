@@ -42,6 +42,11 @@ while [ $# -gt 0 ]; do
 done
 
 mkdir -p "$CONF/agents"
+mkdir -p "$CONF/plugins"
+install -m 644 "$REPO_DIR/config/plugins/leader-gate.js" "$CONF/plugins/leader-gate.js"
+install -m 644 "$REPO_DIR/config/leader-gate.json" "$CONF/leader-gate.json"
+ok "leader-gate plugin + config"
+
 
 if [ "$SYNC" = 1 ]; then
   if ! command -v python3 >/dev/null 2>&1; then

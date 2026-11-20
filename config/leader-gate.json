@@ -1,0 +1,8 @@
+{
+  "enabled": true,
+  "semantic": true,
+  "judgeModel": "magpie/group/reviewplan",
+  "maxSteers": 2,
+  "enforceOneSession": true,
+  "enforceGate": true
+}

@@ -247,6 +247,8 @@ bootstrap.sh                cài đặt một lần
 AGENTS.md                   playbook cho AI agent (đọc là cài được hết)
 config/agents/              leader.md + review, reviewplan, coder, tester (OpenCode)
 config/agent-contract.json  contract cho validator/test của 7 agent
+config/plugins/leader-gate.js  plugin gác review/reviewplan (verdict PASS|BLOCKED)
+config/leader-gate.json        config plugin (judge model, maxSteers, one-session)
 tests/                      regression offline cho profile + installer
 scripts/
   install.sh                magpie CLI từ installer chính thức (MAGPIE_CLI=1)

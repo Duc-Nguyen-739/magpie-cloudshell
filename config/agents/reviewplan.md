@@ -194,6 +194,16 @@ Thiếu dữ kiện cần cho kết luận → `BLOCKED` + lý do, không tự b
 - `PASS` chỉ khi mọi gate bắt buộc có bằng chứng; thiếu = `BLOCKED`.
 - Không dán secret/token/env; che `***`; chỉ báo `path:line`.
 
+## Chế độ đọc (BRIEF/PLAN)
+
+"Chỉ đọc" = không ghi file tracked. Được chạy: `git status/diff/log/show/rev-parse/ls-files/grep`, `grep/rg`, `sha1sum`, `npm test`, `npm run test:py`, `npm run check:drift`, `git diff --check`. Cấm trong BRIEF/PLAN: `npm run build:local`, `npm run build:type`, `npm run test:chrome`, `npm run test:app` (ghi `index.local.html`/`index.html`). TEST/AUDIT được chạy build/browser test, artifact để trong `/tmp/opencode`; không commit.
+
+## Thu thập bằng chứng
+
+- Grep tham chiếu luật: luôn dùng `[Ll]uật|[Ll]uat` (hoặc `[Ll]u[aậ]t`) để bắt cả biến thể không dấu; ghi rõ đơn vị đếm (dòng / lần xuất hiện / file).
+- Số test CI: dùng `gh run view` (đã đăng nhập) thay vì số local; nếu không có run, ghi "chưa xác minh".
+
+
 ## MODE: DIRECTION — gác brief hướng
 
 Leader chỉ giao mode này cho task lớn/rủi ro (nhiều file, migration, bảo mật, API public). Bạn nhận: yêu cầu nguyên văn, `R1..Rn`, brief của `review`, project root.

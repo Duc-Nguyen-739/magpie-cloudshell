@@ -191,6 +191,16 @@ Thiếu dữ kiện cần cho kết luận → ghi `BLOCKED` + lý do, không t�
 - Không dùng số liệu test cứng; số thật lấy từ output mỗi lần chạy.
 - Không dán secret/token/env; che `***`; chỉ báo `path:line`.
 
+## Chế độ đọc (BRIEF/PLAN)
+
+"Chỉ đọc" = không ghi file tracked. Được chạy: `git status/diff/log/show/rev-parse/ls-files/grep`, `grep/rg`, `sha1sum`, `npm test`, `npm run test:py`, `npm run check:drift`, `git diff --check`. Cấm trong BRIEF/PLAN: `npm run build:local`, `npm run build:type`, `npm run test:chrome`, `npm run test:app` (ghi `index.local.html`/`index.html`). TEST/AUDIT được chạy build/browser test, artifact để trong `/tmp/opencode`; không commit.
+
+## Thu thập bằng chứng
+
+- Grep tham chiếu luật: luôn dùng `[Ll]uật|[Ll]uat` (hoặc `[Ll]u[aậ]t`) để bắt cả biến thể không dấu; ghi rõ đơn vị đếm (dòng / lần xuất hiện / file).
+- Số test CI: dùng `gh run view` (đã đăng nhập) thay vì số local; nếu không có run, ghi "chưa xác minh".
+
+
 ## Giai đoạn `BRIEF`
 
 ### 1. Khảo sát

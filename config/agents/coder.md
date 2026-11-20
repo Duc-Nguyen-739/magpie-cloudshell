@@ -27,6 +27,159 @@ permissions:
   - action: shell
     resource: "git push -f*"
     effect: deny
+  - action: external_directory
+    resource: "*"
+    effect: ask
+  - action: external_directory
+    resource: "/tmp/opencode/**"
+    effect: allow
+  - action: read
+    resource: "**/.env"
+    effect: ask
+  - action: read
+    resource: "**/.env.*"
+    effect: ask
+  - action: read
+    resource: "**/.env.example"
+    effect: allow
+  - action: edit
+    resource: "**/.env*"
+    effect: deny
+  - action: edit
+    resource: "**/*.pem"
+    effect: deny
+  - action: edit
+    resource: "**/*.key"
+    effect: deny
+  - action: experimental_image_generate
+    resource: "*"
+    effect: deny
+  - action: execute
+    resource: "*"
+    effect: deny
+
+  - action: shell
+    resource: "bash -c*"
+    effect: deny
+  - action: shell
+    resource: "sh -c*"
+    effect: deny
+  - action: shell
+    resource: "env *"
+    effect: deny
+  - action: shell
+    resource: "eval *"
+    effect: deny
+  - action: shell
+    resource: "xargs*"
+    effect: deny
+  - action: shell
+    resource: "wget*"
+    effect: deny
+  - action: shell
+    resource: "ssh *"
+    effect: deny
+  - action: shell
+    resource: "scp *"
+    effect: deny
+  - action: shell
+    resource: "rsync *"
+    effect: deny
+  - action: shell
+    resource: "git rebase*"
+    effect: deny
+  - action: shell
+    resource: "git merge*"
+    effect: deny
+  - action: shell
+    resource: "git cherry-pick*"
+    effect: deny
+  - action: shell
+    resource: "git config*"
+    effect: deny
+  - action: shell
+    resource: "git tag*"
+    effect: deny
+  - action: shell
+    resource: "git branch -D*"
+    effect: deny
+  - action: shell
+    resource: "git branch -d*"
+    effect: deny
+  - action: shell
+    resource: "clasp push*"
+    effect: deny
+  - action: shell
+    resource: "npm publish*"
+    effect: deny
+  - action: shell
+    resource: "npm run deploy*"
+    effect: deny
+  - action: shell
+    resource: "npm run release*"
+    effect: deny
+  - action: shell
+    resource: "curl -X DELETE*"
+    effect: deny
+  - action: shell
+    resource: "curl -X PUT*"
+    effect: deny
+  - action: shell
+    resource: "curl -X PATCH*"
+    effect: deny
+
+  - action: shell
+    resource: "rm *"
+    effect: ask
+  - action: shell
+    resource: "mv *"
+    effect: ask
+  - action: shell
+    resource: "kill *"
+    effect: ask
+  - action: shell
+    resource: "npm install*"
+    effect: ask
+  - action: shell
+    resource: "pip install*"
+    effect: ask
+  - action: shell
+    resource: "apt*"
+    effect: ask
+  - action: shell
+    resource: "brew*"
+    effect: ask
+  - action: shell
+    resource: "rm /tmp/opencode/*"
+    effect: allow
+  - action: shell
+    resource: "rm -rf /tmp/opencode/*"
+    effect: allow
+  - action: shell
+    resource: "mv /tmp/opencode/*"
+    effect: allow
+
+  - action: shell
+    resource: "sed -i*"
+    effect: deny
+
+  - action: shell
+    resource: "tee *"
+    effect: deny
+  - action: shell
+    resource: "tee /tmp/opencode/*"
+    effect: allow
+
+  - action: shell
+    resource: "curl -X POST*"
+    effect: deny
+  - action: shell
+    resource: "curl -X POST http://127.0.0.1*"
+    effect: allow
+  - action: shell
+    resource: "curl -X POST http://localhost*"
+    effect: allow
+
 ---
 
 Bạn là **Coder**. Bạn dùng group `coder` — các model trong đó chạy lần lượt theo

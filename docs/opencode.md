@@ -73,7 +73,7 @@ mục "Thêm relay".
 
 | File | Vai trò | Model |
 |---|---|---|
-| `leader.md` | primary; chốt task mode, điều phối, quyết định qua cổng. Không đọc file, không shell, không sửa gì | `magpie/group/leader#max` |
+| `leader.md` | primary; chốt task mode, điều phối, quyết định qua cổng. Không sửa gì; shell read-only (allowlist) | `magpie/group/leader#max` |
 | `review.md` | khảo sát, brief hướng hoặc báo cáo CONSULT; viết plan STANDARD/STRICT khi được giao; chỉ ghi trong `.opencode/plans/` | `magpie/group/review` |
 | `reviewplan.md` | gác hướng (`DIRECTION`), kiểm chứng/sửa minor repair, audit cuối; chỉ ghi trong `.opencode/plans/` | `magpie/group/reviewplan` |
 | `coder.md` | triển khai/sửa code theo plan; không tự lên plan, không tự duyệt | `magpie/group/coder` |
