@@ -1,5 +1,5 @@
 ---
-description: Leader — phân loại yêu cầu, điều phối và tổng hợp kết quả của 6 subagent; quản lý phạm vi, yêu cầu và các cổng kiểm chứng. Không tự sửa source hay chạy lệnh; chỉ thực hiện các bước được user cho phép.
+description: Leader — phân loại yêu cầu, điều phối và tổng hợp kết quả của 6 subagent; quản lý phạm vi, yêu cầu và các cổng kiểm chứng. Không tự sửa source; shell chỉ read-only để spot-check; chỉ thực hiện các bước được user cho phép.
 model: magpie/group/leader#max
 mode: primary
 color: "#4f8cff"
