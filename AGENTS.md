@@ -35,9 +35,9 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   riêng, mỗi cái mở đúng một model cho `group/free`: `openrouter`
   (`particle-ai/particle-1:free`), `nvidia` (`nvidia/nemotron-3.5-super-vl-120b-a12b`),
   `groq` (`openai/gpt-oss-20b`). `providers.json` còn record `qoder` và
-  `antigravity` nhưng không hiện vì thiếu plugin. Mười bốn plugin đang cài: AutoClaw (Zhipu),
+  `antigravity` nhưng không hiện vì thiếu plugin. Mười lăm plugin đang cài: AutoClaw (Zhipu),
   WorkBuddy, agy-cli, cline, kiro, agnes, FreePi, FreePi2, FreePi3, FreePi4, FreePi5, FreePi6,
-  OpenCode Zen Free (2 plugin).
+  FreePi7, OpenCode Zen Free (2 plugin).
   `free-pi` đã được gỡ khỏi máy này ngày 2026-11-18 theo yêu cầu; các script
   `patch-free-pi.mjs`, `patch-free-pi-ads.mjs`, `setup-freepi-pair.mjs` vẫn còn trong
   repo nếu cài lại. `freepi2` là tài khoản thứ ba,
@@ -45,11 +45,13 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   rồi `magpie plugin add` (không cài được bằng spec `github:` — bun tải tarball không
   kèm token nên 404); kho riêng `~/.freepi2`, session id riêng, mô tả tiếng Việt.
   Chi tiết cài/đăng nhập/vướng mắc: [`docs/freepi2.md`](docs/freepi2.md).
-  `freepi3`, `freepi4`, `freepi5` và `freepi6` làm y hệt (`FreePiLogin3`, `FreePiLogin4`,
-  `FreePiLogin5`, `FreePiLogin6`; kho `~/.freepi3`, `~/.freepi4`, `~/.freepi5`, `~/.freepi6`),
-  tài khoản thứ tư, thứ năm, thứ sáu và một tài khoản riêng; tài liệu
+  `freepi3`, `freepi4`, `freepi5`, `freepi6` và `freepi7` làm y hệt (`FreePiLogin3`,
+  `FreePiLogin4`, `FreePiLogin5`, `FreePiLogin6`, `FreePiLogin7`; kho `~/.freepi3`,
+  `~/.freepi4`, `~/.freepi5`, `~/.freepi6`, `~/.freepi7`), tài khoản thứ tư, thứ năm,
+  thứ sáu và hai tài khoản riêng; tài liệu
   [`docs/freepi3.md`](docs/freepi3.md), [`docs/freepi4.md`](docs/freepi4.md),
-  [`docs/freepi5.md`](docs/freepi5.md), [`docs/freepi6.md`](docs/freepi6.md).
+  [`docs/freepi5.md`](docs/freepi5.md), [`docs/freepi6.md`](docs/freepi6.md),
+  [`docs/freepi7.md`](docs/freepi7.md).
 - `settings.json` giống máy tham chiếu (theme dark, `vision=workbuddy-ai/hy4flash-free`
   + `redact=astrlink-guard`, `quotaLeft`, `textSize=110`, check-in
   AutoClaw + Qoder — qoder đang tắt nên chỉ còn AutoClaw có tác dụng); `opencode-zen` (API key) **bật nhưng chỉ mở `jev-1.13-free`** làm

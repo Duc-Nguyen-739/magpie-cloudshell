@@ -59,6 +59,7 @@ hiện vì thiếu plugin trên máy này.
 | `freepi4` | FreePi4 | OAuth (plugin riêng) | 1 / 24 | **bật**; tài khoản thứ năm, repo private `Duc-Nguyen-739/FreePiLogin4`, kho `~/.freepi4` — `docs/freepi4.md` |
 | `freepi5` | FreePi5 | OAuth (plugin riêng) | 1 / 24 | **bật**; tài khoản thứ sáu, repo private `Duc-Nguyen-739/FreePiLogin5`, kho `~/.freepi5` — `docs/freepi5.md` |
 | `freepi6` | FreePi6 | OAuth (plugin riêng) | 1 / 24 | **bật**; một tài khoản FreePi riêng, repo private `Duc-Nguyen-739/FreePiLogin6`, kho `~/.freepi6` — `docs/freepi6.md` |
+| `freepi7` | FreePi7 | OAuth (plugin riêng) | 1 / 24 | **bật** (chưa đăng nhập); tài khoản FreePi riêng thứ hai, repo private `Duc-Nguyen-739/FreePiLogin7`, kho `~/.freepi7` — `docs/freepi7.md` |
 | `agy-cli` | agy-cli | OAuth Google (plugin) | 3 / 5 | **bật**; `gemini-3.8-flash`, `gemini-2.5-flash-lite`, `claude-opus-4-6-thinking` |
 | `agnes` | Agnes | API key | 1 / 4 | **tắt** (`magpie provider on agnes`); `agnes-3.0-flash` |
 | `kilo` | Kilo Gateway | API key | 3 / 410 | **bật**; có `reflection/beam-free` và `particle-1:free` |
@@ -89,6 +90,7 @@ magpie-freepi3-auth (local clone)                  freepi3 (FreePi3)
 magpie-freepi4-auth (local clone)                  freepi4 (FreePi4)
 magpie-freepi5-auth (local clone)                  freepi5 (FreePi5)
 magpie-freepi6-auth (local clone)                  freepi6 (FreePi6)
+magpie-freepi7-auth (local clone)                  freepi7 (FreePi7)
 @magpie-community/opencode-agy-cli-auth@latest    agy-cli
 @magpie-community/opencode-zen-free-auth@latest   opencode-zen-free
 opencode-zen-freex@latest                         phục vụ opencode-zen-free
@@ -96,10 +98,10 @@ opencode-zen-freex@latest                         phục vụ opencode-zen-free
 
 `qoder` / `zcode` không còn plugin trên máy này (provider `qoder` đang tắt, model vẫn
 còn trong `providers.json`). AutoClaw **ghim 0.2.9** — bản vàng, xem mục cuối `AGENTS.md`.
-FreePi2–FreePi6 là năm plugin **không cài từ npm**: repo private
-`Duc-Nguyen-739/FreePiLogin2` … `FreePiLogin6`, clone về `~/.local/src/FreePiLoginN`
+FreePi2–FreePi7 là sáu plugin **không cài từ npm**: repo private
+`Duc-Nguyen-739/FreePiLogin2` … `FreePiLogin7`, clone về `~/.local/src/FreePiLoginN`
 rồi `magpie plugin add` đường dẫn đó (bun không gửi token khi tải tarball GitHub →
-404). Máy khác cần được cấp quyền đọc năm repo đó, hoặc bỏ qua và chạy với FreePi
+404). Máy khác cần được cấp quyền đọc sáu repo đó, hoặc bỏ qua và chạy với FreePi
 chính.
 
 ## Routing group (9)
@@ -222,7 +224,7 @@ cùng một model từ kilo/openrouter/cline. Chúng không được agent nào 
 | `otel` | `{}` | chưa bật xuất telemetry |
 | `sessionReads` | `{asked: true, all: true}` | đã hỏi và cho phép đọc lại phiên |
 | `pluginCheckins` | `{autoclaw: true, qoder: true}` | điểm danh hằng ngày |
-| `modelEfforts` | FreePi 1–4, 6: `none…max`; FreePi5: `none…xhigh` | magpie tự sinh theo model/level (không seed) |
+| `modelEfforts` | FreePi 1–4, 6–7: `none…max`; FreePi5: `none…xhigh` | magpie tự sinh theo model/level (không seed) |
 
 `scripts/setup-settings.sh` chỉ **thêm khoá còn thiếu**, không ghi đè giá trị đã có; và chỉ
 đặt `vision`/`imageGen` khi model tương ứng đã tồn tại (tức sau khi đăng nhập WorkBuddy).
