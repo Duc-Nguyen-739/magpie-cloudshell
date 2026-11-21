@@ -89,6 +89,9 @@ permissions:
     resource: "git fetch*"
     effect: allow
   - action: shell
+    resource: "git check-ignore*"
+    effect: allow
+  - action: shell
     resource: "sha1sum*"
     effect: allow
   - action: shell

@@ -220,6 +220,11 @@ tham số) vào báo cáo:
   `take_screenshot`, `list_console_messages`, `list_network_requests`, `emulate`
   (viewport, `colorScheme`, mạng chậm). Chạy headless trên máy này, không cần Chrome
   thật. `tester`/`tester2` không lái browser — việc đó thuộc về bạn.
+- Trước `click`/`fill`: luôn `take_snapshot` để lấy uid; gặp `No snapshot found`
+  thì chụp lại rồi mới click. Chỉ `handle_dialog` cho native browser dialog
+  (alert/confirm/prompt) đang mở; gặp `No open dialog` thì bỏ qua và kiểm lại trang.
+- `evaluate_script` phải ngắn, không chờ/loop nặng; nếu `Runtime.callFunctionOn
+  timed out`, chia nhỏ script và retry — không tăng thời gian chờ.
 - `magpie-vision` — đọc ảnh chụp màn hình: `analyze_image` (đường dẫn tuyệt đối).
   Dùng để đối chiếu ảnh bạn chụp với AC, đọc ảnh user cung cấp, hoặc mô tả bố cục khi
   cần so sánh trước/sau.

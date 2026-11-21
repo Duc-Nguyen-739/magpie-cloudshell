@@ -177,6 +177,13 @@ magpie provider rpm <id> off
 Plugin FreePi4 (và bốn plugin local FreePi2/3/5/6) còn giữ 1 giây sau mỗi reply và
 retry 429 `concurrent` tối đa 5 lần; `freepi` là plugin npm nên chỉ có queue của magpie.
 
+**Giới hạn output (2026-11-20).** `deepseek-v4.1-flash` trên `api.freepi.ai` chỉ trả tối đa
+**32.768 token output**/response, dù catalog cũ ghi 131.072. Request lớn hơn cap sẽ
+`stop=length` và có thể thành “empty reply” — không phải lỗi reasoning hay context
+(prompt window 1.048.576). Agent phải viết plan/báo cáo theo chunk (`write` khung →
+`edit` bổ sung), không emit cả plan trong một tool call. Đã sửa `output: 32768` trong
+`lib/catalog.mjs` của cả sáu plugin.
+
 **Tách rời nhau ở đâu.** Các provider chỉ dùng chung domain; phần đăng nhập, session,
 budget và slot là riêng từng cái (bảng dưới là hai provider gốc; FreePi2/FreePi3/FreePi4/FreePi5/FreePi6 có
 mục riêng bên dưới). **`free-pi` đã được gỡ khỏi máy này ngày 2026-11-18** — phần

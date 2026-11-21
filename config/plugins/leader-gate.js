@@ -284,7 +284,7 @@ export default {
       }
       if (cfg.enforceOneSession) {
         const active = await findActiveChild(ctx, event.sessionID, target)
-        if (active) {
+        if (active && input?.sessionID !== active.id) {
           throw new Error(
             `LEADER_GATE: ${target} đang có session ${active.id}; chờ session đó dừng trước khi mở session mới.`,
           )

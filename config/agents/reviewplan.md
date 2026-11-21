@@ -226,6 +226,12 @@ Không sửa file nào ở mode này. Ghi rõ `Đã gác hướng: <GO|STEER|C�
 
 ## MODE: PLAN — kiểm chứng và sửa plan
 
+### 0. Viết output dài theo chunk
+
+- Báo cáo/plan > ~15k token: viết khung trước, bổ sung từng mục bằng `edit`; mỗi tool call ≤20k token output.
+- Nếu gặp `stop=length` hoặc empty reply: không lặp nguyên văn; tách mục nhỏ hơn rồi thử lại.
+- Không đổi nội dung/thứ tự mục chỉ để vừa chunk.
+
 ### 1. Đọc và hiểu
 
 - Đọc toàn bộ plan; đọc yêu cầu gốc, `R1..Rn`, brief đã duyệt, báo cáo của `review`.

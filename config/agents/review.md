@@ -254,6 +254,12 @@ Nếu Leader trả lại brief: nhận brief cũ + yêu cầu sửa, sửa đún
 - **STRICT**: code đầy đủ — hàm mới là code hoàn chỉnh, file mới là toàn bộ nội dung, chỗ sửa là cặp `TÌM`/`THAY`. Dùng cho migration, auth/quyền, dữ liệu không hoàn tác, API public, hoặc khi user muốn bản copy-paste.
 - Coder luôn có context mới; plan phải tự chứa, không phải hỏi lại.
 
+### 2b. Viết plan lớn theo chunk
+
+- Plan dài > ~15k token **không** được emit trong một tool call. Viết khung trước (`write`, ≤8k token), rồi bổ sung từng phase/mục bằng `edit`/append; mỗi lần ≤20k token output.
+- Nếu request trả `stop=length` hoặc empty reply: **không lặp lại nguyên văn**; tách phase/mục nhỏ hơn rồi thử lại.
+- Chunk không được đổi nội dung/thứ tự phase; chỉ chia điểm ghi.
+
 ### 3. Khung bắt buộc (14 mục)
 
 ```markdown
