@@ -52,10 +52,10 @@ config, đặt `compaction.auto=false` và reload proxy. Credential `magpie` v�
 một lần qua web UI; repo không chứa key. Script **không** tạo group/model: tự tạo
 `group/compress` (`routing=rotate`, `stays=off`) và thêm model trước khi nén.
 
-## Cấu hình đang dùng (2026-11-20)
+## Cấu hình đang dùng (cập nhật 2026-11-21)
 
-`compress` toàn cục: `nudgeGrowthTokens: 200000`, `preserveRecentTokens: 50000`,
-`preserveRecentMessages: 12`, `preserveRecentTools: ["read"]`, `maxSummaryLength: 30000`.
+`compress` toàn cục: `nudgeGrowthTokens: 150000`, `preserveRecentTokens: 40000`,
+`preserveRecentMessages: 10`, `preserveRecentTools: ["read"]`, `maxSummaryLength: 30000`.
 `externalSummary`: bật, `concurrency: 8`, target `magpie/group/compress` →
 `magpie/workbuddy-ai/hy4flash-free`, `targetTimeoutMs: 900000`,
 `totalTimeoutMs: 1200000`, `maxSummaryBytes: 131072`. Provider `group/compress`:
@@ -66,25 +66,29 @@ Per-model (merge global → provider → model):
 
 | Model | nudge | preserve tokens | msgs | max context | summary cap | ghi chú |
 |---|---:|---:|---:|---:|---:|---|
-| `group/leader` | 200k | 300k | 40 | 75% | 60k | task dài, giữ quyết định |
-| `group/review` | 80k | 60k | 12 | 35% | 30k | `neverPreserveRecentTools: []`, `preserveRecentTools: ["bash"]` |
-| `group/reviewplan` | 80k | 60k | 12 | 35% | 30k | như review |
-| `group/coder` | 80k | 80k | 12 | 40% | 30k | |
-| `group/tester` / `tester-2` / `tester-3` | 80k | 80k | 12 | 40% | 30k | |
+| `group/leader` | 150k | 240k | 32 | 65% | 60k | task dài, giữ quyết định |
+| `group/review` | 60k | 48k | 10 | 30% | 30k | `neverPreserveRecentTools: []`, `preserveRecentTools: ["bash"]` |
+| `group/reviewplan` | 60k | 48k | 10 | 30% | 30k | như review |
+| `group/coder` | 60k | 60k | 10 | 32% | 30k | |
+| `group/tester` / `tester-2` / `tester-3` | 60k | 60k | 10 | 32% | 30k | |
+
+Các entry model thật đi cùng group được hạ theo cùng tỉ lệ (xem bảng dưới). Ngày
+21/11 hạ thêm một nấc (~20–25%) sau khi phiên build 1.4 MiB bị FreePi trả 413:
+threshold thấp giúp nén trước khi body request vượt giới hạn của provider.
 
 ### Vì sao các con số này
 
-- **Leader 300k/40/60k** — pipeline dài (brief → plan → code → 3 tester → audit) có
-  nhiều báo cáo; 300k token gần nhất + 40 message giữ nguyên quyết định, gate và
-  `R1..Rn`. `maxContextLimit: 75%` chỉ nén khi thật sự cần; nudge 200k để không nén
-  sớm. Đã kiểm: session mới 66k context có `max compressible = 0` → 300k preserve
-  có hiệu lực.
-- **Review/reviewplan 60k/12/35%** — thường được Leader mở session mới cho từng việc,
-  nên không cần giữ quá rộng; 35% đủ cho một lần khảo sát/plan/audit. `read` được bảo
+- **Leader 240k/32/65%** — pipeline dài (brief → plan → code → 3 tester → audit) có
+  nhiều báo cáo; 240k token gần nhất + 32 message giữ nguyên quyết định, gate và
+  `R1..Rn`. `maxContextLimit: 65%` vẫn nén muộn hơn các session khác; nudge 150k để có nhiều
+  thời gian fold trước khi request phình.
+- **Review/reviewplan 48k/10/30%** — thường được Leader mở session mới cho từng việc,
+  nên không cần giữ quá rộng; 30% đủ cho một lần khảo sát/plan/audit. `read` được bảo
   vệ trong recent zone (`neverPreserveRecentTools: []`, `preserveRecentTools: ["bash"]`),
   `bash` vẫn nén được để log dài không phình context.
-- **Coder/tester 80k/12/40%** — coder cần plan + code đang sửa; tester cần log/test
-  gần nhất. 40% là mức cân bằng, không nén quá sớm.
+- **Coder/tester 60k/10/32%** — coder cần plan + code đang sửa; tester cần log/test
+  gần nhất. 32% là mức cân bằng sau khi hạ; thấp hơn nữa sẽ gặp PRESSURE NOTE (fold
+  nhỏ liên tục, mất cache hit mà thu hồi ít).
 - **`concurrency: 8`** — 0.1.216 pool nén process-wide, tối thiểu 4; 8 đủ cho 7 agent
   + target dự phòng. Range vượt slot xếp hàng, không fail.
 - **`targetTimeoutMs: 900000` / `totalTimeoutMs: 1200000`** — fold 150k token có thể
