@@ -60,7 +60,7 @@ Trên Cloud Shell / máy headless, dùng web UI:
 3. Chọn **Đăng nhập bằng mã thiết bị GitHub**, mở link GitHub và nhập mã.
 
 Token nằm trong `~/.config/magpie/plugin-auth.json` ở khoá `freepi7`; không đụng
-token của `freepi` / `freepi2` / `freepi3` / `freepi4`.
+token của `freepi` / `freepi2` / `freepi3` / `freepi4` / `freepi5` / `freepi6`.
 
 ## Dùng
 
@@ -72,6 +72,21 @@ magpie group set main models+=freepi7/deepseek-v4.1-flash
 
 Model hiện ra dưới dạng `freepi7/<model-id>`, ví dụ
 `freepi7/deepseek-v4.1-flash`.
+
+### Cấu hình đang dùng (sau khi đăng nhập 21/11)
+
+Cùng kiểu sáu provider kia:
+
+```sh
+magpie provider models freepi7 deepseek-v4.1-flash      # thay vì deepseek-v4-flash lúc đầu
+magpie model efforts freepi7/deepseek-v4.1-flash none,minimal,low,medium,high,xhigh,max
+magpie provider account-concurrency freepi7 thuylinh-coder 1
+magpie provider queue freepi7 32
+```
+
+Gateway trả `freepi7/deepseek-v4.1-flash` với `1048576` input / `32768` output và
+cùng bảy mức reasoning như `freepi`…`freepi6`. Đã test `magpie provider test` ✓.
+FreePi7 chưa được thêm vào group nào; muốn dùng thì thêm riêng.
 
 ## Lưu trữ tách biệt
 
@@ -190,7 +205,7 @@ khác nhau:
 | `freepi4` | `ngaynaochavao73999-code` |
 | `freepi5` | `ngocson-ctrl` |
 | `freepi6` | `haiquan-tbs` |
-| `freepi7` | *(đăng nhập để xem)* |
+| `freepi7` | `thuylinh-coder` (Pi7 - Leader) |
 
 FreePi7 tách `x-session-id`, token, thư mục trạng thái và budget. **Không tách
 được IP**: nếu cả bảy đi ra cùng một địa chỉ mạng, upstream vẫn thấy chúng sau

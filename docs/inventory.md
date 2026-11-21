@@ -59,7 +59,7 @@ hiện vì thiếu plugin trên máy này.
 | `freepi4` | FreePi4 | OAuth (plugin riêng) | 1 / 24 | **bật**; tài khoản thứ năm, repo private `Duc-Nguyen-739/FreePiLogin4`, kho `~/.freepi4` — `docs/freepi4.md` |
 | `freepi5` | FreePi5 | OAuth (plugin riêng) | 1 / 24 | **bật**; tài khoản thứ sáu, repo private `Duc-Nguyen-739/FreePiLogin5`, kho `~/.freepi5` — `docs/freepi5.md` |
 | `freepi6` | FreePi6 | OAuth (plugin riêng) | 1 / 24 | **bật**; một tài khoản FreePi riêng, repo private `Duc-Nguyen-739/FreePiLogin6`, kho `~/.freepi6` — `docs/freepi6.md` |
-| `freepi7` | FreePi7 | OAuth (plugin riêng) | 1 / 24 | **bật** (chưa đăng nhập); tài khoản FreePi riêng thứ hai, repo private `Duc-Nguyen-739/FreePiLogin7`, kho `~/.freepi7` — `docs/freepi7.md` |
+| `freepi7` | FreePi7 | OAuth (plugin riêng) | 1 / 24 | **bật**, đã đăng nhập `thuylinh-coder` (Pi7 - Leader); `deepseek-v4.1-flash`, efforts `none…max`, 1 request/account, queue 32; repo private `Duc-Nguyen-739/FreePiLogin7`, kho `~/.freepi7` — `docs/freepi7.md` |
 | `agy-cli` | agy-cli | OAuth Google (plugin) | 3 / 5 | **bật**; `gemini-3.8-flash`, `gemini-2.5-flash-lite`, `claude-opus-4-6-thinking` |
 | `agnes` | Agnes | API key | 1 / 4 | **tắt** (`magpie provider on agnes`); `agnes-3.0-flash` |
 | `kilo` | Kilo Gateway | API key | 3 / 410 | **bật**; có `reflection/beam-free` và `particle-1:free` |
