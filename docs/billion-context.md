@@ -54,8 +54,8 @@ một lần qua web UI; repo không chứa key. Script **không** tạo group/mo
 
 ## Cấu hình đang dùng (cập nhật 2026-11-21)
 
-`compress` toàn cục: `nudgeGrowthTokens: 150000`, `preserveRecentTokens: 40000`,
-`preserveRecentMessages: 10`, `preserveRecentTools: ["read"]`, `maxSummaryLength: 30000`.
+`compress` toàn cục: `nudgeGrowthTokens: 120000`, `preserveRecentTokens: 32000`,
+`preserveRecentMessages: 8`, `preserveRecentTools: ["read"]`, `maxSummaryLength: 30000`.
 `externalSummary`: bật, `concurrency: 8`, target `magpie/group/compress` →
 `magpie/workbuddy-ai/hy4flash-free`, `targetTimeoutMs: 900000`,
 `totalTimeoutMs: 1200000`, `maxSummaryBytes: 131072`. Provider `group/compress`:
@@ -66,28 +66,29 @@ Per-model (merge global → provider → model):
 
 | Model | nudge | preserve tokens | msgs | max context | summary cap | ghi chú |
 |---|---:|---:|---:|---:|---:|---|
-| `group/leader` | 150k | 240k | 32 | 65% | 60k | task dài, giữ quyết định |
-| `group/review` | 60k | 48k | 10 | 30% | 30k | `neverPreserveRecentTools: []`, `preserveRecentTools: ["bash"]` |
-| `group/reviewplan` | 60k | 48k | 10 | 30% | 30k | như review |
-| `group/coder` | 60k | 60k | 10 | 32% | 30k | |
-| `group/tester` / `tester-2` / `tester-3` | 60k | 60k | 10 | 32% | 30k | |
+| `group/leader` | 120k | 200k | 28 | 55% | 60k | task dài, giữ quyết định |
+| `group/review` | 48k | 40k | 8 | 25% | 30k | `neverPreserveRecentTools: []`, `preserveRecentTools: ["bash"]` |
+| `group/reviewplan` | 48k | 40k | 8 | 25% | 30k | như review |
+| `group/coder` | 48k | 50k | 8 | 27% | 30k | |
+| `group/tester` / `tester-2` / `tester-3` | 48k | 50k | 8 | 27% | 30k | |
 
 Các entry model thật đi cùng group được hạ theo cùng tỉ lệ (xem bảng dưới). Ngày
-21/11 hạ thêm một nấc (~20–25%) sau khi phiên build 1.4 MiB bị FreePi trả 413:
-threshold thấp giúp nén trước khi body request vượt giới hạn của provider.
+21/11 hạ thêm hai nấc (~20% mỗi lần) sau khi phiên build 1.4 MiB bị FreePi trả 413:
+threshold thấp giúp nén trước khi body request vượt giới hạn của provider. Đã thêm
+entry `freepi7/deepseek-v4.1-flash` vào nhóm coder/tester.
 
 ### Vì sao các con số này
 
-- **Leader 240k/32/65%** — pipeline dài (brief → plan → code → 3 tester → audit) có
-  nhiều báo cáo; 240k token gần nhất + 32 message giữ nguyên quyết định, gate và
-  `R1..Rn`. `maxContextLimit: 65%` vẫn nén muộn hơn các session khác; nudge 150k để có nhiều
+- **Leader 200k/28/55%** — pipeline dài (brief → plan → code → 3 tester → audit) có
+  nhiều báo cáo; 200k token gần nhất + 28 message giữ nguyên quyết định, gate và
+  `R1..Rn`. `maxContextLimit: 55%` vẫn nén muộn hơn các session khác; nudge 120k để có nhiều
   thời gian fold trước khi request phình.
-- **Review/reviewplan 48k/10/30%** — thường được Leader mở session mới cho từng việc,
-  nên không cần giữ quá rộng; 30% đủ cho một lần khảo sát/plan/audit. `read` được bảo
+- **Review/reviewplan 40k/8/25%** — thường được Leader mở session mới cho từng việc,
+  nên không cần giữ quá rộng; 25% đủ cho một lần khảo sát/plan/audit. `read` được bảo
   vệ trong recent zone (`neverPreserveRecentTools: []`, `preserveRecentTools: ["bash"]`),
   `bash` vẫn nén được để log dài không phình context.
-- **Coder/tester 60k/10/32%** — coder cần plan + code đang sửa; tester cần log/test
-  gần nhất. 32% là mức cân bằng sau khi hạ; thấp hơn nữa sẽ gặp PRESSURE NOTE (fold
+- **Coder/tester 50k/8/27%** — coder cần plan + code đang sửa; tester cần log/test
+  gần nhất. 27% là mức thấp hơn sau hai lần hạ; xuống nữa sẽ gặp PRESSURE NOTE (fold
   nhỏ liên tục, mất cache hit mà thu hồi ít).
 - **`concurrency: 8`** — 0.1.216 pool nén process-wide, tối thiểu 4; 8 đủ cho 7 agent
   + target dự phòng. Range vượt slot xếp hàng, không fail.
@@ -108,7 +109,7 @@ entry `group/*` cho lúc request còn là group, và entry model thật cho lúc
 chuyển sang member. Các entry thật đang có:
 
 `workbuddy-ai/deepseek-v4.1-flash-sg`, `xingchi/gpt-6.1-sol`, `freepi4/...`,
-`freepi/...`, `freepi6/...`, `freepi2/...`, `freepi3/...`, `freepi5/...`,
+`freepi/...`, `freepi6/...`, `freepi7/...`, `freepi2/...`, `freepi3/...`, `freepi5/...`,
 `autoclaw/zai_glm-5.3-flash`.
 
 Nếu thêm group/model mới, thêm cả entry thật tương ứng; nếu không, session đó rơi về
