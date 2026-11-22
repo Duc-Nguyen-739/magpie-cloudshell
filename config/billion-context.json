@@ -19,19 +19,19 @@
       "models": {
         "group/leader": {
           "compress": {
-            "nudgeGrowthTokens": 120000,
-            "preserveRecentTokens": 200000,
-            "preserveRecentMessages": 28,
+            "nudgeGrowthTokens": 100000,
+            "preserveRecentTokens": 160000,
+            "preserveRecentMessages": 24,
             "maxSummaryLength": 60000,
-            "maxContextLimit": "55%"
+            "maxContextLimit": "48%"
           }
         },
         "group/review": {
           "compress": {
-            "nudgeGrowthTokens": 48000,
-            "preserveRecentTokens": 40000,
-            "preserveRecentMessages": 8,
-            "maxContextLimit": "25%",
+            "nudgeGrowthTokens": 40000,
+            "preserveRecentTokens": 32000,
+            "preserveRecentMessages": 6,
+            "maxContextLimit": "20%",
             "maxSummaryLength": 30000,
             "neverPreserveRecentTools": [],
             "preserveRecentTools": [
@@ -41,10 +41,10 @@
         },
         "group/reviewplan": {
           "compress": {
-            "nudgeGrowthTokens": 48000,
-            "preserveRecentTokens": 40000,
-            "preserveRecentMessages": 8,
-            "maxContextLimit": "25%",
+            "nudgeGrowthTokens": 40000,
+            "preserveRecentTokens": 32000,
+            "preserveRecentMessages": 6,
+            "maxContextLimit": "20%",
             "maxSummaryLength": 30000,
             "neverPreserveRecentTools": [],
             "preserveRecentTools": [
@@ -54,64 +54,64 @@
         },
         "group/coder": {
           "compress": {
-            "nudgeGrowthTokens": 48000,
-            "preserveRecentTokens": 50000,
-            "preserveRecentMessages": 8,
-            "maxContextLimit": "27%",
+            "nudgeGrowthTokens": 40000,
+            "preserveRecentTokens": 40000,
+            "preserveRecentMessages": 6,
+            "maxContextLimit": "22%",
             "maxSummaryLength": 30000
           }
         },
         "group/tester": {
           "compress": {
-            "nudgeGrowthTokens": 48000,
-            "preserveRecentTokens": 50000,
-            "preserveRecentMessages": 8,
-            "maxContextLimit": "27%",
+            "nudgeGrowthTokens": 40000,
+            "preserveRecentTokens": 40000,
+            "preserveRecentMessages": 6,
+            "maxContextLimit": "22%",
             "maxSummaryLength": 30000
           }
         },
         "group/tester-2": {
           "compress": {
-            "nudgeGrowthTokens": 48000,
-            "preserveRecentTokens": 50000,
-            "preserveRecentMessages": 8,
-            "maxContextLimit": "27%",
+            "nudgeGrowthTokens": 40000,
+            "preserveRecentTokens": 40000,
+            "preserveRecentMessages": 6,
+            "maxContextLimit": "22%",
             "maxSummaryLength": 30000
           }
         },
         "group/tester-3": {
           "compress": {
-            "nudgeGrowthTokens": 48000,
-            "preserveRecentTokens": 50000,
-            "preserveRecentMessages": 8,
-            "maxContextLimit": "27%",
+            "nudgeGrowthTokens": 40000,
+            "preserveRecentTokens": 40000,
+            "preserveRecentMessages": 6,
+            "maxContextLimit": "22%",
             "maxSummaryLength": 30000
           }
         },
         "workbuddy-ai/deepseek-v4.1-flash-sg": {
           "compress": {
-            "nudgeGrowthTokens": 120000,
-            "preserveRecentTokens": 200000,
-            "preserveRecentMessages": 28,
+            "nudgeGrowthTokens": 100000,
+            "preserveRecentTokens": 160000,
+            "preserveRecentMessages": 24,
             "maxSummaryLength": 60000,
-            "maxContextLimit": "55%"
+            "maxContextLimit": "48%"
           }
         },
         "xingchi/gpt-6.1-sol": {
           "compress": {
-            "nudgeGrowthTokens": 120000,
-            "preserveRecentTokens": 200000,
-            "preserveRecentMessages": 28,
+            "nudgeGrowthTokens": 100000,
+            "preserveRecentTokens": 160000,
+            "preserveRecentMessages": 24,
             "maxSummaryLength": 60000,
-            "maxContextLimit": "55%"
+            "maxContextLimit": "48%"
           }
         },
         "freepi4/deepseek-v4.1-flash": {
           "compress": {
-            "nudgeGrowthTokens": 48000,
-            "preserveRecentTokens": 40000,
-            "preserveRecentMessages": 8,
-            "maxContextLimit": "25%",
+            "nudgeGrowthTokens": 40000,
+            "preserveRecentTokens": 32000,
+            "preserveRecentMessages": 6,
+            "maxContextLimit": "20%",
             "maxSummaryLength": 30000,
             "neverPreserveRecentTools": [],
             "preserveRecentTools": [
@@ -121,10 +121,10 @@
         },
         "freepi/deepseek-v4.1-flash": {
           "compress": {
-            "nudgeGrowthTokens": 48000,
-            "preserveRecentTokens": 40000,
-            "preserveRecentMessages": 8,
-            "maxContextLimit": "25%",
+            "nudgeGrowthTokens": 40000,
+            "preserveRecentTokens": 32000,
+            "preserveRecentMessages": 6,
+            "maxContextLimit": "20%",
             "maxSummaryLength": 30000,
             "neverPreserveRecentTools": [],
             "preserveRecentTools": [
@@ -134,64 +134,64 @@
         },
         "freepi6/deepseek-v4.1-flash": {
           "compress": {
-            "nudgeGrowthTokens": 48000,
-            "preserveRecentTokens": 50000,
-            "preserveRecentMessages": 8,
-            "maxContextLimit": "27%",
+            "nudgeGrowthTokens": 40000,
+            "preserveRecentTokens": 40000,
+            "preserveRecentMessages": 6,
+            "maxContextLimit": "22%",
             "maxSummaryLength": 30000
           }
         },
         "freepi2/deepseek-v4.1-flash": {
           "compress": {
-            "nudgeGrowthTokens": 48000,
-            "preserveRecentTokens": 40000,
-            "preserveRecentMessages": 8,
-            "maxContextLimit": "25%",
+            "nudgeGrowthTokens": 40000,
+            "preserveRecentTokens": 32000,
+            "preserveRecentMessages": 6,
+            "maxContextLimit": "20%",
             "maxSummaryLength": 30000
           }
         },
         "freepi3/deepseek-v4.1-flash": {
           "compress": {
-            "nudgeGrowthTokens": 48000,
-            "preserveRecentTokens": 40000,
-            "preserveRecentMessages": 8,
-            "maxContextLimit": "25%",
+            "nudgeGrowthTokens": 40000,
+            "preserveRecentTokens": 32000,
+            "preserveRecentMessages": 6,
+            "maxContextLimit": "20%",
             "maxSummaryLength": 30000
           }
         },
         "freepi5/deepseek-v4.1-flash": {
           "compress": {
-            "nudgeGrowthTokens": 48000,
-            "preserveRecentTokens": 40000,
-            "preserveRecentMessages": 8,
-            "maxContextLimit": "25%",
+            "nudgeGrowthTokens": 40000,
+            "preserveRecentTokens": 32000,
+            "preserveRecentMessages": 6,
+            "maxContextLimit": "20%",
             "maxSummaryLength": 30000
           }
         },
         "autoclaw/zai_glm-5.3-flash": {
           "compress": {
-            "nudgeGrowthTokens": 48000,
-            "preserveRecentTokens": 50000,
-            "preserveRecentMessages": 8,
-            "maxContextLimit": "27%",
+            "nudgeGrowthTokens": 40000,
+            "preserveRecentTokens": 40000,
+            "preserveRecentMessages": 6,
+            "maxContextLimit": "22%",
             "maxSummaryLength": 30000
           }
         },
         "freepi7/deepseek-v4.1-flash": {
           "compress": {
-            "nudgeGrowthTokens": 48000,
-            "preserveRecentTokens": 50000,
-            "preserveRecentMessages": 8,
-            "maxContextLimit": "27%"
+            "nudgeGrowthTokens": 40000,
+            "preserveRecentTokens": 40000,
+            "preserveRecentMessages": 6,
+            "maxContextLimit": "22%"
           }
         }
       }
     }
   },
   "compress": {
-    "nudgeGrowthTokens": 120000,
+    "nudgeGrowthTokens": 100000,
     "preserveRecentMessages": 8,
-    "preserveRecentTokens": 32000,
+    "preserveRecentTokens": 28000,
     "preserveRecentTools": [
       "read"
     ],

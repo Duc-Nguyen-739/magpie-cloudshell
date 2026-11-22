@@ -52,9 +52,9 @@ config, đặt `compaction.auto=false` và reload proxy. Credential `magpie` v�
 một lần qua web UI; repo không chứa key. Script **không** tạo group/model: tự tạo
 `group/compress` (`routing=rotate`, `stays=off`) và thêm model trước khi nén.
 
-## Cấu hình đang dùng (cập nhật 2026-11-21)
+## Cấu hình đang dùng (cập nhật 2026-11-22)
 
-`compress` toàn cục: `nudgeGrowthTokens: 120000`, `preserveRecentTokens: 32000`,
+`compress` toàn cục: `nudgeGrowthTokens: 100000`, `preserveRecentTokens: 28000`,
 `preserveRecentMessages: 8`, `preserveRecentTools: ["read"]`, `maxSummaryLength: 30000`.
 `externalSummary`: bật, `concurrency: 8`, target `magpie/group/compress`,
 `targetTimeoutMs: 300000`, `totalTimeoutMs: 600000`, `maxSummaryBytes: 131072`.
@@ -66,29 +66,32 @@ Per-model (merge global → provider → model):
 
 | Model | nudge | preserve tokens | msgs | max context | summary cap | ghi chú |
 |---|---:|---:|---:|---:|---:|---|
-| `group/leader` | 120k | 200k | 28 | 55% | 60k | task dài, giữ quyết định |
-| `group/review` | 48k | 40k | 8 | 25% | 30k | `neverPreserveRecentTools: []`, `preserveRecentTools: ["bash"]` |
-| `group/reviewplan` | 48k | 40k | 8 | 25% | 30k | như review |
-| `group/coder` | 48k | 50k | 8 | 27% | 30k | |
-| `group/tester` / `tester-2` / `tester-3` | 48k | 50k | 8 | 27% | 30k | |
+| `group/leader` | 100k | 160k | 24 | 48% | 60k | task dài, giữ quyết định |
+| `group/review` | 40k | 32k | 6 | 20% | 30k | `neverPreserveRecentTools: []`, `preserveRecentTools: ["bash"]` |
+| `group/reviewplan` | 40k | 32k | 6 | 20% | 30k | như review |
+| `group/coder` | 40k | 40k | 6 | 22% | 30k | |
+| `group/tester` / `tester-2` / `tester-3` | 40k | 40k | 6 | 22% | 30k | |
 
 Các entry model thật đi cùng group được hạ theo cùng tỉ lệ (xem bảng dưới). Ngày
 21/11 hạ thêm hai nấc (~20% mỗi lần) sau khi phiên build 1.4 MiB bị FreePi trả 413:
 threshold thấp giúp nén trước khi body request vượt giới hạn của provider. Đã thêm
-entry `freepi7/deepseek-v4.1-flash` vào nhóm coder/tester.
+entry `freepi7/deepseek-v4.1-flash` vào nhóm coder/tester. Ngày 22/11 hạ thêm một
+nấc nhỏ (~17%, leader 55%→48%, còn lại 25%→20% và 27%→22%) — mức cuối còn giữ được
+khoảng đệm cho log/test; xuống nữa thì fold nhỏ liên tục, mất cache hit mà thu hồi
+ít.
 
 ### Vì sao các con số này
 
-- **Leader 200k/28/55%** — pipeline dài (brief → plan → code → 3 tester → audit) có
-  nhiều báo cáo; 200k token gần nhất + 28 message giữ nguyên quyết định, gate và
-  `R1..Rn`. `maxContextLimit: 55%` vẫn nén muộn hơn các session khác; nudge 120k để có nhiều
+- **Leader 160k/24/48%** — pipeline dài (brief → plan → code → 3 tester → audit) có
+  nhiều báo cáo; 160k token gần nhất + 24 message giữ nguyên quyết định, gate và
+  `R1..Rn`. `maxContextLimit: 48%` vẫn nén muộn hơn các session khác; nudge 100k để có nhiều
   thời gian fold trước khi request phình.
-- **Review/reviewplan 40k/8/25%** — thường được Leader mở session mới cho từng việc,
-  nên không cần giữ quá rộng; 25% đủ cho một lần khảo sát/plan/audit. `read` được bảo
+- **Review/reviewplan 32k/6/20%** — thường được Leader mở session mới cho từng việc,
+  nên không cần giữ quá rộng; 20% đủ cho một lần khảo sát/plan/audit. `read` được bảo
   vệ trong recent zone (`neverPreserveRecentTools: []`, `preserveRecentTools: ["bash"]`),
   `bash` vẫn nén được để log dài không phình context.
-- **Coder/tester 50k/8/27%** — coder cần plan + code đang sửa; tester cần log/test
-  gần nhất. 27% là mức thấp hơn sau hai lần hạ; xuống nữa sẽ gặp PRESSURE NOTE (fold
+- **Coder/tester 40k/6/22%** — coder cần plan + code đang sửa; tester cần log/test
+  gần nhất. 22% là mức thấp nhất đã thử; xuống nữa sẽ gặp PRESSURE NOTE (fold
   nhỏ liên tục, mất cache hit mà thu hồi ít).
 - **`concurrency: 8`** — 0.1.216 pool nén process-wide, tối thiểu 4; 8 đủ cho nhiều
   range song song. Range vượt slot xếp hàng, không fail.
@@ -113,7 +116,7 @@ chuyển sang member. Các entry thật đang có:
 `autoclaw/zai_glm-5.3-flash`.
 
 Nếu thêm group/model mới, thêm cả entry thật tương ứng; nếu không, session đó rơi về
-global (50k preserve/12/30k) và dễ mất ngữ cảnh hơn dự kiến.
+global (28k preserve/8/30k) và dễ mất ngữ cảnh hơn dự kiến.
 
 ### Decision ledger
 
