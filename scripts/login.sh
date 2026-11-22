@@ -5,8 +5,13 @@
 #   bash scripts/login.sh              trạng thái từng provider
 #   bash scripts/login.sh autoclaw     AutoClaw (Zhipu) — OAuth Google/z.ai
 #   bash scripts/login.sh workbuddy    WorkBuddy AI
-#   bash scripts/login.sh freepi2      FreePi2 — tài khoản FreePi thứ ba (plugin private)
-#   bash scripts/login.sh freepi3      FreePi3 — tài khoản FreePi thứ tư (plugin private)
+#   bash scripts/login.sh freepi       FreePi — tài khoản chính (plugin npm)
+#   bash scripts/login.sh freepi2      FreePi2 — tài khoản FreePi thứ hai (plugin private)
+#   bash scripts/login.sh freepi3      FreePi3 — tài khoản FreePi thứ ba (plugin private)
+#   bash scripts/login.sh freepi4      FreePi4 — tài khoản FreePi thứ tư (plugin private)
+#   bash scripts/login.sh freepi5      FreePi5 — tài khoản FreePi thứ năm (plugin private)
+#   bash scripts/login.sh freepi6      FreePi6 — tài khoản FreePi thứ sáu (plugin private)
+#   bash scripts/login.sh freepi7      FreePi7 — tài khoản FreePi thứ bảy (plugin private)
 #   bash scripts/login.sh qoder        Qoder
 #   bash scripts/login.sh zcode        ZCode
 #   bash scripts/login.sh keys         dán API key (OpenCode Zen, Kilo)
@@ -58,7 +63,7 @@ status() {
   say "Plugin:"
   magpie plugin list 2>/dev/null | sed 's/^/  /'
   say ""
-  say "Đăng nhập: bash scripts/login.sh autoclaw|workbuddy|freepi2|freepi3|freepi4|freepi5|freepi6|qoder|zcode|keys"
+  say "Đăng nhập: bash scripts/login.sh autoclaw|workbuddy|freepi|freepi2|freepi3|freepi4|freepi5|freepi6|freepi7|qoder|zcode|keys"
 }
 
 # Server callback của AutoClaw chỉ nghe 127.0.0.1, nên trình duyệt phải ở cùng máy.
@@ -129,21 +134,31 @@ case "$1" in
     finish_after
     ;;
 
-  freepi2|freepi3|freepi4|freepi5|freepi6)
+  freepi|freepi2|freepi3|freepi4|freepi5|freepi6|freepi7)
     case "$1" in
-      freepi3) NAME="FreePi3"; NUM="thứ tư" ;;
-      freepi4) NAME="FreePi4"; NUM="thứ năm" ;;
-      freepi5) NAME="FreePi5"; NUM="thứ sáu" ;;
-      freepi6) NAME="FreePi6"; NUM="riêng" ;;
-      *)       NAME="FreePi2"; NUM="thứ ba" ;;
+      freepi)  NAME="FreePi";  NUM="chính";   PRIVATE=0 ;;
+      freepi2) NAME="FreePi2"; NUM="thứ hai";  PRIVATE=1 ;;
+      freepi3) NAME="FreePi3"; NUM="thứ ba";  PRIVATE=1 ;;
+      freepi4) NAME="FreePi4"; NUM="thứ tư"; PRIVATE=1 ;;
+      freepi5) NAME="FreePi5"; NUM="thứ năm"; PRIVATE=1 ;;
+      freepi6) NAME="FreePi6"; NUM="thứ sáu"; PRIVATE=1 ;;
+      freepi7) NAME="FreePi7"; NUM="thứ bảy"; PRIVATE=1 ;;
     esac
     PROVIDER="$1"
-    say "$NAME — tài khoản FreePi $NUM, plugin private, kho riêng ~/.$PROVIDER."
+    if [ "$PRIVATE" = 1 ]; then
+      say "$NAME — tài khoản FreePi $NUM, plugin private, kho riêng ~/.$PROVIDER."
+    else
+      say "$NAME — tài khoản FreePi $NUM, plugin npm magpie-freepi-auth."
+    fi
     if [ -z "${DISPLAY:-}" ] && [ -z "${WAYLAND_DISPLAY:-}" ]; then
       say ""
       warn "Máy này không có trình duyệt. Đăng nhập qua web UI của magpie:"
       say "  1. openmagpie"
-      say "  2. Settings → Providers → Add provider → From plugins → $NAME"
+      if [ "$PRIVATE" = 1 ]; then
+        say "  2. Settings → Providers → Add provider → From plugins → $NAME"
+      else
+        say "  2. Settings → Providers → Add provider → $NAME"
+      fi
       say "  3. Chọn “Đăng nhập bằng mã thiết bị GitHub”, mở link GitHub và nhập mã."
       say ""
       say "  (CLI: magpie plugin login $PROVIDER — chỉ khi trình duyệt ở cùng máy.)"
@@ -193,6 +208,6 @@ case "$1" in
     ;;
 
   *)
-    die "không biết provider '$1' (autoclaw, autoclaw-cn, workbuddy, freepi2, freepi3, qoder, zcode, keys, status)"
+    die "không biết provider '$1' (autoclaw, autoclaw-cn, workbuddy, freepi, freepi2…freepi7, qoder, zcode, keys, status)"
     ;;
 esac

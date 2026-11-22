@@ -1,8 +1,8 @@
-# FreePi7 — plugin riêng cho một tài khoản FreePi
+# FreePi7 — plugin riêng cho một tài khoản FreePi thứ bảy
 
 `FreePi7` là một provider **riêng** của magpie, dùng để đăng nhập một tài khoản
-FreePi7 **khác** với sáu tài khoản còn lại. Nó không phải bản sao của
-`freepi`, `freepi2`, `freepi3`, `freepi4`, `freepi5` hay `freepi6`: mã nguồn plugin nằm trong repo private
+FreePi **khác** với các tài khoản còn lại. Nó không phải bản sao của `freepi`
+hay các FreePi khác: mã nguồn plugin nằm trong repo private
 <https://github.com/Duc-Nguyen-739/FreePiLogin7>, có icon riêng, mô tả tiếng Việt,
 và lưu trạng thái trong thư mục `~/.freepi7`.
 
@@ -39,7 +39,7 @@ Kiểm tra:
 ```sh
 magpie plugin list | grep -A1 FreePi7
 # /home/<bạn>/.local/src/FreePiLogin7  on
-#   freepi7 (FreePi7, 27 models)  not signed in · magpie plugin login freepi7
+#   freepi7 (FreePi7, 28 models)  not signed in · magpie plugin login freepi7
 ```
 
 `magpie providers` **chưa** hiện FreePi7 trước khi đăng nhập — xem mục
@@ -86,7 +86,8 @@ magpie provider queue freepi7 32
 
 Gateway trả `freepi7/deepseek-v4.1-flash` với `1048576` input / `32768` output và
 cùng bảy mức reasoning như `freepi`…`freepi6`. Đã test `magpie provider test` ✓.
-FreePi7 chưa được thêm vào group nào; muốn dùng thì thêm riêng.
+Máy tham chiếu đang dùng FreePi7 ở `group/tester-2`; `setup-model-settings.sh`
+đặt lại context/output/efforts và queue/slot mỗi lần chạy `finish.sh`.
 
 ## Lưu trữ tách biệt
 
@@ -199,13 +200,13 @@ khác nhau:
 
 | Provider | Tài khoản trên máy này |
 |---|---|
-| `freepi` | `ducnguyenvan05-source` |
-| `freepi2` | `ngaynaochavao7399-del` |
-| `freepi3` | `ngaynaochavao739-ui` |
-| `freepi4` | `ngaynaochavao73999-code` |
-| `freepi5` | `ngocson-ctrl` |
+| `freepi` | `Duc-Nguyen-739` (Reviewer Plan) |
+| `freepi2` | `huenguyen-code` |
+| `freepi3` | `hoangphat-coder` |
+| `freepi4` | `phucth2002-spec` |
+| `freepi5` | `ngocson-coder` |
 | `freepi6` | `haiquan-tbs` |
-| `freepi7` | `thuylinh-coder` (Pi7 - Leader) |
+| `freepi7` | `thuylinh-coder` (Pi7 - Tester 2) |
 
 FreePi7 tách `x-session-id`, token, thư mục trạng thái và budget. **Không tách
 được IP**: nếu cả bảy đi ra cùng một địa chỉ mạng, upstream vẫn thấy chúng sau
@@ -251,7 +252,7 @@ bash scripts/doctor.sh | grep FreePi7
 Kỳ vọng:
 
 ```
-freepi7 (FreePi7, 27 models)  signed in as <tài khoản bạn đăng nhập>
+freepi7 (FreePi7, 28 models)  signed in as <tài khoản bạn đăng nhập>
 ✓ FreePi7: session id riêng (~/.freepi7, quyền 600)
 ✓ FreePi7 đã đăng nhập
 ```

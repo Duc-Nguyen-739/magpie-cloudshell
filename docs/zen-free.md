@@ -125,7 +125,7 @@ ladder `group/main`:
 ```
 
 **Classifier** của tám group `main`, `leader`, `review`, `reviewplan`, `coder`, `tester`,
-`tester-2`, `tester-3` (`group/free` là plain group, không classifier):
+`tester-2`, `tester-3` (`group/compress` là plain group, không classifier):
 `opencode-zen/jev-1.13-free` — model phân
 loại nội bộ của Zen, **không** bị chặn free tier (đo 582–768 ms mỗi lượt), không hiện cho
 agent chọn, và **không** đụng bể IP dùng chung của `opencode-zen-free` (vì sao, xem mục 6).
@@ -222,11 +222,12 @@ free nhanh trong UI, không phải để thay `group/main`.
 
 ## 9. Rủi ro
 
-- **Plugin cộng đồng.** `opencode-zen-free` là plugin (`opencode-zen-freex`), không chính
+- **Plugin cộng đồng.** `opencode-zen-free` là plugin
+  `@magpie-community/opencode-zen-free-auth` (bản cũ `opencode-zen-freex`), không chính
   thức. Hiện provider đang tắt nên ladder không phụ thuộc nó; nếu bật lại để thử thì
-  `magpie plugin update` lên bản hỏng sẽ làm rung OpenCode chết. Cách xử:
-  ghim lại bản đang chạy: `magpie plugin add opencode-zen-freex@0.5.16`, rồi
-  `magpie-headless-stop && magpie-headless-start`.
+  `magpie plugin update` lên bản hỏng sẽ làm rung OpenCode chết. Cách xử: ghim lại
+  bản đang chạy bằng `magpie plugin add @magpie-community/opencode-zen-free-auth@<số>`,
+  rồi `magpie-headless-stop && magpie-headless-start`.
 - **Free tier có giới hạn riêng, tính theo IP dùng chung.** Zen có thể siết thêm bất cứ
   lúc nào — đó chính là lý do `opencode-zen-free` đã bị tắt thay vì giữ làm rung cuối.
 - **`jev-1.13-free` là model nội bộ của Zen:** nó có thể bị gỡ hoặc bị tính tiền bất cứ
@@ -246,8 +247,8 @@ magpie provider on opencode-zen-free     # plugin vẫn cài, chỉ cần bật 
 magpie group set main models+=opencode-zen-free/deepseek-v4.1-flash-free,opencode-zen-free/glm-5.3-flash-free
 ```
 
-`setup-groups.sh` hiện định nghĩa chín group; thêm model free vào đúng group bạn muốn thử
-(thường là `main`). `code`/`glm` không còn — đừng thêm vào đó. Nhớ rằng hạn mức tính theo
+`setup-groups.sh` hiện định nghĩa tám group mẫu; thêm model free vào đúng group bạn muốn
+thử (thường là `main`). `code`/`glm` không còn — đừng thêm vào đó. Nhớ rằng hạn mức tính theo
 IP dùng chung: bể cạn thì bật lại cũng không giúp gì.
 
 Muốn **trả classifier về WorkBuddy** (khi `jev` bị Zen gỡ): xem lệnh ở mục 6, rồi sửa

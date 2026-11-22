@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# setup-agents.sh — trỏ các agent đang cài vào group đúng: OpenCode → group/main,
-# OpenChamber → group/leader, và đặt small model của OpenCode.
+# setup-agents.sh — trỏ các agent đang cài vào group đúng: OpenCode → group/leader
+# (lùi về group/main nếu máy chưa có leader), OpenChamber → group/leader.
+# Small model của OpenCode để mặc định (không ghim model riêng).
 #
 #   bash scripts/setup-agents.sh
 #   bash scripts/setup-agents.sh --dry-run
@@ -36,16 +37,20 @@ have_agent() { printf '%s\n' "$agents_now" | grep -qiE "^[[:space:]]*$1[[:space:
 
 # ------------------------------------------------------------------ OpenCode
 if have_agent "OpenCode"; then
-  say "OpenCode → group/main"
-  run magpie opencode group/main && ok "OpenCode xong"
+  # Máy hiện tại dùng group/leader cho cả OpenCode và OpenChamber. Nếu máy mới
+  # chưa có leader (chưa đăng nhập đủ provider) thì lùi về group/main.
+  oc_group="group/leader"
+  if ! printf '%s\n' "$groups_now" | grep -q "group/leader"; then
+    oc_group="group/main"
+    warn "chưa có group/leader — OpenCode dùng group/main"
+  fi
+  say "OpenCode → $oc_group"
+  run magpie opencode "$oc_group" && ok "OpenCode xong"
 
-  # small model: tiêu đề phiên, tóm tắt ngắn — dùng model free nhanh, không tốn quota.
-  models_now="$(magpie models 2>/dev/null | awk '{print $1}')"
-  if printf '%s\n' "$models_now" | grep -Fxq "workbuddy-ai/hy4flash-free"; then
-    say "OpenCode small → magpie/workbuddy-ai/hy4flash-free"
-    run magpie opencode small magpie/workbuddy-ai/hy4flash-free && ok "small model xong"
-  else
-    warn "không có workbuddy-ai/hy4flash-free — để nguyên small model"
+  # Small model: để OpenCode tự chọn (máy hiện tại không ghim model riêng).
+  if magpie opencode small 2>/dev/null | grep -q 'magpie/'; then
+    say "OpenCode small → mặc định"
+    run magpie opencode small default && ok "small model về mặc định"
   fi
 else
   warn "không thấy OpenCode (cài bằng bash scripts/install-opencode.sh)"
@@ -55,6 +60,36 @@ fi
 if have_agent "OpenChamber"; then
   say "OpenChamber → group/leader"
   run magpie openchamber group/leader && ok "OpenChamber xong"
+
+  # Hai khoá này OpenChamber tự lưu trong settings.json, không có lệnh magpie.
+  # Chỉ ghi khi app đang tắt (cổng 3000 không trả lời); app đang chạy sẽ ghi đè.
+  OC_SETTINGS="$HOME/.config/openchamber/settings.json"
+  if [ -f "$OC_SETTINGS" ] && ! curl -fsS -o /dev/null -m 1 "http://127.0.0.1:${OPENCHAMBER_PORT:-3000}/" 2>/dev/null; then
+    if [ "$DRY" = 1 ]; then
+      printf '  \033[2m[dry-run]\033[0m đặt OpenChamber defaultAgent=leader, defaultVariant=max\n'
+    else
+      python3 - "$OC_SETTINGS" <<'PY'
+import json, sys
+p = sys.argv[1]
+with open(p, encoding="utf-8") as f:
+    data = json.load(f)
+changed = []
+for key, value in (("defaultAgent", "leader"), ("defaultVariant", "max")):
+    if data.get(key) != value:
+        data[key] = value
+        changed.append(key)
+if changed:
+    with open(p, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    print("  ✓ OpenChamber:", ", ".join(changed))
+else:
+    print("  ✓ OpenChamber: defaultAgent/defaultVariant đã đúng")
+PY
+    fi
+  elif [ -f "$OC_SETTINGS" ]; then
+    warn "OpenChamber đang chạy — không sửa settings.json; mở Settings để đặt agent leader / variant max"
+  fi
 else
   warn "không thấy OpenChamber (cài bằng bash scripts/install-openchamber.sh)"
 fi

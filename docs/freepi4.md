@@ -1,8 +1,8 @@
-# FreePi4 — plugin riêng cho tài khoản FreePi thứ năm
+# FreePi4 — plugin riêng cho tài khoản FreePi thứ tư
 
 `FreePi4` là một provider **riêng** của magpie, dùng để đăng nhập một tài khoản
-[free-pi](https://api.freepi.ai) **khác** với ba tài khoản còn lại. Nó không
-phải bản sao của `freepi` hay `free-pi`: mã nguồn plugin nằm trong repo private
+FreePi **khác** với các tài khoản còn lại. Nó không phải bản sao của `freepi`
+hay các FreePi khác: mã nguồn plugin nằm trong repo private
 <https://github.com/Duc-Nguyen-739/FreePiLogin4>, có icon riêng, mô tả tiếng Việt,
 và lưu trạng thái trong thư mục `~/.freepi4`.
 
@@ -39,7 +39,7 @@ Kiểm tra:
 ```sh
 magpie plugin list | grep -A1 FreePi4
 # /home/<bạn>/.local/src/FreePiLogin4  on
-#   freepi4 (FreePi4, 18 models)  not signed in · magpie plugin login freepi4
+#   freepi4 (FreePi4, 28 models)  not signed in · magpie plugin login freepi4
 ```
 
 `magpie providers` **chưa** hiện FreePi4 trước khi đăng nhập — xem mục
@@ -177,19 +177,20 @@ the required minimum`. FreePi4 đọc `/client-version` và tự canh
 `x-client-version` theo `latest`, không ghim số như bản `free-pi` cũ. Nếu vẫn
 426, chạy `magpie plugin add ~/.local/src/FreePiLogin4` để nạp bản mới.
 
-### 6. Sáu tài khoản trên cùng một upstream
+### 6. Bảy tài khoản trên cùng một upstream
 
-`freepi`, `freepi2`, `freepi3`, `freepi4`, `freepi5` và `freepi6` cùng gọi `api.freepi.ai`, nhưng là sáu tài khoản
+`freepi`, `freepi2`, `freepi3`, `freepi4`, `freepi5`, `freepi6` và `freepi7` cùng gọi `api.freepi.ai`, nhưng là bảy tài khoản
 khác nhau:
 
 | Provider | Tài khoản trên máy này |
 |---|---|
-| `freepi` | `Duc-Nguyen-739` |
+| `freepi` | `Duc-Nguyen-739` (Reviewer Plan) |
 | `freepi2` | `huenguyen-code` |
 | `freepi3` | `hoangphat-coder` |
 | `freepi4` | `phucth2002-spec` |
 | `freepi5` | `ngocson-coder` |
 | `freepi6` | `haiquan-tbs` |
+| `freepi7` | `thuylinh-coder` (Pi7 - Tester 2) |
 
 Tên account là ảnh chụp lúc đăng nhập; đăng nhập lại có thể đổi. Kiểm tra bằng
 `GET /me` hoặc `magpie accounts`.
@@ -234,7 +235,7 @@ giữ **một session review** tại một thời điểm và không gửi tin n
 đang chạy; nếu không, request cuối có thể bị OpenCode huỷ (499), không phải 429.
 
 FreePi4 tách `x-session-id`, token, thư mục trạng thái và budget. **Không tách
-được IP**: nếu cả sáu đi ra cùng một địa chỉ mạng, upstream vẫn thấy chúng sau
+được IP**: nếu cả bảy đi ra cùng một địa chỉ mạng, upstream vẫn thấy chúng sau
 cùng một IP, và mỗi JWT đều định danh tài khoản. Plugin không thể bảo đảm server
 không phát hiện. Nếu cần khác IP, đặt proxy riêng cho FreePi4:
 
@@ -277,7 +278,7 @@ bash scripts/doctor.sh | grep FreePi4
 Kỳ vọng:
 
 ```
-freepi4 (FreePi4, 18 models)  signed in as ngaynaochavao73999-code
+freepi4 (FreePi4, 28 models)  signed in as phucth2002-spec
 ✓ FreePi4: session id riêng (~/.freepi4, quyền 600)
 ✓ FreePi4 đã đăng nhập
 ```

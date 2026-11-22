@@ -1,9 +1,10 @@
 # magpie trên Cloud Shell — cài một lần, chỉ còn đăng nhập
 
-Dựng lại **đúng** cấu hình magpie đang chạy trên một máy Cloud Shell thật: 21 provider
-(17 bật), 9 routing group, OpenCode → `group/main`, OpenChamber → `group/leader`, chạy
+Dựng lại **đúng** cấu hình magpie đang chạy trên một máy Cloud Shell thật: 18 provider
+(14 bật), 8 routing group mẫu, OpenCode + OpenChamber → `group/leader`, chạy
 headless không cần systemd, và hai lệnh `openchamber` / `openmagpie` in ra **link web đã
-kèm key** — bấm là vào, không phải dán gì.
+kèm key** — bấm là vào, không phải dán gì. Model trong group do bạn tự chọn; repo không
+đồng bộ ladder từ máy tham chiếu.
 
 Mục tiêu: clone repo → `bash bootstrap.sh` → **bạn chỉ cần đăng nhập tài khoản** vào các
 provider (phần lớn là bấm link, không phải dán key).
@@ -64,11 +65,11 @@ see [`AGENTS.md`](AGENTS.md). The exact setup reproduced: [`docs/inventory.md`](
 | Thành phần | Vị trí | Vai trò |
 |---|---|---|
 | magpie 0.1.x (terminal build) | `~/.local/bin/magpie` | gateway + web UI + CLI quản lý |
-| 14 plugin provider | `~/.config/magpie/plugins/` | AutoClaw, WorkBuddy, agy-cli, cline, kiro, agnes, FreePi, FreePi2, FreePi3, FreePi4, FreePi5, FreePi6, OpenCode Zen Free (2) |
+| 11 plugin provider | `~/.config/magpie/plugins/` | AutoClaw, WorkBuddy, agnes, FreePi, FreePi2, FreePi3, FreePi4, FreePi5, FreePi6, FreePi7, OpenCode Zen Free (máy tham chiếu có 12 entry vì `freepi` cài hai bản) |
 | OpenCode v2 | `~/.opencode/bin/opencode` | agent code trong terminal |
 | OpenChamber | `~/.npm-global/bin/openchamber` | web UI cho OpenCode (cổng 3000) |
 | 7 agent | `~/.config/opencode/agents/` | `leader` + `review`, `reviewplan`, `coder`, `tester`, `tester2`, `tester3` |
-| skill thư viện | `~/.config/magpie/library/skills/` | 13 skill; agent **không** nạp, chỉ hai ngoại lệ `magpie-sessions`/`magpie-quota` |
+| skill thư viện | `~/.config/magpie/library/skills/` | 7 skill; agent **không** nạp, chỉ hai ngoại lệ `magpie-sessions`/`magpie-quota` |
 | wrapper | `~/.local/bin/openchamber`, `openmagpie`, `magpie-headless-*` | bật + in link kèm key |
 | dữ liệu magpie | `~/.config/magpie/` (600) | provider, group, auth, web-key |
 | log | `~/.local/state/magpie/headless.log` | log supervisor |
@@ -111,27 +112,30 @@ cd magpie-cloudshell
 bash bootstrap.sh
 ```
 
-FreePi2/FreePi3/FreePi4/FreePi5/FreePi6 là năm plugin trong **repo private**
-`Duc-Nguyen-739/FreePiLogin2`, `FreePiLogin3`, `FreePiLogin4`, `FreePiLogin5`, `FreePiLogin6`: trước khi
-chạy `bootstrap.sh`, máy cần `gh auth login` bằng tài khoản đọc được các repo đó (hoặc
-clone sẵn vào `~/.local/src/FreePiLogin2`, `FreePiLogin3`, `FreePiLogin4`,
-`FreePiLogin5`, `FreePiLogin6`). Thiếu quyền thì `scripts/plugins.sh` chỉ cảnh báo và bỏ qua các plugin
-đó, provider còn lại vẫn cài bình thường.
+FreePi2/FreePi3/FreePi4/FreePi5/FreePi6/FreePi7 là sáu plugin trong **repo private**
+`Duc-Nguyen-739/FreePiLogin2`, `FreePiLogin3`, `FreePiLogin4`, `FreePiLogin5`,
+`FreePiLogin6`, `FreePiLogin7`: trước khi chạy `bootstrap.sh`, máy cần `gh auth login`
+bằng tài khoản đọc được các repo đó (hoặc clone sẵn vào `~/.local/src/FreePiLogin2` …
+`~/.local/src/FreePiLogin7`). Thiếu quyền thì `scripts/plugins.sh` chỉ cảnh báo và bỏ
+qua các plugin đó, provider còn lại vẫn cài bình thường.
 
 `bootstrap.sh` chạy 9 bước, **chạy lại nhiều lần vẫn an toàn**:
 
 1. Cài magpie — bỏ qua nếu đã có (dùng `--from-source` để build từ repo chính chủ).
-2. Cài 14 plugin provider (lần đầu tải bun ~180 MB).
+2. Cài 11 plugin provider (lần đầu tải bun ~180 MB).
 3. Copy `openchamber`, `openmagpie`, `magpie-headless-*`, `magpie-finish` vào `~/.local/bin`
    (kèm bản sao scripts/config ở `~/.local/share/magpie-cloudshell`).
 4. Thêm khối PATH + tự bật vào `~/.bashrc` (đánh dấu `# >>> magpie-cloudshell >>>`).
 5. Cài OpenCode (script curl chính thức) và OpenChamber (`npm -g @openchamber/web`).
 6. Bật gateway + web UI, in link đã kèm key.
-7. Cấu hình magpie giống máy tham chiếu: `settings.json` (theme dark, vision, imageGen,
-   check-in AutoClaw, cỡ chữ…), bật `opencode-zen` nhưng chỉ expose `jev-1.13-free`,
-   tắt `opencode-zen-free`; cài `billion-context` + config nén (template
+7. Cấu hình magpie giống máy tham chiếu: `settings.json` (theme dark, vision + effort,
+   redaction, check-in AutoClaw, cỡ chữ…), bật `opencode-zen` nhưng chỉ expose
+   `jev-1.13-free`, tắt `opencode-zen-free`; **giá model (input/output/cache)**
+   của WorkBuddy/Xingchi, context/output/reasoning của FreePi qua
+   `scripts/setup-model-settings.sh`; cài `billion-context` + config nén (template
    `config/billion-context.json`, script `scripts/setup-billion-context.sh`).
-8. Tạo group + trỏ agent nếu đã có model (chưa có thì đăng nhập xong sẽ tự tạo).
+8. Tạo group còn thiếu + trỏ agent (chưa có model thì đăng nhập xong sẽ tự tạo).
+   `finish.sh` không reset ladder đã có — model trong group do bạn chọn.
 9. In việc còn lại: đăng nhập.
 
 Tuỳ chọn: `--from-source`, `--minimal` (chỉ magpie, không OpenCode/OpenChamber), `--no-autostart`.
@@ -144,6 +148,8 @@ Tuỳ chọn: `--from-source`, `--minimal` (chỉ magpie, không OpenCode/OpenCh
 bash scripts/login.sh              # trạng thái từng provider
 bash scripts/login.sh autoclaw     # AutoClaw (Zhipu) — quan trọng nhất
 bash scripts/login.sh workbuddy    # WorkBuddy AI
+bash scripts/login.sh freepi       # FreePi chính (plugin npm)
+bash scripts/login.sh freepi2      # FreePi2 … freepi7 (plugin private, mỗi cái một tài khoản)
 bash scripts/login.sh qoder        # Qoder (tuỳ chọn — cần plugin qoder)
 bash scripts/login.sh zcode        # ZCode (tuỳ chọn — cần plugin zcode)
 bash scripts/login.sh keys         # OpenCode Zen + Kilo (dán API key)
@@ -182,11 +188,12 @@ Nếu bạn đăng nhập **trong web UI** (cách dùng trên Cloud Shell), lầ
 | OpenCode Zen | API key `oc_…` — **bật**, chỉ expose `jev-1.13-free` (classifier) | [`docs/zen-free.md`](docs/zen-free.md) |
 | Kilo | API key `eyJ…` | [`docs/providers.md`](docs/providers.md) |
 | OpenCode Zen Free | plugin, key công khai — **tắt** (hạn mức theo IP dùng chung) | [`docs/providers.md`](docs/providers.md) |
-| FreePi2 | OAuth plugin — tài khoản thứ ba, **repo private** `Duc-Nguyen-739/FreePiLogin2`; `scripts/plugins.sh` tự clone về `~/.local/src/FreePiLogin2` rồi cài; kho riêng `~/.freepi2` | [`docs/freepi2.md`](docs/freepi2.md) |
-| FreePi3 | OAuth plugin — tài khoản thứ tư, **repo private** `Duc-Nguyen-739/FreePiLogin3`; clone `~/.local/src/FreePiLogin3`; kho riêng `~/.freepi3` | [`docs/freepi3.md`](docs/freepi3.md) |
-| FreePi4 | OAuth plugin — tài khoản thứ năm, **repo private** `Duc-Nguyen-739/FreePiLogin4`; clone `~/.local/src/FreePiLogin4`; kho riêng `~/.freepi4` | [`docs/freepi4.md`](docs/freepi4.md) |
-| FreePi5 | OAuth plugin — tài khoản thứ sáu, **repo private** `Duc-Nguyen-739/FreePiLogin5`; clone `~/.local/src/FreePiLogin5`; kho riêng `~/.freepi5` | [`docs/freepi5.md`](docs/freepi5.md) |
+| FreePi2 | OAuth plugin — tài khoản thứ hai, **repo private** `Duc-Nguyen-739/FreePiLogin2`; `scripts/plugins.sh` tự clone về `~/.local/src/FreePiLogin2` rồi cài; kho riêng `~/.freepi2` | [`docs/freepi2.md`](docs/freepi2.md) |
+| FreePi3 | OAuth plugin — tài khoản thứ ba, **repo private** `Duc-Nguyen-739/FreePiLogin3`; clone `~/.local/src/FreePiLogin3`; kho riêng `~/.freepi3` | [`docs/freepi3.md`](docs/freepi3.md) |
+| FreePi4 | OAuth plugin — tài khoản thứ tư, **repo private** `Duc-Nguyen-739/FreePiLogin4`; clone `~/.local/src/FreePiLogin4`; kho riêng `~/.freepi4` | [`docs/freepi4.md`](docs/freepi4.md) |
+| FreePi5 | OAuth plugin — tài khoản thứ năm, **repo private** `Duc-Nguyen-739/FreePiLogin5`; clone `~/.local/src/FreePiLogin5`; kho riêng `~/.freepi5` | [`docs/freepi5.md`](docs/freepi5.md) |
 | FreePi6 | OAuth plugin — một tài khoản riêng, **repo private** `Duc-Nguyen-739/FreePiLogin6`; clone `~/.local/src/FreePiLogin6`; kho riêng `~/.freepi6` | [`docs/freepi6.md`](docs/freepi6.md) |
+| FreePi7 | OAuth plugin — một tài khoản riêng, **repo private** `Duc-Nguyen-739/FreePiLogin7`; clone `~/.local/src/FreePiLogin7`; kho riêng `~/.freepi7` | [`docs/freepi7.md`](docs/freepi7.md) |
 
 ## Group + agent (tự động sau khi đăng nhập)
 
@@ -197,28 +204,53 @@ Nếu bạn đăng nhập **trong web UI** (cách dùng trên Cloud Shell), lầ
 bash scripts/finish.sh
 ```
 
-Nó tạo (hoặc cập nhật) chín group, rồi trỏ OpenCode → `group/main` và
-OpenChamber → `group/leader`:
+Nó tạo **group còn thiếu**, rồi trỏ OpenCode và OpenChamber → `group/leader`. Model
+trong group là **ví dụ**; repo không đồng bộ ladder từ máy tham chiếu, và `finish.sh`
+không reset group đã có. Bạn tự chọn model bằng
+`magpie group set <id> models=…` / `models+=…` / `models-=…`:
 
-| Group | Dùng cho | Model (thứ tự fallback) |
+| Group | Dùng cho | Model ví dụ |
 |---|---|---|
-| `main` | chat thường ngày, `stays=session` | `freepi/deepseek-v4.1-flash` → `workbuddy-ai/hy4flash-free` → `agy-cli/gemini-3.8-flash` → `agy-cli/gemini-2.5-flash-lite` → `autoclaw/zai_glm-5.3-flash` → `workbuddy-ai/glm-5.3-flash` |
-| `leader` | OpenChamber: quyết định + điều phối, `stays=turn` | `xingchi/gpt-6.1-sol:high` → `freepi6/deepseek-v4.1-flash` → `agy-cli/claude-opus-4-6-thinking` → `workbuddy-ai/deepseek-v4.1-flash-sg` |
-| `review` | khảo sát + brief hướng + viết plan | `freepi/deepseek-v4.1-flash:high` → `workbuddy-ai/deepseek-v4.1-flash-sg:high` → `workbuddy-ai/hy4flash-free:high` |
-| `reviewplan` | gác hướng + kiểm chứng/sửa plan + audit cuối | `freepi5/deepseek-v4.1-flash:high` → `workbuddy-ai/deepseek-v4.1-flash-sg:high` → `workbuddy-ai/hy4flash-free:high` |
+| `main` | chat thường ngày, `stays=session` | `freepi/deepseek-v4.1-flash` → `workbuddy-ai/hy4flash-free` → `autoclaw/zai_glm-5.3-flash` → `workbuddy-ai/glm-5.3-flash` |
+| `leader` | OpenCode + OpenChamber: quyết định + điều phối, `stays=turn` | `xingchi/gpt-6.1-sol:high` → `freepi6/deepseek-v4.1-flash` → `workbuddy-ai/deepseek-v4.1-flash-sg` |
+| `review` | khảo sát + brief hướng + viết plan | `freepi/deepseek-v4.1-flash:high` → `workbuddy-ai/deepseek-v4.1-flash-sg:high` |
+| `reviewplan` | gác hướng + kiểm chứng/sửa plan + audit cuối | `freepi5/deepseek-v4.1-flash:high` → `workbuddy-ai/hy4flash-free:high` |
 | `coder` | viết code theo plan | `freepi/deepseek-v4.1-flash:high` → `workbuddy-ai/deepseek-v4.1-flash-sg:high` |
 | `tester` | chạy test, báo lỗi | `freepi4/deepseek-v4.1-flash` → `workbuddy-ai/glm-5.3-flash` |
-| `tester-2` | tester độc lập | `freepi2/deepseek-v4.1-flash` → `workbuddy-ai/hy4flash-free` → `autoclaw/zai_glm-5.3-flash` |
-| `tester-3` | tester thứ ba | `freepi3/deepseek-v4.1-flash` → `kiro/claude-haiku-4.5` → `autoclaw/zai_glm-5.3-flash` → `agy-cli/gemini-3.8-flash` → `workbuddy-ai/hy4flash-free` → `workbuddy-ai/deepseek-v4.1-flash-sg` |
+| `tester-2` | tester độc lập | `freepi2/deepseek-v4.1-flash` → `autoclaw/zai_glm-5.3-flash` |
+| `tester-3` | tester thứ ba | `freepi3/deepseek-v4.1-flash` → `autoclaw/zai_glm-5.3-flash` |
 
 Tám group dùng `routing=order`, `effort=auto`, classifier `opencode-zen/jev-1.13-free`;
 không group nào có rule. `main`/`leader`/`coder` và ba tester mở levels `low,high,max`;
-`review`/`reviewplan` mở `none,low,high,max` (FreePi không expose mức reasoning nhưng
-magpie vẫn mở levels khi đặt `effort=auto`), và `finish.sh` không reset ladder của
-chúng. Chi tiết: [`docs/groups.md`](docs/groups.md).
+`review`/`reviewplan` mở `none,low,high,max`. Group nén của billion-context là
+`group/compress` do bạn tự tạo. Chi tiết: [`docs/groups.md`](docs/groups.md).
 
-Chạy lại `finish.sh` sau khi đăng nhập thêm provider để lấp đủ model vào group —
-script chỉ đưa vào group những model thật sự có.
+Sau khi đăng nhập thêm provider, `finish.sh` chỉ áp lại giá/context/output và tạo group
+còn thiếu; muốn thêm model vào group đã có thì chạy
+`magpie group set <id> models+=<provider/model>`.
+
+## Giá và input/output của model
+
+`scripts/setup-model-settings.sh` chạy tự động trong `finish.sh` (và `bootstrap.sh`),
+áp lại sau mỗi lần đăng nhập:
+
+- **Giá**: `*/deepseek-v4.1-flash` = `1,4,0.1,1.25` (input/output/cache read/cache
+  write, USD mỗi 1M token), `*/jev-1.13-free` = `0,0,0,0`, hai model WorkBuddy
+  đang expose = `1,4,0.1,1.25`.
+- **FreePi input/output**: cả bảy `freepi*/deepseek-v4.1-flash` đặt
+  `--context 1048576 --output 32768 --vision on --reasoning none…max`.
+- **FreePi provider**: expose `deepseek-v4.1-flash`, queue 32, account-concurrency 1,
+  RPM off, `routing=drain` cho `freepi`.
+- **Xingchi**: model đang có dùng Responses API.
+
+Kiểm tra:
+
+```sh
+magpie model prices
+magpie model spec freepi7/deepseek-v4.1-flash
+magpie provider queue freepi7
+magpie provider account-concurrency freepi7
+```
 
 ## Dùng hằng ngày
 
@@ -253,7 +285,7 @@ tests/                      regression offline cho profile + installer
 scripts/
   install.sh                magpie CLI từ installer chính thức (MAGPIE_CLI=1)
   install-from-source.sh    clone repo chính chủ + make cli (cần Go)
-  plugins.sh                14 plugin provider (+ clone FreePi2/3/4/5/6)
+  plugins.sh                11 plugin provider (+ clone FreePi2…7)
   patch-free-pi.mjs         vá free-pi: client version lấy từ /client-version, không ghim
   setup-freepi-pair.mjs     tách riêng 2 provider freepi.ai: một entry cho mỗi user_id
   install-opencode.sh       OpenCode (opencode.ai/install)
@@ -263,14 +295,15 @@ scripts/
   sync-agents.py            đồng bộ profile an toàn (check/dry-run/apply/install-missing)
   setup-mcp.sh              MCP: magpie-sessions/search, Cloudflare docs, Chrome DevTools (magpie-browser tắt)
   setup-settings.sh         settings.json + trạng thái provider (chỉ thêm khoá thiếu)
+  setup-model-settings.sh   giá input/output/cache, context/output, efforts, API, FreePi
   setup-billion-context.sh  cài package + plugin shim + config billion-context
   autoclaw-link.sh          in link localhost/preview để đăng nhập AutoClaw
   agnes-link.sh             trang local để đăng nhập Agnes (dán API key)
   agnes-login.mjs           server của trang đó
   login.sh                  trạng thái + đăng nhập từng provider
-  setup-groups.sh           chín group: main, leader, review, reviewplan, coder, tester, tester-2, tester-3, free
-  setup-agents.sh           OpenCode → group/main, OpenChamber → group/leader, small model
-  finish.sh                 setup-groups + setup-agents + doctor
+  setup-groups.sh           tám group mẫu: main, leader, review, reviewplan, coder, tester, tester-2, tester-3
+  setup-agents.sh           OpenCode + OpenChamber → group/leader; small model mặc định
+  finish.sh                 settings + model-settings + groups + agents + doctor
   doctor.sh                 kiểm tra sức khoẻ toàn bộ
   magpie-headless*          supervisor không cần systemd
   openmagpie                magpie + link kèm key
@@ -279,7 +312,7 @@ docs/
   inventory.md              kiểm kê chính xác máy tham chiếu
   autoclaw-login.md         AutoClaw: 3 cách đăng nhập, lỗi thường gặp
   providers.md              từng provider: id, xác thực, kiểm tra
-  groups.md                 chín group: model, level, classifier, cách sửa
+  groups.md                 tám group mẫu: model, level, classifier, cách sửa
   zen-free.md               vì sao tắt OpenCode Zen Free; vì sao chỉ giữ jev làm classifier
   opencode.md               OpenCode nối magpie thế nào, subagent, skill
   billion-context.md        nén hội thoại: budget, target, lỗi target-timeout
@@ -288,7 +321,7 @@ docs/
 
 `bootstrap.sh` còn cài `magpie-finish` (bản sao scripts trong
 `~/.local/share/magpie-cloudshell`, chạy được cả khi đã xoá repo) và hai wrapper tự gọi
-nó một lần khi thấy có model mà chưa có `group/main`.
+nó một lần khi thấy có model mà chưa có `group/leader`.
 
 ## Gỡ
 

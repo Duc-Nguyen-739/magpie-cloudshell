@@ -10,15 +10,16 @@ sửa cấu hình agent** — magpie tự ghi lại danh sách model.
 |---|---|---|---|---|
 | `autoclaw` | AutoClaw (Zhipu) | OAuth Google/z.ai (plugin) | tài khoản Google hoặc z.ai | `magpie accounts` |
 | `workbuddy-ai` | WorkBuddy AI | OAuth web (plugin) | tài khoản WorkBuddy | `magpie accounts` |
-| `agy-cli` | agy-cli | OAuth Google (plugin) | tài khoản Google (Antigravity) | `magpie provider test agy-cli gemini-3.8-flash` |
+| `agy-cli` | agy-cli | OAuth Google (plugin) | tài khoản Google (Antigravity) | **không cài**; thêm bằng `magpie plugin add @magpie-community/opencode-agy-cli-auth` |
 | `freepi` | FreePi | OAuth (plugin) | tài khoản FreePi | `magpie provider test freepi deepseek-v4.1-flash` |
-| `freepi2` | FreePi2 | OAuth (plugin riêng, repo private) | tài khoản FreePi thứ ba | `magpie provider test freepi2 deepseek-v4.1-flash` |
-| `freepi3` | FreePi3 | OAuth (plugin riêng, repo private) | tài khoản FreePi thứ tư | `magpie provider test freepi3 deepseek-v4.1-flash` |
-| `freepi4` | FreePi4 | OAuth (plugin riêng, repo private) | tài khoản FreePi thứ năm | `magpie provider test freepi4 deepseek-v4.1-flash` |
-| `freepi5` | FreePi5 | OAuth (plugin riêng, repo private) | tài khoản FreePi thứ sáu | `magpie provider test freepi5 deepseek-v4.1-flash` |
-| `freepi6` | FreePi6 | OAuth (plugin riêng, repo private) | một tài khoản FreePi riêng | `magpie provider test freepi6 deepseek-v4.1-flash` |
-| `cline` | Cline | OAuth (plugin) | tài khoản Cline | `magpie accounts` |
-| `kiro` | Kiro | OAuth Google (plugin) | tài khoản Kiro | `magpie accounts` |
+| `freepi2` | FreePi2 | OAuth (plugin riêng, repo private) | tài khoản FreePi thứ hai | `magpie provider test freepi2 deepseek-v4.1-flash` |
+| `freepi3` | FreePi3 | OAuth (plugin riêng, repo private) | tài khoản FreePi thứ ba | `magpie provider test freepi3 deepseek-v4.1-flash` |
+| `freepi4` | FreePi4 | OAuth (plugin riêng, repo private) | tài khoản FreePi thứ tư | `magpie provider test freepi4 deepseek-v4.1-flash` |
+| `freepi5` | FreePi5 | OAuth (plugin riêng, repo private) | tài khoản FreePi thứ năm | `magpie provider test freepi5 deepseek-v4.1-flash` |
+| `freepi6` | FreePi6 | OAuth (plugin riêng, repo private) | tài khoản FreePi thứ sáu | `magpie provider test freepi6 deepseek-v4.1-flash` |
+| `freepi7` | FreePi7 | OAuth (plugin riêng, repo private) | tài khoản FreePi thứ bảy | `magpie provider test freepi7 deepseek-v4.1-flash` |
+| `cline` | Cline | OAuth (plugin) | tài khoản Cline | **không cài**; thêm bằng `magpie plugin add @magpie-community/opencode-cline-auth` |
+| `kiro` | Kiro | OAuth Google (plugin) | tài khoản Kiro | **không cài**; thêm bằng `magpie plugin add @magpie-community/opencode-kiro-auth` |
 | `agnes` | Agnes | plugin + API key `cpk-…` | key từ `platform.agnes-ai.com` | **tắt** (`magpie provider on agnes`) |
 | `kilo` | Kilo Gateway | API key `eyJ…` | key từ kilo.ai | `magpie provider test kilo` |
 | `openrouter` | OpenRouter | API key `sk-or-…` | key từ openrouter.ai | `magpie provider test openrouter` |
@@ -68,10 +69,13 @@ Trên Cloud Shell phải chuyển tiếp cổng (xem `docs/autoclaw-login.md` m�
 ### AutoClaw (Zhipu) — `autoclaw`
 
 ```sh
-magpie plugin add @magpie-community/opencode-autoclaw-auth
+magpie plugin add @magpie-community/opencode-autoclaw-auth@0.2.11
 magpie plugin login autoclaw          # 1 = Google, 2 = z.ai
 magpie provider test autoclaw zai_auto
 ```
+
+Máy này đang chạy **0.2.11** (test `zai_auto` ✓ ngày 2026-11-22). Nếu bản mới lỗi,
+hạ về **0.2.9** — bản vàng, xem cuối `AGENTS.md`.
 
 Chi tiết đầy đủ: [`autoclaw-login.md`](autoclaw-login.md).
 
@@ -147,26 +151,29 @@ báo xong. Key không đi qua chat và không ghi log.
 Console token (`localStorage.getItem("token")` ở `platform.agnes-ai.com`) là tuỳ chọn, chỉ
 để đọc hạn mức; không có nó vẫn gọi model bình thường.
 
-### Cụm FreePi — `freepi`, `freepi2`, `freepi3`, `freepi4`, `freepi5`, `freepi6`
+### Cụm FreePi — `freepi`, `freepi2`, `freepi3`, `freepi4`, `freepi5`, `freepi6`, `freepi7`
 
-Sáu plugin, cùng một upstream `api.freepi.ai`, **sáu tài khoản khác nhau** — không phải
+Bảy plugin, cùng một upstream `api.freepi.ai`, **bảy tài khoản khác nhau** — không phải
 bản sao của nhau:
 
 | Plugin | Provider id | Tài khoản trên máy này | Model expose |
 |---|---|---|---|
-| `magpie-freepi-auth` | `freepi` | `Duc-Nguyen-739` (Free) | 1 / 24 — `deepseek-v4.1-flash` |
-| `magpie-freepi2-auth` | `freepi2` | `huenguyen-code` | 1 / 24 — `deepseek-v4.1-flash` |
-| `magpie-freepi3-auth` | `freepi3` | `hoangphat-coder` | 1 / 24 — `deepseek-v4.1-flash` |
-| `magpie-freepi4-auth` | `freepi4` | `phucth2002-spec` | 1 / 24 — `deepseek-v4.1-flash` |
-| `magpie-freepi5-auth` | `freepi5` | `ngocson-coder` | 1 / 24 — `deepseek-v4.1-flash` |
-| `magpie-freepi6-auth` | `freepi6` | `haiquan-tbs` | 1 / 24 — `deepseek-v4.1-flash` |
+| `magpie-freepi-auth` | `freepi` | `Duc-Nguyen-739` (Free) | 1 / 28 — `deepseek-v4.1-flash` |
+| `magpie-freepi2-auth` | `freepi2` | `huenguyen-code` | 1 / 28 — `deepseek-v4.1-flash` |
+| `magpie-freepi3-auth` | `freepi3` | `hoangphat-coder` | 1 / 28 — `deepseek-v4.1-flash` |
+| `magpie-freepi4-auth` | `freepi4` | `phucth2002-spec` | 1 / 28 — `deepseek-v4.1-flash` |
+| `magpie-freepi5-auth` | `freepi5` | `ngocson-coder` | 1 / 28 — `deepseek-v4.1-flash` |
+| `magpie-freepi6-auth` | `freepi6` | `haiquan-tbs` | 1 / 28 — `deepseek-v4.1-flash` |
+| `magpie-freepi7-auth` | `freepi7` | `thuylinh-coder` | 1 / 28 — `deepseek-v4.1-flash` |
 
-Mỗi tài khoản có budget riêng (15.000 credits/ngày; riêng FreePi2/FreePi3/FreePi4/FreePi5/FreePi6 là 6.000 trên tài khoản này) và **một slot đồng thời riêng**. Magpie đã đặt
-`account-concurrency 1` + queue cho **cả sáu**, nên request thứ hai trên cùng provider
-**xếp hàng** chứ không nhận 429; request chỉ bị 429 nếu queue đầy hoặc retry đã hết.
-Sáu tài khoản = sáu slot + sáu budget, không phải "đổi tài khoản" và không bị server chặn.
+Mỗi tài khoản có budget riêng (15.000 credits/ngày; riêng FreePi2/FreePi3/FreePi5/
+FreePi6/FreePi7 là 6.000 trên tài khoản này) và **một slot đồng thời riêng**. Magpie
+đã đặt `account-concurrency 1` + queue cho **cả bảy**, nên request thứ hai trên cùng
+provider **xếp hàng** chứ không nhận 429; request chỉ bị 429 nếu queue đầy hoặc retry
+đã hết. Bảy tài khoản = bảy slot + bảy budget, không phải "đổi tài khoản" và không bị
+server chặn.
 
-Cấu hình đang áp cho cả sáu (đổi `<id>` và `<handle>` theo bảng trên):
+Cấu hình đang áp cho cả bảy (đổi `<id>` và `<handle>` theo bảng trên):
 
 ```sh
 magpie provider account-concurrency <id> <handle> 1
@@ -174,18 +181,23 @@ magpie provider queue <id> 32 0
 magpie provider rpm <id> off
 ```
 
-Plugin FreePi4 (và bốn plugin local FreePi2/3/5/6) còn giữ 1 giây sau mỗi reply và
-retry 429 `concurrent` tối đa 5 lần; `freepi` là plugin npm nên chỉ có queue của magpie.
+`scripts/setup-model-settings.sh` tự làm bốn việc này cho mọi provider FreePi đang
+đăng nhập, cộng `magpie provider models <id> deepseek-v4.1-flash` và
+`magpie model spec <id>/deepseek-v4.1-flash --context 1048576 --output 32768
+--vision on --reasoning none,minimal,low,medium,high,xhigh,max`.
+
+Sáu plugin local FreePi2/3/4/5/6/7 còn giữ 1 giây sau mỗi reply và retry 429
+`concurrent` tối đa 5 lần; `freepi` là plugin npm nên chỉ có queue của magpie.
 
 **Giới hạn output (2026-11-20).** `deepseek-v4.1-flash` trên `api.freepi.ai` chỉ trả tối đa
 **32.768 token output**/response, dù catalog cũ ghi 131.072. Request lớn hơn cap sẽ
 `stop=length` và có thể thành “empty reply” — không phải lỗi reasoning hay context
 (prompt window 1.048.576). Agent phải viết plan/báo cáo theo chunk (`write` khung →
 `edit` bổ sung), không emit cả plan trong một tool call. Đã sửa `output: 32768` trong
-`lib/catalog.mjs` của cả sáu plugin.
+`lib/catalog.mjs` của cả bảy plugin, và `setup-model-settings.sh` đặt lại trên magpie.
 
 **Tách rời nhau ở đâu.** Các provider chỉ dùng chung domain; phần đăng nhập, session,
-budget và slot là riêng từng cái (bảng dưới là hai provider gốc; FreePi2/FreePi3/FreePi4/FreePi5/FreePi6 có
+budget và slot là riêng từng cái (bảng dưới là hai provider gốc; FreePi2…FreePi7 có
 mục riêng bên dưới). **`free-pi` đã được gỡ khỏi máy này ngày 2026-11-18** — phần
 `free-pi` dưới đây giữ làm tham khảo nếu cài lại:
 
@@ -262,7 +274,7 @@ chạy cả hai bản vá sau khi cài/update plugin.
 Chi tiết đầy đủ (cài, đăng nhập, vướng mắc, giới hạn): [`docs/freepi2.md`](freepi2.md).
 
 Bản sao logic của `freepi` nhưng **cổng đăng nhập và kho dữ liệu hoàn toàn riêng**, để
-dùng tài khoản FreePi thứ ba mà không đụng `freepi` / `free-pi`:
+dùng tài khoản FreePi thứ hai mà không đụng `freepi` / `free-pi`:
 
 | | `freepi2` |
 |---|---|
@@ -272,7 +284,7 @@ dùng tài khoản FreePi thứ ba mà không đụng `freepi` / `free-pi`:
 | JWT giữ ở | `~/.config/magpie/plugin-auth.json`, khoá `freepi2` |
 | `x-session-id` | `~/.freepi2/session-id` — UUID ngẫu nhiên, file 0600, thư mục 0700 |
 | Đổi thư mục | `FREEPI2_HOME=/đường/dẫn/khác` |
-| Tài khoản trên máy này | `ngaynaochavao7399-del` — 6.000 credits/ngày, 1 slot |
+| Tài khoản trên máy này | `huenguyen-code` — 6.000 credits/ngày, 1 slot |
 | Client version | tự canh từ `/client-version` (như `freepi`) |
 | Ad gate | tự báo `GET /ads/next?slot=banner` → `POST /ads/impression` (như `freepi`) |
 
@@ -302,7 +314,7 @@ hiện FreePi2 **sau khi** đăng nhập; trước đó xem `magpie plugin list`
 
 ```sh
 magpie provider test freepi2 deepseek-v4.1-flash   # ✓ chat
-magpie provider models freepi2                     # chọn thêm model (18 có sẵn)
+magpie provider models freepi2                     # chọn thêm model (28 có sẵn)
 magpie group set main models+=freepi2/deepseek-v4.1-flash
 ```
 
@@ -323,7 +335,7 @@ là hỏng. Mã nguồn FreePi2API gốc nằm trong `upstream/FreePi2API/` củ
 Chi tiết đầy đủ (cài, đăng nhập, vướng mắc, giới hạn): [`docs/freepi3.md`](freepi3.md).
 
 Bản sao logic của FreePi2 nhưng **cổng đăng nhập và kho dữ liệu hoàn toàn riêng**, để
-dùng tài khoản FreePi thứ tư mà không đụng `freepi` / `free-pi` / `freepi2`:
+dùng tài khoản FreePi thứ ba mà không đụng `freepi` / `free-pi` / `freepi2`:
 
 | | `freepi3` |
 |---|---|
@@ -333,7 +345,7 @@ dùng tài khoản FreePi thứ tư mà không đụng `freepi` / `free-pi` / `f
 | JWT giữ ở | `~/.config/magpie/plugin-auth.json`, khoá `freepi3` |
 | `x-session-id` | `~/.freepi3/session-id` — UUID ngẫu nhiên, file 0600, thư mục 0700 |
 | Đổi thư mục | `FREEPI3_HOME=/đường/dẫn/khác` |
-| Tài khoản trên máy này | `ngaynaochavao739-ui` — 6.000 credits/ngày, 1 slot |
+| Tài khoản trên máy này | `hoangphat-coder` — 6.000 credits/ngày, 1 slot |
 | Client version | tự canh từ `/client-version` (như `freepi`) |
 | Ad gate | tự báo `GET /ads/next?slot=banner` → `POST /ads/impression` (như `freepi`) |
 
@@ -362,7 +374,7 @@ trước đó xem `magpie plugin list`.
 
 ```sh
 magpie provider test freepi3 deepseek-v4.1-flash   # ✓ chat
-magpie provider models freepi3                     # chọn thêm model (18 có sẵn)
+magpie provider models freepi3                     # chọn thêm model (28 có sẵn)
 magpie group set main models+=freepi3/deepseek-v4.1-flash
 ```
 
@@ -383,7 +395,7 @@ là hỏng. Mã nguồn FreePi2API gốc nằm trong `upstream/FreePi2API/` củ
 Chi tiết đầy đủ (cài, đăng nhập, vướng mắc, giới hạn): [`docs/freepi4.md`](freepi4.md).
 
 Bản sao logic của FreePi2 nhưng **cổng đăng nhập và kho dữ liệu hoàn toàn riêng**, để
-dùng tài khoản FreePi thứ năm mà không đụng `freepi` / `free-pi` / `freepi2`:
+dùng tài khoản FreePi thứ tư mà không đụng `freepi` / `free-pi` / `freepi2`:
 
 | | `freepi4` |
 |---|---|
@@ -393,7 +405,7 @@ dùng tài khoản FreePi thứ năm mà không đụng `freepi` / `free-pi` / `
 | JWT giữ ở | `~/.config/magpie/plugin-auth.json`, khoá `freepi4` |
 | `x-session-id` | `~/.freepi4/session-id` — UUID ngẫu nhiên, file 0600, thư mục 0700 |
 | Đổi thư mục | `FREEPI4_HOME=/đường/dẫn/khác` |
-| Tài khoản trên máy này | `ngaynaochavao73999-code` — 6.000 credits/ngày, 1 slot |
+| Tài khoản trên máy này | `phucth2002-spec` — 15.000 credits/ngày, 1 slot |
 | Client version | tự canh từ `/client-version` (như `freepi`) |
 | Ad gate | tự báo `GET /ads/next?slot=banner` → `POST /ads/impression` (như `freepi`) |
 
@@ -422,7 +434,7 @@ trước đó xem `magpie plugin list`.
 
 ```sh
 magpie provider test freepi4 deepseek-v4.1-flash   # ✓ chat
-magpie provider models freepi4                     # chọn thêm model (18 có sẵn)
+magpie provider models freepi4                     # chọn thêm model (28 có sẵn)
 magpie group set main models+=freepi4/deepseek-v4.1-flash
 ```
 
@@ -443,7 +455,7 @@ là hỏng. Mã nguồn FreePi2API gốc nằm trong `upstream/FreePi2API/` củ
 Chi tiết đầy đủ (cài, đăng nhập, vướng mắc, giới hạn): [`docs/freepi5.md`](freepi5.md).
 
 Bản sao logic của FreePi2 nhưng **cổng đăng nhập và kho dữ liệu hoàn toàn riêng**, để
-dùng tài khoản FreePi thứ sáu mà không đụng `freepi` / `freepi2` / `freepi3` / `freepi4`:
+dùng tài khoản FreePi thứ năm mà không đụng `freepi` / `freepi2` / `freepi3` / `freepi4`:
 
 | | `freepi5` |
 |---|---|
@@ -453,7 +465,7 @@ dùng tài khoản FreePi thứ sáu mà không đụng `freepi` / `freepi2` / `
 | JWT giữ ở | `~/.config/magpie/plugin-auth.json`, khoá `freepi5` |
 | `x-session-id` | `~/.freepi5/session-id` — UUID ngẫu nhiên, file 0600, thư mục 0700 |
 | Đổi thư mục | `FREEPI5_HOME=/đường/dẫn/khác` |
-| Tài khoản trên máy này | `ngocson-ctrl` — 6.000 credits/ngày, 1 slot |
+| Tài khoản trên máy này | `ngocson-coder` — 6.000 credits/ngày, 1 slot |
 | Client version | tự canh từ `/client-version` (như `freepi`) |
 | Ad gate | tự báo `GET /ads/next?slot=banner` → `POST /ads/impression` (như `freepi`) |
 
@@ -482,7 +494,7 @@ trước đó xem `magpie plugin list`.
 
 ```sh
 magpie provider test freepi5 deepseek-v4.1-flash   # ✓ chat
-magpie provider models freepi5                     # chọn thêm model (18 có sẵn)
+magpie provider models freepi5                     # chọn thêm model (28 có sẵn)
 magpie group set main models+=freepi5/deepseek-v4.1-flash
 ```
 
@@ -513,7 +525,7 @@ dùng một tài khoản FreePi riêng mà không đụng `freepi` / `freepi2` /
 | JWT giữ ở | `~/.config/magpie/plugin-auth.json`, khoá `freepi6` |
 | `x-session-id` | `~/.freepi6/session-id` — UUID ngẫu nhiên, file 0600, thư mục 0700 |
 | Đổi thư mục | `FREEPI6_HOME=/đường/dẫn/khác` |
-| Tài khoản trên máy này | *(đăng nhập để xem)* — 6.000 credits/ngày, 1 slot |
+| Tài khoản trên máy này | `haiquan-tbs` — 6.000 credits/ngày, 1 slot |
 | Client version | tự canh từ `/client-version` (như `freepi`) |
 | Ad gate | tự báo `GET /ads/next?slot=banner` → `POST /ads/impression` (như `freepi`) |
 
@@ -542,7 +554,7 @@ trước đó xem `magpie plugin list`.
 
 ```sh
 magpie provider test freepi6 deepseek-v4.1-flash   # ✓ chat
-magpie provider models freepi6                     # chọn thêm model (18 có sẵn)
+magpie provider models freepi6                     # chọn thêm model (28 có sẵn)
 magpie group set main models+=freepi6/deepseek-v4.1-flash
 ```
 
@@ -553,6 +565,65 @@ nếu cần khác IP, đặt proxy riêng:
 
 ```sh
 magpie plugin options ~/.local/src/FreePiLogin6 '{"proxy":"http://proxy-host:8080"}'
+```
+
+Đây là plugin cộng đồng không chính thức, dịch ngược từ `free-pi-cli`; upstream đổi
+là hỏng. Mã nguồn FreePi2API gốc nằm trong `upstream/FreePi2API/` của repo.
+
+### FreePi7 — `freepi7` (plugin riêng, repo private)
+
+Chi tiết đầy đủ (cài, đăng nhập, vướng mắc, giới hạn): [`docs/freepi7.md`](freepi7.md).
+
+Bản sao logic của FreePi2 nhưng **cổng đăng nhập và kho dữ liệu hoàn toàn riêng**, để
+dùng tài khoản FreePi thứ bảy mà không đụng sáu tài khoản còn lại:
+
+| | `freepi7` |
+|---|---|
+| Repo | <https://github.com/Duc-Nguyen-739/FreePiLogin7> (**private**) |
+| Plugin | `magpie-freepi7-auth` |
+| JWT giữ ở | `~/.config/magpie/plugin-auth.json`, khoá `freepi7` |
+| `x-session-id` | `~/.freepi7/session-id` — UUID ngẫu nhiên, file 0600, thư mục 0700 |
+| Đổi thư mục | `FREEPI7_HOME=/đường/dẫn/khác` |
+| Tài khoản trên máy này | `thuylinh-coder` (Pi7 - Tester 2) — 6.000 credits/ngày, 1 slot |
+| Client version | tự canh từ `/client-version` (như `freepi`) |
+| Ad gate | tự báo `GET /ads/next?slot=banner` → `POST /ads/impression` (như `freepi`) |
+
+**Cài (repo private).** Giống FreePi2, `magpie plugin add github:...` trả `404` vì bun
+tải tarball qua API GitHub mà không gửi token. Clone rồi trỏ vào thư mục:
+
+```sh
+gh repo clone Duc-Nguyen-739/FreePiLogin7 ~/.local/src/FreePiLogin7
+magpie plugin add ~/.local/src/FreePiLogin7
+```
+
+Cập nhật:
+
+```sh
+git -C ~/.local/src/FreePiLogin7 pull --ff-only
+magpie plugin rm ~/.local/src/FreePiLogin7
+magpie plugin add ~/.local/src/FreePiLogin7
+```
+
+**Đăng nhập.** Web UI → Settings → Providers → Add provider → **From plugins** →
+**FreePi7** → “Đăng nhập bằng mã thiết bị GitHub”. Trên Cloud Shell dùng web UI
+(`openmagpie`) thay vì CLI. `magpie providers` chỉ hiện FreePi7 **sau khi** đăng nhập;
+trước đó xem `magpie plugin list`.
+
+**Dùng.**
+
+```sh
+magpie provider test freepi7 deepseek-v4.1-flash   # ✓ chat
+magpie provider models freepi7                     # chọn thêm model (28 có sẵn)
+magpie group set main models+=freepi7/deepseek-v4.1-flash
+```
+
+**Giới hạn chống bị gộp tài khoản.** FreePi7 tách session id, JWT, client version và
+budget, nhưng **không tách được IP**: upstream vẫn thấy mọi request đi từ cùng một địa
+chỉ và mỗi JWT đều định danh tài khoản. Plugin không thể bảo đảm server không phát hiện;
+nếu cần khác IP, đặt proxy riêng:
+
+```sh
+magpie plugin options ~/.local/src/FreePiLogin7 '{"proxy":"http://proxy-host:8080"}'
 ```
 
 Đây là plugin cộng đồng không chính thức, dịch ngược từ `free-pi-cli`; upstream đổi
@@ -576,8 +647,8 @@ magpie provider add opencode-zen oc_…
 magpie provider test opencode-zen
 ```
 
-Máy này: 41 model trong catalog, **1 model expose** (`jev-1.13-free`, dùng làm classifier);
-40 model còn lại không picked, trong đó 7 model free bị 429 khi gọi bằng key (xem trên).
+Máy này: 48 model trong catalog, **1 model expose** (`jev-1.13-free`, dùng làm classifier);
+47 model còn lại không picked, trong đó các model free bị 429 khi gọi bằng key (xem trên).
 
 ### Kilo Gateway — `kilo`
 
@@ -586,9 +657,10 @@ magpie provider add kilo eyJ…
 magpie provider test kilo
 ```
 
-353 model; repo không đưa model Kilo vào group hay agent nào — key là tuỳ chọn, dùng
-khi muốn thêm model ngoài ladder. **Đang tắt** (`magpie provider off kilo`) để danh sách
-model chỉ còn thứ ladder dùng; bật lại bằng `magpie provider on kilo`.
+418 model trong catalog; máy này chỉ expose **2**: `particle-ai/particle-1:free` và
+`reflection/beam-free`. Kilo **đang bật** vì `group/compress` dùng `particle-1:free`.
+Đổi danh sách expose bằng `magpie provider models kilo …`; tắt bằng
+`magpie provider off kilo`.
 
 ### OpenCode Zen Free — `opencode-zen-free`
 
@@ -600,15 +672,16 @@ khoản, không cần key riêng). Bằng chứng và cách bật lại: [`zen-f
 
 ```sh
 magpie plugin add @magpie-community/opencode-zen-free-auth
-magpie plugin add opencode-zen-freex
 magpie provider on opencode-zen-free     # bật lại (setup-settings.sh đang để tắt)
 magpie provider off opencode-zen-free    # tắt, giữ cấu hình — trạng thái hiện tại
 ```
 
 ## Thêm relay OpenAI-compatible của riêng bạn
 
-Máy tham chiếu còn 5 provider gọi thẳng từ OpenCode (`bynara`, `kiraai`, `kiro`,
-`pendraa`, `amdradeon`). Cách gọn hơn là đưa chúng vào magpie, để mọi agent dùng chung:
+Máy tham chiếu còn khai báo provider gọi thẳng trong `opencode.jsonc` (`bynara`,
+`kiraai`, `kiro`, `pendraa`, `amdradeon`, `tokenharbor`, `kira`, `dsh`, `tokenhabor`),
+phần lớn nằm trong `disabled_providers`. Cách gọn hơn là đưa chúng vào magpie, để mọi
+agent dùng chung:
 
 ```sh
 magpie provider add "My Relay" url=https://relay.example.com/v1 key=sk-…

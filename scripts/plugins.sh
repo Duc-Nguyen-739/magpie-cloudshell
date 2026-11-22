@@ -10,15 +10,15 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLUGINS=(
   "@magpie-community/opencode-autoclaw-auth"    # AutoClaw (Zhipu) — OAuth Google/z.ai
   "@magpie-community/opencode-workbuddy-auth"   # WorkBuddy / WorkBuddy AI
-  "@magpie-community/opencode-agy-cli-auth"     # agy-cli (Antigravity) — group/leader
-  "@magpie-community/opencode-cline-auth"       # Cline — group/free
-  "@magpie-community/opencode-kiro-auth"        # Kiro — group/tester-3
   "@magpie-community/opencode-agnes-auth"       # Agnes — không dùng, đang tắt
-  "magpie-freepi-auth"                          # FreePi — group/main, review, reviewplan, coder, leader, tester…
-  "@magpie-community/opencode-zen-free-auth"    # OpenCode Zen Free
-  "opencode-zen-freex"                          # phần phục vụ OpenCode Zen Free
-  # qoder / zcode không cài trên máy tham chiếu (provider qoder đang tắt); cần thì
-  # magpie plugin add @magpie-community/opencode-qoder-auth
+  "magpie-freepi-auth"                          # FreePi — provider chính + 6 tài khoản private
+  "@magpie-community/opencode-zen-free-auth"    # OpenCode Zen Free — classifier jev
+  # Tuỳ chọn, không cài trên máy tham chiếu (thêm bằng `magpie plugin add`):
+  #   @magpie-community/opencode-agy-cli-auth   agy-cli (Antigravity)
+  #   @magpie-community/opencode-cline-auth     Cline
+  #   @magpie-community/opencode-kiro-auth      Kiro
+  #   @magpie-community/opencode-qoder-auth     Qoder
+  #   @magpie-community/opencode-zcode-auth     ZCode
 )
 
 say()  { printf '  %s\n' "$*"; }
@@ -44,7 +44,7 @@ done
 say ""
 say "Đã cài $(magpie plugin list 2>/dev/null | grep -c '  on$' || true) plugin. Xem: magpie plugin list"
 
-# FreePi2/FreePi3 — plugin trong repo private. Không dùng spec `github:` được: bun
+# FreePi2…FreePi7 — plugin trong repo private. Không dùng spec `github:` được: bun
 # tải tarball qua api.github.com mà không gửi token nên GitHub trả 404 với repo
 # private. Cách chạy được: clone bằng gh rồi cài từ thư mục local.
 install_private_plugin() {
@@ -81,5 +81,6 @@ install_private_plugin "FreePi3" "FreePiLogin3" "freepi3" "${FREEPI3_DIR:-$HOME/
 install_private_plugin "FreePi4" "FreePiLogin4" "freepi4" "${FREEPI4_DIR:-$HOME/.local/src/FreePiLogin4}"
 install_private_plugin "FreePi5" "FreePiLogin5" "freepi5" "${FREEPI5_DIR:-$HOME/.local/src/FreePiLogin5}"
 install_private_plugin "FreePi6" "FreePiLogin6" "freepi6" "${FREEPI6_DIR:-$HOME/.local/src/FreePiLogin6}"
+install_private_plugin "FreePi7" "FreePiLogin7" "freepi7" "${FREEPI7_DIR:-$HOME/.local/src/FreePiLogin7}"
 
 exit "$rc"

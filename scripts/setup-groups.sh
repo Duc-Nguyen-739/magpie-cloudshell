@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
-# setup-groups.sh — tạo chín routing group đang dùng: main, leader, review,
-# reviewplan, coder, tester, tester-2, tester-3, free.
+# setup-groups.sh — tạo tám routing group mẫu: main, leader, review,
+# reviewplan, coder, tester, tester-2, tester-3.
 #
 #   bash scripts/setup-groups.sh            tạo group còn thiếu, bỏ qua group đã có
-#   bash scripts/setup-groups.sh --force    tạo lại (thay) bảy group cố định;
+#   bash scripts/setup-groups.sh --force    tạo lại (thay) sáu group cố định;
 #                                           review/reviewplan chỉ tạo khi thiếu
 #   bash scripts/setup-groups.sh --dry-run  chỉ in lệnh, không đổi gì
 #
-# review/reviewplan không bị --force reset: người dùng tự thêm model vào ladder,
-# chạy lại finish.sh không được xoá. Muốn reset thì `magpie group rm review` rồi
-# chạy lại script.
+# Model trong group là do người dùng tự chọn: finish.sh và bootstrap.sh gọi script
+# này **không** kèm --force, nên chỉ tạo group còn thiếu và giữ nguyên ladder đã
+# sửa. Muốn reset một group: `magpie group rm <id>` rồi chạy lại script.
 #
 # Chỉ đưa vào group những model thật sự có (đã đăng nhập provider), nên chạy được
-# cả khi mới đăng nhập 1-2 provider; chạy lại sau khi đăng nhập thêm để lấp đủ.
+# cả khi mới đăng nhập 1-2 provider. Group đã có thì giữ nguyên; thêm model bằng
+# `magpie group set <id> models+=<provider/model>`.
 set -uo pipefail
 
 export PATH="$HOME/.local/bin:$PATH"
@@ -111,38 +112,9 @@ make_group() { # <tên> <id> <stays> <levels> <model…>
   fi
 }
 
-make_plain_group() { # <tên> <id> <model…> — không levels, không classifier
-  local name=$1 id=$2; shift 2
-  local present=() m
-  while IFS= read -r m; do [ -n "$m" ] && present+=("$m"); done < <(filter_models "$@")
-  if [ ${#present[@]} -eq 0 ]; then
-    warn "bỏ qua group/$id: không có model nào trong danh sách"
-    return 0
-  fi
-
-  if printf '%s\n' "$groups_now" | awk -v g="group/$id" '{ for (i = 1; i <= NF; i++) if ($i == g) found = 1 } END { exit !found }'; then
-    if [ "$FORCE" != 1 ]; then
-      say "group/$id đã có — bỏ qua (dùng --force để tạo lại)"
-      return 0
-    fi
-    if [ "$(group_name_now "$id")" != "$name" ]; then
-      say "thay group/$id (tên cũ khác)"
-      run magpie group rm "$id" >/dev/null 2>&1 || warn "không xoá được group/$id"
-    else
-      say "thay group/$id"
-    fi
-  fi
-
-  local list; list="$(join "${present[@]}")"
-  run magpie group add "$name" "models=$list" routing=rotate >/dev/null \
-    || { warn "không tạo được group/$id"; return 1; }
-  ok "group/$id: ${#present[@]} model · rotate · không levels, không classifier"
-}
-
-# Như make_plain_group nhưng có classifier và KHÔNG BAO GIỜ reset, kể cả --force:
+# Như make_group nhưng có classifier và KHÔNG BAO GIỜ reset, kể cả --force:
 # review và reviewplan là hai group người dùng tự thêm model vào ladder sau khi
-# cài, nên finish.sh (chạy --force) không được xoá. Muốn reset: magpie group rm
-# <id> rồi chạy lại script.
+# cài. Muốn reset: magpie group rm <id> rồi chạy lại script.
 make_plain_group_keep() { # <tên> <id> <stays> <model…>
   local name=$1 id=$2 stays=$3; shift 3
   local present=() m
@@ -241,21 +213,10 @@ TESTER3_MODELS=(
   workbuddy-ai/deepseek-v4.1-flash-sg
 )
 
-# free — chỉ cho việc nén của billion-context: Particle-1 free trên ba provider,
-# rồi hai model free thêm sau (Groq, NVIDIA) để có bậc dự phòng khi ba provider
-# kia hết quota. routing=rotate, không classifier, không stays; magpie tự suy
-# levels none/minimal/low/medium từ các model này. Xem docs/billion-context.md.
-FREE_MODELS=(
-  kilo/particle-ai/particle-1:free
-  cline/particle-ai/particle-1:free
-  openrouter/particle-ai/particle-1:free
-  groq/openai/gpt-oss-20b
-  nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b
-)
-
 # Group từng có trong định nghĩa nhưng nay đã bỏ. `group add` không xoá group thừa,
 # nên phải dọn tay, nếu không máy sẽ lệch script sau mỗi lần đổi định nghĩa.
-RETIRED_GROUPS=(code glm deepseek)
+# `free` là tên cũ của group nén; máy hiện dùng `group/compress` do người dùng tạo.
+RETIRED_GROUPS=(code glm deepseek free)
 for id in "${RETIRED_GROUPS[@]}"; do
   printf '%s\n' "$groups_now" | awk -v g="group/$id" '{ for (i = 1; i <= NF; i++) if ($i == g) found = 1 } END { exit !found }' || continue
   if [ "$FORCE" = 1 ]; then
@@ -303,10 +264,6 @@ make_group "Tester 3" tester-3 turn "$LEVELS_FULL" "${TESTER3_MODELS[@]}"
 say ""
 say "group/main — chat thường ngày, stays=session"
 make_group "Main" main session "$LEVELS_FULL" "${MAIN_MODELS[@]}"
-
-say ""
-say "group/free — chỉ cho việc nén của billion-context"
-make_plain_group "free" free "${FREE_MODELS[@]}"
 
 say ""
 if [ "$DRY" = 1 ]; then

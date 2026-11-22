@@ -1,8 +1,8 @@
-# FreePi3 — plugin riêng cho tài khoản FreePi thứ tư
+# FreePi3 — plugin riêng cho tài khoản FreePi thứ ba
 
 `FreePi3` là một provider **riêng** của magpie, dùng để đăng nhập một tài khoản
-[free-pi](https://api.freepi.ai) **khác** với ba tài khoản đang có. Nó không
-phải bản sao của `freepi` hay `free-pi`: mã nguồn plugin nằm trong repo private
+FreePi **khác** với các tài khoản còn lại. Nó không phải bản sao của `freepi`
+hay các FreePi khác: mã nguồn plugin nằm trong repo private
 <https://github.com/Duc-Nguyen-739/FreePiLogin3>, có icon riêng, mô tả tiếng Việt,
 và lưu trạng thái trong thư mục `~/.freepi3`.
 
@@ -39,7 +39,7 @@ Kiểm tra:
 ```sh
 magpie plugin list | grep -A1 FreePi3
 # /home/<bạn>/.local/src/FreePiLogin3  on
-#   freepi3 (FreePi3, 18 models)  not signed in · magpie plugin login freepi3
+#   freepi3 (FreePi3, 28 models)  not signed in · magpie plugin login freepi3
 ```
 
 `magpie providers` **chưa** hiện FreePi3 trước khi đăng nhập — xem mục
@@ -177,26 +177,23 @@ the required minimum`. FreePi3 đọc `/client-version` và tự canh
 `x-client-version` theo `latest`, không ghim số như bản `free-pi` cũ. Nếu vẫn
 426, chạy `magpie plugin add ~/.local/src/FreePiLogin3` để nạp bản mới.
 
-### 6. Sáu tài khoản trên cùng một upstream
+### 6. Bảy tài khoản trên cùng một upstream
 
-`freepi`, `freepi2`, `freepi3`, `freepi4`, `freepi5` và `freepi6` cùng gọi `api.freepi.ai`, nhưng là sáu tài khoản
+`freepi`, `freepi2`, `freepi3`, `freepi4`, `freepi5`, `freepi6` và `freepi7` cùng gọi `api.freepi.ai`, nhưng là bảy tài khoản
 khác nhau:
 
 | Provider | Tài khoản trên máy này |
 |---|---|
-| `freepi` | `ducnguyenvan05-source` |
-| `freepi2` | `ngaynaochavao7399-del` |
-| `freepi3` | `ngaynaochavao739-ui` |
-| `freepi4` | `ngaynaochavao73999-code` |
-| `freepi5` | `ngocson-ctrl` |
-| `freepi6` | *(đăng nhập để xem)* |
-
-> `free-pi` và thư mục `~/.free-pi` đã được xoá ngày 2026-11-18, nên hiện chỉ FreePi3
-> dùng tài khoản này. Nếu muốn đổi tài khoản, chạy `magpie plugin logout freepi3`
-> rồi đăng nhập lại.
+| `freepi` | `Duc-Nguyen-739` (Reviewer Plan) |
+| `freepi2` | `huenguyen-code` |
+| `freepi3` | `hoangphat-coder` |
+| `freepi4` | `phucth2002-spec` |
+| `freepi5` | `ngocson-coder` |
+| `freepi6` | `haiquan-tbs` |
+| `freepi7` | `thuylinh-coder` (Pi7 - Tester 2) |
 
 FreePi3 tách `x-session-id`, token, thư mục trạng thái và budget. **Không tách
-được IP**: nếu cả sáu đi ra cùng một địa chỉ mạng, upstream vẫn thấy chúng sau
+được IP**: nếu cả bảy đi ra cùng một địa chỉ mạng, upstream vẫn thấy chúng sau
 cùng một IP, và mỗi JWT đều định danh tài khoản. Plugin không thể bảo đảm server
 không phát hiện. Nếu cần khác IP, đặt proxy riêng cho FreePi3:
 
@@ -239,7 +236,7 @@ bash scripts/doctor.sh | grep FreePi3
 Kỳ vọng:
 
 ```
-freepi3 (FreePi3, 18 models)  signed in as ngaynaochavao739-ui
+freepi3 (FreePi3, 28 models)  signed in as hoangphat-coder
 ✓ FreePi3: session id riêng (~/.freepi3, quyền 600)
 ✓ FreePi3 đã đăng nhập
 ```

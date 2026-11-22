@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 # setup-settings.sh — đặt cấu hình magpie giống máy tham chiếu:
-#   - settings.json: theme, ngôn ngữ, vision model, image model, check-in, cỡ chữ…
+#   - settings.json: theme, ngôn ngữ, vision model + effort, image model, check-in,
+#     redaction, cỡ chữ, model bị ẩn…
 #   - provider: opencode-zen bật nhưng chỉ expose jev-1.13-free (classifier); opencode-zen-free tắt
 #     (free tier qua API key bị chặn, đường plugin cạn theo IP dùng chung — xem docs/zen-free.md);
-#     qoder/aihubmix/agnes tắt hẳn; kilo **bật** (group/free dùng particle-1:free);
-#     kiro **bật** (group/tester-3 dùng claude-haiku-4.5);
-#     workbuddy-ai chỉ expose deepseek-v4.1-flash-sg, glm-5.3-flash, hy4flash-free
+#     qoder/aihubmix/agnes tắt hẳn; workbuddy-ai chỉ expose
+#     deepseek-v4.1-flash-sg, glm-5.3-flash, hy4flash-free
+#
+# Giá model (input/output/cache), context/output, reasoning levels và cấu hình
+# FreePi nằm ở scripts/setup-model-settings.sh — chạy sau khi đăng nhập provider.
 #
 # Chỉ **thêm khoá còn thiếu**, không ghi đè giá trị bạn đã đặt. Chạy lại vô hại.
 #
@@ -74,8 +77,7 @@ else
   fi
 
   # qoder / antigravity / copilot / aihubmix / agnes không nằm trong ladder nào: tắt
-  # hẳn. kilo thì BẬT — group/free dùng particle-1:free; kiro BẬT vì tester-3 dùng
-  # claude-haiku-4.5.
+  # hẳn. kilo/openrouter/nvidia BẬT vì group/compress dùng model của chúng.
   for off_id in qoder antigravity copilot aihubmix agnes; do
     if magpie provider off "$off_id" >/dev/null 2>&1; then
       ok "provider $off_id đang tắt"
@@ -117,10 +119,12 @@ seed='{
   "redactModelName": "astrlink-guard",
   "redactModelAuto": true,
   "redactPersonal": true,
-  "redactKinds": {"bucket": true, "home": true, "ip": true, "userhost": true},
+  "redactKinds": {"birthday": false, "home": true, "iban": false, "ip": true, "serial": true, "ssn": false, "userhost": false},
   "quotaLeft": true,
   "trayUsageEvery": 3,
-  "textSize": 110
+  "textSize": 110,
+  "visionEffort": "max",
+  "disabledModels": ["freepi/deepseek-v4.1-flash-1017-ultrafast"]
 }'
 
 has_model "$VISION" && seed="$(printf '%s' "$seed" | python3 -c 'import json,sys;d=json.load(sys.stdin);d["vision"]="'"$VISION"'";print(json.dumps(d))')"

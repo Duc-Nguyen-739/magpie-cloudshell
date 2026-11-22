@@ -115,8 +115,9 @@ step "6/9 · bật gateway + web UI"
 "$HOME/.local/bin/openmagpie" || die "không bật được magpie"
 
 # ------------------------------------------------------- 7. cấu hình magpie
-step "7/9 · cấu hình magpie (settings, provider tắt)"
+step "7/9 · cấu hình magpie (settings, provider tắt, giá/context/output)"
 bash "$REPO_DIR/scripts/setup-settings.sh" || warn "chưa đặt được settings"
+bash "$REPO_DIR/scripts/setup-model-settings.sh" || warn "chưa đặt được giá/context/output (đăng nhập rồi chạy lại)"
 if [ "$MINIMAL" != 1 ]; then
   bash "$REPO_DIR/scripts/setup-billion-context.sh" || warn "billion-context chưa cài được"
 fi
@@ -124,7 +125,7 @@ fi
 # ------------------------------------------------ 8. group + agent (nếu có model)
 step "8/9 · routing group + agent"
 if magpie models 2>/dev/null | grep -q .; then
-  bash "$REPO_DIR/scripts/setup-groups.sh" --force || warn "chưa tạo được group (xem lỗi ở trên)"
+  bash "$REPO_DIR/scripts/setup-groups.sh" || warn "chưa tạo được group (xem lỗi ở trên)"
   bash "$REPO_DIR/scripts/setup-agents.sh" || warn "chưa trỏ được agent"
 else
   warn "chưa có provider/model nào — sau khi đăng nhập, login.sh tự tạo group"

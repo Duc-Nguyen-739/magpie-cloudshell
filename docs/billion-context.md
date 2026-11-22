@@ -56,9 +56,9 @@ một lần qua web UI; repo không chứa key. Script **không** tạo group/mo
 
 `compress` toàn cục: `nudgeGrowthTokens: 120000`, `preserveRecentTokens: 32000`,
 `preserveRecentMessages: 8`, `preserveRecentTools: ["read"]`, `maxSummaryLength: 30000`.
-`externalSummary`: bật, `concurrency: 8`, target `magpie/group/compress` →
-`magpie/workbuddy-ai/hy4flash-free`, `targetTimeoutMs: 900000`,
-`totalTimeoutMs: 1200000`, `maxSummaryBytes: 131072`. Provider `group/compress`:
+`externalSummary`: bật, `concurrency: 8`, target `magpie/group/compress`,
+`targetTimeoutMs: 300000`, `totalTimeoutMs: 600000`, `maxSummaryBytes: 131072`.
+Provider `group/compress`:
 `contextWindow: 262144`, `outputTokens: 32768`; `hy4flash-free`: `contextWindow: 960000`,
 `outputTokens: 32768`.
 
@@ -90,10 +90,10 @@ entry `freepi7/deepseek-v4.1-flash` vào nhóm coder/tester.
 - **Coder/tester 50k/8/27%** — coder cần plan + code đang sửa; tester cần log/test
   gần nhất. 27% là mức thấp hơn sau hai lần hạ; xuống nữa sẽ gặp PRESSURE NOTE (fold
   nhỏ liên tục, mất cache hit mà thu hồi ít).
-- **`concurrency: 8`** — 0.1.216 pool nén process-wide, tối thiểu 4; 8 đủ cho 7 agent
-  + target dự phòng. Range vượt slot xếp hàng, không fail.
-- **`targetTimeoutMs: 900000` / `totalTimeoutMs: 1200000`** — fold 150k token có thể
-  lâu; target 15 phút, batch 20 phút. Đây là **thời gian chờ xếp hàng**, không phải
+- **`concurrency: 8`** — 0.1.216 pool nén process-wide, tối thiểu 4; 8 đủ cho nhiều
+  range song song. Range vượt slot xếp hàng, không fail.
+- **`targetTimeoutMs: 300000` / `totalTimeoutMs: 600000`** — fold 150k token có thể
+  lâu; target 5 phút, batch 10 phút. Đây là **thời gian chờ xếp hàng**, không phải
   payload quá lớn. Nếu vẫn `target-timeout`, đưa model nhanh lên đầu `group/compress`
   hoặc tăng tiếp.
 - **`maxSummaryLength` 60k Leader / 30k còn lại; `maxSummaryBytes: 131072`** — summary
@@ -125,7 +125,9 @@ plan; summary không còn là nguồn duy nhất cho quyết định.
 
 Config trỏ `magpie/group/compress`. Repo **không** ghi ladder/model của group này; người
 dùng tự tạo group (`routing=rotate`, `stays=off`) và tự thêm model. Chỉ cần group trả lời
-được prompt tóm tắt; target dự phòng `magpie/workbuddy-ai/hy4flash-free` vẫn giữ.
+được prompt tóm tắt. Trên máy tham chiếu group đang có
+`nvidia/nemotron-3.5-super-vl-120b-a12b`, `openrouter/particle-1:free`,
+`kilo/particle-1:free`, `workbuddy-ai/hy4flash-free`.
 
 Với `rotate`, lượt nén đi qua nhiều model/acc; nếu một model 429/5xx, group chuyển model
 kế tiếp. Đo cũ (Particle-1, 2026-11-17): 6 request song song, p50 6–12 s; giữ để tham
@@ -135,9 +137,9 @@ chiếu, **chưa đo lại** ladder hiện tại.
 
 | Log | Sửa |
 |---|---|
-| `target-timeout` | tăng `budget.targetTimeoutMs` (đang 900s) hoặc đưa model nhanh lên đầu `group/compress` |
-| `batch-deadline` | tăng `budget.totalTimeoutMs` (đang 1200s) hoặc giảm số range mỗi batch |
-| `attempts=[t0:error]` | lỗi upstream (429/5xx/refusal); group/compress rotate model do bạn cấu hình, target dự phòng `hy4flash-free` |
+| `target-timeout` | tăng `budget.targetTimeoutMs` (đang 300s) hoặc đưa model nhanh lên đầu `group/compress` |
+| `batch-deadline` | tăng `budget.totalTimeoutMs` (đang 600s) hoặc giảm số range mỗi batch |
+| `attempts=[t0:error]` | lỗi upstream (429/5xx/refusal); group/compress rotate model do bạn cấu hình |
 | summary bị từ chối vì dài | tăng `compress.maxSummaryLength` (Leader 60k, còn lại 30k) hoặc giảm `summaryMaxChars` từng range |
 | `maxSummaryBytes` | tăng (tối đa 1 MiB); hiện 131072 |
 

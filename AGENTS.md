@@ -30,54 +30,60 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
 ## Bạn đang dựng gì
 
 - magpie bản terminal trong `~/.local/bin` (không desktop, không systemd).
-- **21 provider** hiện trong `magpie providers`, **17 bật / 4 tắt** (`aihubmix`,
-  `copilot`, `agnes`, `opencode-zen-free`). Ba provider mới so với bản gốc dùng key
-  riêng, mỗi cái mở đúng một model cho `group/free`: `openrouter`
-  (`particle-ai/particle-1:free`), `nvidia` (`nvidia/nemotron-3.5-super-vl-120b-a12b`),
-  `groq` (`openai/gpt-oss-20b`). `providers.json` còn record `qoder` và
-  `antigravity` nhưng không hiện vì thiếu plugin. Mười lăm plugin đang cài: AutoClaw (Zhipu),
-  WorkBuddy, agy-cli, cline, kiro, agnes, FreePi, FreePi2, FreePi3, FreePi4, FreePi5, FreePi6,
-  FreePi7, OpenCode Zen Free (2 plugin).
+- **18 provider** hiện trong `magpie providers`, **14 bật / 4 tắt** (`aihubmix`,
+  `copilot`, `agnes`, `opencode-zen-free`). `providers.json` còn record `qoder` và
+  `antigravity` nhưng không hiện vì thiếu plugin. Mười hai entry plugin đang cài
+  (11 plugin; `freepi` có hai bản): AutoClaw (Zhipu) 0.2.11, WorkBuddy, agnes,
+  FreePi, FreePi2, FreePi3, FreePi4, FreePi5, FreePi6, FreePi7, OpenCode Zen Free.
+  `scripts/plugins.sh` không cài agy-cli/cline/kiro/qoder/zcode trên máy tham chiếu;
+  muốn dùng thì `magpie plugin add @magpie-community/opencode-<tên>-auth`.
   `free-pi` đã được gỡ khỏi máy này ngày 2026-11-18 theo yêu cầu; các script
   `patch-free-pi.mjs`, `patch-free-pi-ads.mjs`, `setup-freepi-pair.mjs` vẫn còn trong
-  repo nếu cài lại. `freepi2` là tài khoản thứ ba,
+  repo nếu cài lại. `freepi2` là tài khoản thứ hai,
   plugin **private** `Duc-Nguyen-739/FreePiLogin2` clone về `~/.local/src/FreePiLogin2`
   rồi `magpie plugin add` (không cài được bằng spec `github:` — bun tải tarball không
   kèm token nên 404); kho riêng `~/.freepi2`, session id riêng, mô tả tiếng Việt.
   Chi tiết cài/đăng nhập/vướng mắc: [`docs/freepi2.md`](docs/freepi2.md).
   `freepi3`, `freepi4`, `freepi5`, `freepi6` và `freepi7` làm y hệt (`FreePiLogin3`,
   `FreePiLogin4`, `FreePiLogin5`, `FreePiLogin6`, `FreePiLogin7`; kho `~/.freepi3`,
-  `~/.freepi4`, `~/.freepi5`, `~/.freepi6`, `~/.freepi7`), tài khoản thứ tư, thứ năm,
-  thứ sáu và hai tài khoản riêng; tài liệu
+  `~/.freepi4`, `~/.freepi5`, `~/.freepi6`, `~/.freepi7`), tài khoản thứ ba, thứ tư,
+  thứ năm, thứ sáu và thứ bảy; tài liệu
   [`docs/freepi3.md`](docs/freepi3.md), [`docs/freepi4.md`](docs/freepi4.md),
   [`docs/freepi5.md`](docs/freepi5.md), [`docs/freepi6.md`](docs/freepi6.md),
   [`docs/freepi7.md`](docs/freepi7.md).
 - `settings.json` giống máy tham chiếu (theme dark, `vision=workbuddy-ai/hy4flash-free`
-  + `redact=astrlink-guard`, `quotaLeft`, `textSize=110`, check-in
-  AutoClaw + Qoder — qoder đang tắt nên chỉ còn AutoClaw có tác dụng); `opencode-zen` (API key) **bật nhưng chỉ mở `jev-1.13-free`** làm
+  + `visionEffort=max`, `redact=astrlink-guard`, `redactKinds` gồm `home/ip/serial`,
+  `quotaLeft`, `textSize=110`, `disabledModels=freepi/deepseek-v4.1-flash-1017-ultrafast`,
+  check-in AutoClaw + Qoder — qoder đang tắt nên chỉ còn AutoClaw có tác dụng);
+  `opencode-zen` (API key) **bật nhưng chỉ mở `jev-1.13-free`** làm
   classifier — free tier qua API key bị chặn ở upstream, đường plugin cũng cạn theo IP
   dùng chung; xem [`docs/zen-free.md`](docs/zen-free.md).
-- Chín routing group: `group/main` (chat thường ngày, `stays=session`), `group/leader`
-  (OpenChamber: quyết định + điều phối), `group/review` (khảo sát + brief hướng +
-  viết plan), `group/reviewplan` (gác hướng + kiểm chứng/sửa plan + audit cuối),
-  `group/coder`, `group/tester`,
-  `group/tester-2`, `group/tester-3`, `group/free` (chỉ dùng cho việc nén của
-  billion-context). Tám group dùng classifier `opencode-zen/jev-1.13-free`,
-  `effort=auto`; không group nào có rule. `main`/`leader`/`coder` và ba tester mở
-  levels `low,high,max`; `review`/`reviewplan` mở `none,low,high,max` (FreePi không
-  expose mức reasoning nhưng magpie vẫn mở levels khi đặt `effort=auto`), và
-  `finish.sh --force` không reset chúng.
-- `group/free`: `kilo/particle-ai/particle-1:free` →
-  `cline/particle-ai/particle-1:free` → `openrouter/particle-ai/particle-1:free` →
-  `groq/openai/gpt-oss-20b` → `nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b`,
-  `routing=rotate`, `stays=auto`. Ba model Particle-1 là ladder chính; Groq và NVIDIA
-  là bậc dự phòng khi ba provider kia hết quota. Mỗi provider một model nhanh nhất, đo
-  6 request song song; xem bảng trong [`docs/billion-context.md`](docs/billion-context.md).
-- `group/main`: `freepi/deepseek-v4.1-flash` → `workbuddy-ai/hy4flash-free` →
+- Giá model (**input/output/cache**) và context/output/reasoning nằm ở
+  `scripts/setup-model-settings.sh`: `*/deepseek-v4.1-flash` = `1,4,0.1,1.25`,
+  `*/jev-1.13-free` = `0,0,0,0`, hai model WorkBuddy đang expose = `1,4,0.1,1.25`; FreePi
+  (cả bảy tài khoản) = context `1048576`, output `32768`, efforts
+  `none…max`. Script cũng đặt queue 32, account-concurrency 1, RPM off và
+  `routing=drain` cho `freepi`. Chạy lại sau mỗi lần đăng nhập (`finish.sh` gọi).
+- Các routing group **mẫu** (model trong group do người dùng tự chọn; repo không
+  đồng bộ ladder từ máy tham chiếu): `group/main` (chat thường ngày, `stays=session`),
+  `group/leader` (OpenChamber + OpenCode: quyết định + điều phối), `group/review`
+  (khảo sát + brief hướng + viết plan), `group/reviewplan` (gác hướng + kiểm chứng/
+  sửa plan + audit cuối), `group/coder`, `group/tester`, `group/tester-2`,
+  `group/tester-3`. `setup-groups.sh` chỉ tạo group còn thiếu; `finish.sh` và
+  `bootstrap.sh` **không** dùng `--force`, nên không reset ladder người dùng đã sửa.
+  Muốn reset: `magpie group rm <id>` rồi chạy lại script.
+- Group dùng cho nén của billion-context là `group/compress` (do người dùng tự tạo,
+  `routing=rotate`, `stays=off`), không phải `group/free` cũ. Trên máy tham chiếu:
+  `nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b` →
+  `openrouter/particle-ai/particle-1:free` → `kilo/particle-ai/particle-1:free` →
+  `workbuddy-ai/hy4flash-free`; config chỉ trỏ `magpie/group/compress`.
+- Ladder dưới đây là **ví dụ** trong repo, không phải bản sao group đang chạy trên
+  máy tham chiếu. Máy tham chiếu hiện **tắt `group/main`** (`disabled` trong
+  `providers.json`); OpenCode và OpenChamber đều trỏ `group/leader`.
+- `group/main` (ví dụ): `freepi/deepseek-v4.1-flash` → `workbuddy-ai/hy4flash-free` →
   `agy-cli/gemini-3.8-flash` → `agy-cli/gemini-2.5-flash-lite` →
-  `autoclaw/zai_glm-5.3-flash` → `workbuddy-ai/glm-5.3-flash`. Group **đang bật**
-  (`magpie group on main`), là model mặc định của OpenCode.
-- `group/leader`: `xingchi/gpt-6.1-sol:high` → `freepi6/deepseek-v4.1-flash` →
+  `autoclaw/zai_glm-5.3-flash` → `workbuddy-ai/glm-5.3-flash`.
+- `group/leader` (ví dụ): `xingchi/gpt-6.1-sol:high` → `freepi6/deepseek-v4.1-flash` →
   `agy-cli/claude-opus-4-6-thinking` → `workbuddy-ai/deepseek-v4.1-flash-sg`.
   `xingchi/gpt-6-astra` đã bị bỏ khỏi group
   (2026-11-17): model vẫn nằm trong danh mục Xingchi nhưng pool upstream trả 503, và
@@ -98,20 +104,21 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
 - `group/tester-3`: `freepi3/deepseek-v4.1-flash` → `kiro/claude-haiku-4.5` →
   `autoclaw/zai_glm-5.3-flash` → `agy-cli/gemini-3.8-flash` →
   `workbuddy-ai/hy4flash-free` → `workbuddy-ai/deepseek-v4.1-flash-sg`.
-- FreePi2–6 chia cho các group để ba tester và review/reviewplan chạy song song không
-  giành slot "one request at a time" của cùng tài khoản: `reviewplan` FreePi5,
-  `tester` FreePi4, `tester-2` FreePi2, `tester-3` FreePi3, `leader` FreePi6.
+- Bảy tài khoản FreePi chia cho các group để các lượt chạy song song không giành slot
+  "one request at a time" của cùng tài khoản. Trên máy tham chiếu: `review` FreePi4,
+  `reviewplan` FreePi, `coder` FreePi3, `tester` FreePi2, `tester-2` FreePi7,
+  `tester-3` FreePi5, `leader` FreePi6; `main` dùng FreePi chính.
 - Provider đang tắt: `aihubmix`, `copilot`, `agnes`, `opencode-zen-free`. WorkBuddy
   chỉ expose `deepseek-v4.1-flash-sg`, `glm-5.3-flash`, `hy4flash-free`; `kilo` **bật**
-  vì `group/free` dùng `particle-1:free`; `kiro` bật vì `group/tester-3` dùng
-  `claude-haiku-4.5`; `aihubmix` đang tắt, nếu bật
+  vì `group/compress` dùng `particle-1:free`; `kiro`/`cline`/`agy-cli` **không cài**
+  trên máy tham chiếu (repo vẫn có thể cài như tuỳ chọn); `aihubmix` đang tắt, nếu bật
   thì 36 model `-free` chỉ trả câu từ chối (tài khoản chưa nạp tiền) — xem mục lỗi
   thường gặp.
-- OpenCode thấy **32 model** của provider `magpie` (8 `group/*` + 24 model lẻ, trong
-  đó có `freepi2/…` … `freepi6/…`, `groq/…`, `nvidia/…`): OpenCode V2 hỏi thẳng
+- OpenCode thấy **24 model** của provider `magpie` (8 `group/*` + 16 model lẻ, trong
+  đó có `freepi/…` … `freepi7/…`, `nvidia/…`, `xingchi/…`): OpenCode V2 hỏi thẳng
   `/v1/models` của gateway nên danh sách luôn khớp, không cần map tĩnh trong
-  `opencode.json`. `model: magpie/group/main`, model phụ cho agent
-  `title` là `magpie/workbuddy-ai/hy4flash-free`. OpenChamber đặt
+  `opencode.json`. `model: magpie/group/leader`, small model để mặc định (không ghim).
+  OpenChamber đặt
   `defaultModel: magpie/group/leader`, `defaultVariant: max`, `defaultAgent: leader`
   trong `~/.config/openchamber/settings.json`; agent `leader` + 6 subagent `review`,
   `reviewplan`, `coder`, `tester`, `tester2`, `tester3`; mỗi agent có mục `## Skill`,
@@ -217,7 +224,7 @@ Kiểm tra:
 ```sh
 magpie --version                  # có số phiên bản
 magpie healthcheck && echo ok     # exit 0
-magpie plugin list                # 14 plugin, "on"
+magpie plugin list                # 12 entry (11 plugin), "on"
 command -v openchamber openmagpie magpie-headless-start
 ```
 
@@ -267,10 +274,11 @@ Provider còn "not signed in" thì bỏ qua — group chỉ dựng từ model th
 
 ### 4. Group + agent (đã tự chạy — chỉ kiểm tra)
 
-`login.sh` đã gọi `finish.sh` (= `setup-settings.sh` + `setup-groups.sh --force` +
-`setup-agents.sh` + `doctor.sh`) sau mỗi lần đăng nhập. Nếu người dùng đăng nhập qua
-**web UI** (cách dùng trên Cloud Shell), `openmagpie` / `openchamber` tự gọi
-`magpie-finish` một lần khi thấy có model mà chưa có `group/main`. Chạy tay khi cần:
+`login.sh` đã gọi `finish.sh` (= `setup-settings.sh` + `setup-model-settings.sh` +
+`setup-groups.sh` + `setup-agents.sh` + `doctor.sh`) sau mỗi lần đăng nhập. Nếu người
+dùng đăng nhập qua **web UI** (cách dùng trên Cloud Shell), `openmagpie` /
+`openchamber` tự gọi `magpie-finish` một lần khi thấy có model mà chưa có
+`group/leader`. Chạy tay khi cần:
 
 ```sh
 magpie-finish          # bản cài
@@ -280,17 +288,19 @@ bash scripts/finish.sh # từ repo
 Kiểm tra:
 
 ```sh
-magpie groups           # 9 group, tất cả đang bật
-magpie group main      # 6 model theo thứ tự, levels low/high/max, classifier
-magpie group leader    # 4 model, OpenChamber dùng
-magpie group review    # freepi:high → workbuddy deepseek-sg, classifier jev
-magpie group reviewplan # freepi:high → workbuddy deepseek-sg, classifier jev
-magpie opencode        # model: magpie/group/main · small magpie/workbuddy-ai/hy4flash-free
-magpie openchamber     # model: magpie/group/leader · variant max
+magpie groups           # 8 group mẫu (+ group/compress nếu người dùng đã tạo)
+magpie group main       # ladder ví dụ; model do người dùng chọn
+magpie group leader     # ladder ví dụ; OpenCode + OpenChamber dùng
+magpie group review     # classifier jev, levels high/max
+magpie group reviewplan # classifier jev, levels high/max
+magpie opencode         # model: magpie/group/leader · small —
+magpie openchamber      # model: magpie/group/leader · variant max
 ```
 
 `setup-groups.sh` chỉ đưa vào group model đang có, nên cấu hình một phần vẫn chạy.
-Đăng nhập thêm provider → chạy lại `finish.sh` để lấp ladder.
+`finish.sh` **không** reset ladder đã có; muốn thêm model sau khi đăng nhập provider:
+`magpie group set <id> models+=<provider/model>`. Giá/context/output của model mới do
+`setup-model-settings.sh` áp lại khi chạy `finish.sh`.
 
 ### 5. Bàn giao
 
@@ -348,17 +358,18 @@ magpie provider test autoclaw zai_auto
 | OpenChamber báo **502** hoặc Xingchi **503** `Service temporarily unavailable` | model đó (`gpt-6-astra`) mất channel ở pool upstream; stream thì keepalive 34 s rồi mới lỗi | dùng `xingchi/gpt-6.1-sol:high`; chi tiết trong [`docs/providers.md`](docs/providers.md) |
 | `the routing group Main is switched off … not served` | group bị tắt (`disabled` trong `providers.json`) | `magpie group on main`, hoặc trỏ agent sang group đang bật |
 | AiHubMix/`aihubmix` trả "Sorry, to prevent abuse of free resources…" | tài khoản chưa nạp tiền; cả 36 model `-free` trả cùng câu này | nạp tiền hoặc `magpie provider off aihubmix` — `magpie provider test` vẫn tick xanh vì chỉ kiểm HTTP 200 |
-| Subagent `coder` lỗi model | thiếu `group/coder` hoặc model chưa expose | `setup-opencode.sh` đã lùi về `group/main`; hoặc sửa dòng `model:` |
-| OpenCode báo `Compression FAILED … target-timeout` | billion-context hết `targetTimeoutMs` (đang 180 s) | sửa budget rồi reload — [`docs/billion-context.md`](docs/billion-context.md) |
+| Subagent `coder` lỗi model | thiếu `group/coder` hoặc model chưa expose | `setup-opencode.sh` đã lùi về `group/leader`; hoặc sửa dòng `model:` |
+| OpenCode báo `Compression FAILED … target-timeout` | billion-context hết `targetTimeoutMs` (đang 300 s) | sửa budget rồi reload — [`docs/billion-context.md`](docs/billion-context.md) |
 
-## Plugin AutoClaw — bản đang chạy tốt (chốt 2026-10-29)
+## Plugin AutoClaw — bản đang chạy (2026-11-22: 0.2.11)
 
-Đăng nhập AutoClaw bằng z.ai đã kiểm chứng trên máy này với **plugin
-`@magpie-community/opencode-autoclaw-auth@0.2.9`** (magpie `0.1.1955`). Bản này
-đăng nhập được, giữ được 4 model `autoclaw/…`, và gọi thật thì trả lời. Coi
-**0.2.9 là bản vàng**: nếu lên bản mới mà không gọi được, quay về đúng số này.
+Máy tham chiếu đang chạy **`@magpie-community/opencode-autoclaw-auth@0.2.11`**
+(magpie `0.1.4625`). Đã kiểm tra `magpie provider test autoclaw zai_auto` →
+`✓ chat 1180 ms` ngày 2026-11-22. Bản **0.2.9** vẫn là bản vàng dự phòng: nếu bản
+mới trả 401/`invalid_request_error`/`exports no OpenCode plugin function`, hạ về
+0.2.9.
 
-Kết quả test lúc **2026-10-29 02:54 UTC** (tài khoản đang hoạt động:
+Kết quả test 0.2.9 lúc **2026-10-29 02:54 UTC** (tài khoản đang hoạt động:
 `Đức Nguyễn Văn (9m00x9)`), `magpie provider test autoclaw <model>`:
 
 | Model | Kết quả |
@@ -381,7 +392,7 @@ hỏng — hạ về 0.2.9.
 Kiểm tra đang chạy bản nào:
 
 ```sh
-magpie plugin list | head -3            # @magpie-community/opencode-autoclaw-auth@0.2.9  on
+magpie plugin list | head -3            # @magpie-community/opencode-autoclaw-auth@0.2.11  on
 magpie plugin list --json | grep autoclaw
 magpie provider test autoclaw zai_auto  # ✓ chat  (gọi thật, tốn 1 request nhỏ)
 ```

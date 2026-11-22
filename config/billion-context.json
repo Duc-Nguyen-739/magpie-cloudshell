@@ -200,12 +200,11 @@
       "enabled": true,
       "concurrency": 8,
       "targets": [
-        "magpie/group/compress",
-        "magpie/workbuddy-ai/hy4flash-free"
+        "magpie/group/compress"
       ],
       "budget": {
-        "totalTimeoutMs": 1200000,
-        "targetTimeoutMs": 900000,
+        "totalTimeoutMs": 600000,
+        "targetTimeoutMs": 300000,
         "maxSummaryBytes": 131072
       }
     }

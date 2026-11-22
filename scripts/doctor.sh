@@ -62,12 +62,12 @@ np="$(magpie providers 2>/dev/null | grep -c . || true)"
 [ "$np" -gt 0 ] && ok "$np provider" || bad "chưa có provider nào"
 magpie providers 2>/dev/null | sed 's/^/      /'
 
-# FreePi2…FreePi6: plugin riêng, kho riêng ~/.freepiN. Chụp danh sách một lần:
+# FreePi2…FreePi7: plugin riêng, kho riêng ~/.freepiN. Chụp danh sách một lần:
 # `magpie plugin list | grep -q` dưới pipefail hay hỏng vì magpie chết SIGPIPE
 # khi grep thoát sớm, làm vài provider bị bỏ qua một cách ngẫu nhiên.
 freepi_plugins="$(magpie plugin list 2>/dev/null || true)"
 freepi_providers="$(magpie providers 2>/dev/null || true)"
-for pair in "FreePi2:freepi2" "FreePi3:freepi3" "FreePi4:freepi4" "FreePi5:freepi5" "FreePi6:freepi6"; do
+for pair in "FreePi2:freepi2" "FreePi3:freepi3" "FreePi4:freepi4" "FreePi5:freepi5" "FreePi6:freepi6" "FreePi7:freepi7"; do
   name="${pair%%:*}"
   provider="${pair##*:}"
   if [[ "$freepi_plugins" == *"$provider"* ]]; then
@@ -81,6 +81,25 @@ for pair in "FreePi2:freepi2" "FreePi3:freepi3" "FreePi4:freepi4" "FreePi5:freep
     [[ "$freepi_providers" == *"$provider"* ]] \
       && ok "$name đã đăng nhập" \
       || warn "$name chưa đăng nhập — web UI → Add provider → $name"
+  fi
+done
+
+head_ "Model settings (giá, context/output)"
+prices="$(magpie model prices 2>/dev/null || true)"
+if printf '%s\n' "$prices" | grep -q 'deepseek-v4.1-flash'; then
+  ok "đã đặt giá input/output cho deepseek-v4.1-flash"
+else
+  warn "chưa có giá deepseek-v4.1-flash — chạy: bash scripts/setup-model-settings.sh"
+fi
+for id in freepi freepi2 freepi3 freepi4 freepi5 freepi6 freepi7; do
+  m="$id/deepseek-v4.1-flash"
+  if printf '%s\n' "$freepi_providers" | awk -v id="$id" '$2 == id { found = 1 } END { exit !found }'; then
+    out="$(magpie model output "$m" 2>/dev/null | awk 'NR==1 {print $1}')"
+    case "$out" in
+      32768|32k) ok "$m: output $out" ;;
+      '')        warn "$m: chưa có model (kiểm tra đăng nhập/expose)" ;;
+      *)         warn "$m: output $out (nên là 32768) — chạy setup-model-settings.sh" ;;
+    esac
   fi
 done
 
@@ -107,7 +126,7 @@ head_ "Agent"
 agents_now="$(magpie ls 2>/dev/null || true)"
 for a in opencode openchamber; do
   case "$a" in
-    opencode)   want=group/main ;;
+    opencode)   want=group/leader ;;
     openchamber) want=group/leader ;;
   esac
   if printf '%s\n' "$agents_now" | grep -qiE "^[[:space:]]*$a[[:space:]]"; then

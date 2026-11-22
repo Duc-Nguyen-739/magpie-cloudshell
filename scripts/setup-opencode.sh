@@ -84,7 +84,7 @@ install_agent() { # <tên>
     return 0
   fi
   cp "$src" "$dst"
-  # Model riêng của agent; nếu máy chưa có group/model đó thì lùi về group/main.
+  # Model riêng của agent; nếu máy chưa có group/model đó thì lùi về group/leader.
   local m mid
   m="$(sed -n 's/^model: *//p' "$dst" | head -1)"
   mid="${m#magpie/}"
@@ -96,12 +96,12 @@ install_agent() { # <tên>
   if [ "${mid#group/}" != "$mid" ]; then
     local gid="${mid#group/}"
     if ! printf '%s\n' "$groups_now" | awk -v g="group/$gid" '{ for (i = 1; i <= NF; i++) if ($i == g) found = 1 } END { exit !found }'; then
-      sed -i "s|^model: .*|model: magpie/group/main|" "$dst"
-      warn "$name: chưa có group/$gid, đã đổi sang magpie/group/main"
+      sed -i "s|^model: .*|model: magpie/group/leader|" "$dst"
+      warn "$name: chưa có group/$gid, đã đổi sang magpie/group/leader"
     fi
   elif ! has_model "$mid"; then
-    sed -i "s|^model: .*|model: magpie/group/main|" "$dst"
-    warn "$name: không có $mid, đã đổi sang magpie/group/main"
+    sed -i "s|^model: .*|model: magpie/group/leader|" "$dst"
+    warn "$name: không có $mid, đã đổi sang magpie/group/leader"
   fi
   ok "$dst"
 }
@@ -131,4 +131,4 @@ fi
 
 say ""
 say "Provider magpie trong opencode.jsonc do chính magpie ghi khi bạn chạy"
-say "'magpie opencode group/main' — không cần sửa tay. Xem docs/opencode.md."
+say "'magpie opencode group/leader' — không cần sửa tay. Xem docs/opencode.md."

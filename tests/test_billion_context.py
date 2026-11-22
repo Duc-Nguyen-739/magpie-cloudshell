@@ -23,26 +23,26 @@ class BillionContextConfigTests(unittest.TestCase):
     def test_external_summary_budget_and_target(self) -> None:
         ext = self.data["compress"]["externalSummary"]
         self.assertTrue(ext["enabled"])
-        self.assertEqual(ext["targets"][0], "magpie/group/compress")
+        self.assertEqual(ext["targets"], ["magpie/group/compress"])
         self.assertEqual(ext["concurrency"], 8)
-        self.assertEqual(ext["budget"]["targetTimeoutMs"], 900000)
-        self.assertEqual(ext["budget"]["totalTimeoutMs"], 1200000)
+        self.assertEqual(ext["budget"]["targetTimeoutMs"], 300000)
+        self.assertEqual(ext["budget"]["totalTimeoutMs"], 600000)
         self.assertEqual(ext["budget"]["maxSummaryBytes"], 131072)
 
     def test_leader_keeps_long_memory(self) -> None:
         leader = self.models["group/leader"]["compress"]
-        self.assertEqual(leader["preserveRecentTokens"], 300000)
-        self.assertEqual(leader["preserveRecentMessages"], 40)
+        self.assertEqual(leader["preserveRecentTokens"], 200000)
+        self.assertEqual(leader["preserveRecentMessages"], 28)
         self.assertEqual(leader["maxSummaryLength"], 60000)
-        self.assertEqual(leader["maxContextLimit"], "75%")
+        self.assertEqual(leader["maxContextLimit"], "55%")
 
     def test_review_protects_recent_reads(self) -> None:
         for name in ("group/review", "group/reviewplan"):
             compress = self.models[name]["compress"]
             self.assertEqual(compress["neverPreserveRecentTools"], [])
             self.assertEqual(compress["preserveRecentTools"], ["bash"])
-            self.assertEqual(compress["maxContextLimit"], "35%")
-            self.assertEqual(compress["preserveRecentTokens"], 60000)
+            self.assertEqual(compress["maxContextLimit"], "25%")
+            self.assertEqual(compress["preserveRecentTokens"], 40000)
 
     def test_compress_provider_output_is_large_enough(self) -> None:
         provider = self.data["providers"]["magpie"]["models"]
@@ -59,6 +59,7 @@ class BillionContextConfigTests(unittest.TestCase):
             "freepi2/deepseek-v4.1-flash",
             "freepi3/deepseek-v4.1-flash",
             "freepi5/deepseek-v4.1-flash",
+            "freepi7/deepseek-v4.1-flash",
             "autoclaw/zai_glm-5.3-flash",
         ):
             self.assertIn(name, self.models, name)

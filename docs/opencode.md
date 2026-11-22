@@ -4,18 +4,18 @@ OpenCode không gọi thẳng WorkBuddy/AutoClaw. Nó gọi **một** provider t
 trỏ vào gateway local; magpie mới là chỗ biết model nào thuộc provider nào.
 
 ```
-opencode    ──HTTP──▶  http://127.0.0.1:3425/v1  ──▶  group/main    ──▶  provider thật
+opencode    ──HTTP──▶  http://127.0.0.1:3425/v1  ──▶  group/leader  ──▶  provider thật
 openchamber ──HTTP──▶  http://127.0.0.1:3425/v1  ──▶  group/leader  ──▶  provider thật
 ```
 
 ## magpie ghi gì vào `opencode.json`
 
-Khi bạn chạy `magpie opencode group/main`, magpie sửa
-`~/.config/opencode/opencode.json` (giữ nguyên phần còn lại) và thêm/cập nhật:
+Khi bạn chạy `magpie opencode group/leader`, magpie sửa
+`~/.config/opencode/opencode.jsonc` (giữ nguyên phần còn lại) và thêm/cập nhật:
 
 ```json
 {
-  "model": "magpie/group/main",
+  "model": "magpie/group/leader",
   "providers": {
     "magpie": {
       "name": "magpie",
@@ -26,8 +26,8 @@ Khi bạn chạy `magpie opencode group/main`, magpie sửa
         "apiKey": "magpie"
       },
       "models": {
-        "group/main":   { "name": "Main · routing group",   "limit": { "context": 1000000, "output": 128000 }, "variants": [ … ] },
-        "group/leader": { "name": "Leader · routing group", … },
+        "group/leader": { "name": "Leader · routing group", "limit": { "context": 1000000, "output": 128000 }, "variants": [ … ] },
+        "group/main":   { "name": "Main · routing group", … },
         "autoclaw/zai_glm-5.3-flash": { … },
         "…": {}
       }
@@ -39,12 +39,12 @@ Khi bạn chạy `magpie opencode group/main`, magpie sửa
 - `apiKey: "magpie"` là chuỗi giả — gateway local không kiểm tra key. Đừng đổi thành key thật.
 - Trên máy này (OpenCode V2) khối `providers.magpie` **không có `models`**: OpenCode
   tự hỏi gateway `GET /v1/models` rồi dựng danh sách, nên nó luôn khớp cái magpie đang
-  phục vụ — hiện **32 model** = 8 `group/*` + 24 model lẻ (trong đó có `freepi2/…` …
-  `freepi6/…`, `groq/…`, `nvidia/…`). Bản OpenCode cũ (hoặc file do OpenChamber sinh)
+  phục vụ — hiện **24 model** = 8 `group/*` + 16 model lẻ (trong đó có `freepi/…` …
+  `freepi7/…`, `nvidia/…`, `xingchi/…`). Bản OpenCode cũ (hoặc file do OpenChamber sinh)
   có thể kèm map `models` tĩnh; cả hai cách đều chạy, chỉ đừng sửa tay.
 - Mỗi group có `variants` đúng bằng levels của group: `low`/`high`/`max` với phần
-  lớn group, riêng `review`/`reviewplan` có thêm `none`, và `free` là
-  `none`/`minimal`/`low`/`medium`; gọi `magpie/group/main#high` là chọn mức đó.
+  lớn group, riêng `review`/`reviewplan` có `high`/`max`, và `compress` là
+  `none`; gọi `magpie/group/leader#max` là chọn mức đó.
 - **Đừng sửa tay khối `providers.magpie`**: lần sau magpie ghi đè. Muốn đổi thì đổi ở
   magpie (`magpie provider …`, `magpie group …`, `magpie model name …`) rồi chạy lại
   `magpie opencode …`.
@@ -54,18 +54,12 @@ hiện tại — mở phiên mới.
 
 ## Provider khác trong cùng file
 
-Máy này còn ba provider khai báo nhưng **đều tắt** trong `disabled_providers`:
-
-```json
-"kiraai":      { "package": "aisdk:@ai-sdk/openai-compatible", "settings": { "baseURL": "https://kiraai.vn/api/v1" } },
-"takenbarbor": { … },
-"dsh":         { … }
-```
-
-`kilo` cũng nằm trong `disabled_providers` vì đã dùng `kilo/reflection/beam-free` qua
-magpie, không cần gọi thẳng. Đây là lựa chọn riêng (relay/key riêng), repo không kèm
-key. Cách gọn hơn là đưa vào magpie để mọi agent dùng chung — xem `docs/providers.md`
-mục "Thêm relay".
+Máy này còn khai báo một số provider gọi thẳng, phần lớn **tắt** trong
+`disabled_providers` (`pendraa`, `kenari`, `kira`, `tokenharbor`, `tokenhabor`,
+`openrouter`, `kiro`, `amdradeon`, `dsh`). Các provider còn khai báo:
+`bynara`, `kiraai`, `kiro`, `pendraa`, `amdradeon`, `tokenharbor`, `kira`, `dsh`,
+`tokenhabor` — đây là relay/key riêng, repo không kèm key. Cách gọn hơn là đưa vào
+magpie để mọi agent dùng chung — xem `docs/providers.md` mục "Thêm relay".
 
 ## Agent tự viết (leader + 6 subagent)
 
@@ -82,7 +76,7 @@ mục "Thêm relay".
 | `tester3.md` | coverage `runtime` + `ui` khi bắt buộc; lái browser chính | `magpie/group/tester-3` |
 
 `scripts/setup-opencode.sh` mặc định chỉ cài file còn thiếu và **tự lùi model về
-`magpie/group/main`** nếu máy chưa có group/model đó. Muốn cập nhật cả file đã có:
+`magpie/group/leader`** nếu máy chưa có group/model đó. Muốn cập nhật cả file đã có:
 `bash scripts/setup-opencode.sh --sync --no-mcp` — backup, giữ dòng `model:` cục bộ,
 ghi atomic từng file, không đụng group/MCP. Sửa model bằng cách sửa dòng `model:`.
 
@@ -179,7 +173,7 @@ thay đổi. Nếu MCP không cập nhật, kiểm `opencode api get /api/mcp` r
 chỉ restart service khi thật sự kẹt. Kiểm tra nhanh:
 
 ```sh
-magpie library                 # 4 server đang bật (+ magpie-browser tắt)
+magpie library                 # 5 server đang bật (+ magpie-browser không gán agent)
 magpie library mcp show chrome-devtools
 magpie search                  # phải có ít nhất một API
 ```
@@ -195,7 +189,7 @@ python3 scripts/check-agents.py # contract/permissions của 7 profile
 python3 scripts/sync-agents.py --check
 ```
 
-Trong OpenCode: `/models` phải thấy `magpie/group/main` và các model `magpie/...`.
+Trong OpenCode: `/models` phải thấy `magpie/group/leader` và các model `magpie/...`.
 
 ## Lỗi thường gặp
 
@@ -203,9 +197,9 @@ Trong OpenCode: `/models` phải thấy `magpie/group/main` và các model `magp
 |---|---|---|
 | Model list rỗng | gateway chưa chạy | `openmagpie`, rồi `magpie healthcheck` |
 | `ECONNREFUSED 127.0.0.1:3425` | magpie tắt | `magpie-headless-start` |
-| Model không có trong `/models` | magpie chưa ghi lại config | `magpie opencode group/main` |
+| Model không có trong `/models` | magpie chưa ghi lại config | `magpie opencode group/leader` |
 | Đổi model mà agent không đổi | agent đọc model lúc khởi động | mở phiên mới / restart OpenCode |
 | Subagent lỗi "model not found" | group riêng chưa có | chạy `bash scripts/setup-groups.sh`, rồi mở phiên mới |
-| Title/tóm tắt chậm hoặc lỗi | small model trỏ model không tồn tại | `magpie opencode small magpie/workbuddy-ai/hy4flash-free` |
+| Title/tóm tắt chậm hoặc lỗi | small model để mặc định, dùng chính group/leader | ghim model nhanh: `magpie opencode small magpie/workbuddy-ai/hy4flash-free` |
 
 Tài liệu OpenCode V2: <https://opencode.ai/v2/docs/>

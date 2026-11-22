@@ -327,22 +327,19 @@ Chín group, mỗi vai một group (định nghĩa chuẩn trong `scripts/setup-
 
 | Group | Dùng cho | Model | Cấu hình |
 |---|---|---|---|
-| `group/leader` | Leader | `xingchi/gpt-6.1-sol:high` → FreePi6 → Opus → DeepSeek SG | `order`, `turn`, levels `low,high,max`, classifier |
-| `group/review` | Review | FreePi DeepSeek V4.1 Flash `high` → DeepSeek SG `high` → Hy4 `high` | `order`, `turn`, levels `none,low,high,max`, classifier jev |
-| `group/reviewplan` | Reviewplan | FreePi5 DeepSeek V4.1 Flash `high` → DeepSeek SG `high` → Hy4 `high` | `order`, `turn`, levels `none,low,high,max`, classifier jev |
-| `group/coder` | Coder | FreePi `high` → DeepSeek SG `high` | `order`, `turn`, levels `low,high,max` |
-| `group/tester` | Tester | FreePi4 → GLM WorkBuddy | `order`, `turn`, levels `low,high,max` |
-| `group/tester-2` | Tester 2 | FreePi2 → Hy4 → GLM AutoClaw | `order`, `turn`, levels `low,high,max` |
-| `group/tester-3` | Tester 3 | FreePi3 → Kiro Haiku → GLM AutoClaw → Gemini 3.8 → Hy4 → DeepSeek SG | `order`, `turn`, levels `low,high,max` |
-| `group/main` | chat thường ngày (OpenCode) | FreePi → Hy4 → Gemini → Gemini Lite → GLM AutoClaw → GLM WorkBuddy | `order`, `session`, levels `low,high,max` |
-| `group/free` | nén của billion-context | Particle-1 free: Kilo → Cline → OpenRouter → Groq → NVIDIA | `rotate`, `auto`, không classifier |
+| `group/leader` | Leader + OpenCode + OpenChamber | FreePi6 `:max` → DeepSeek SG `:max` → `xingchi/gpt-6.1-sol` | `order`, `turn`, levels `low,high,max`, classifier |
+| `group/review` | Review | FreePi4 DeepSeek V4.1 Flash `high` | `order`, `turn`, levels `high,max`, classifier jev |
+| `group/reviewplan` | Reviewplan | FreePi DeepSeek V4.1 Flash `high` | `order`, `turn`, levels `high,max`, classifier jev |
+| `group/coder` | Coder | FreePi3 `high` → DeepSeek SG `high` | `order`, `turn`, levels `low,high,max` |
+| `group/tester` | Tester | FreePi2 → DeepSeek SG | `order`, `turn`, levels `low,high,max` |
+| `group/tester-2` | Tester 2 | FreePi7 → GLM AutoClaw | `order`, `turn`, levels `low,high,max` |
+| `group/tester-3` | Tester 3 | FreePi5 → GLM AutoClaw | `order`, `turn`, levels `low,high,max` |
+| `group/main` | chat thường ngày (ví dụ) | FreePi → Hy4 → GLM AutoClaw → GLM WorkBuddy | `order`, `session`, levels `low,high,max` |
+| `group/compress` | nén của billion-context | NVIDIA → OpenRouter → Kilo → Hy4 | `rotate`, `off`, không classifier |
 
-`group/main` **đang bật** trên máy tham chiếu và là model mặc định của OpenCode; tắt
-tạm bằng `magpie group off main` (gateway trả not found cho tới khi bật lại).
-
-Bảng trên là **cấu hình chuẩn của repo**, không phải ảnh chụp runtime. Máy đang chạy
-có thể đã chỉnh ladder (ví dụ `group/leader` ưu tiên WorkBuddy trước XingChi, hoặc
-các group tester chỉ còn một model). Luôn kiểm `magpie groups`/`magpie group <tên>`
+Bảng trên là **trạng thái máy tham chiếu** (2026-11-22), không phải yêu cầu cài đặt:
+model trong group do người dùng tự chọn. `group/main` hiện **tắt**; OpenCode và
+OpenChamber đều dùng `group/leader`. Luôn kiểm `magpie groups`/`magpie group <tên>`
 trước khi kết luận failover; không reset group về bảng này nếu user chưa yêu cầu.
 
 ### `group/review` và `group/reviewplan`
@@ -352,20 +349,19 @@ magpie group review
 magpie group reviewplan
 ```
 
-- `routing=order`, `stays=turn`; `review` dùng `freepi/deepseek-v4.1-flash:high` →
-  `workbuddy-ai/deepseek-v4.1-flash-sg:high` → `workbuddy-ai/hy4flash-free:high`;
-  `reviewplan` dùng `freepi5/deepseek-v4.1-flash:high` → hai bậc WorkBuddy như trên.
-- Levels `none,low,high,max` (magpie mở levels khi đặt `effort=auto`; freepi không
-  expose mức reasoning nhưng vẫn ghim `:high`), classifier
-  `opencode-zen/jev-1.13-free`, `effort=auto`.
-- Repo đã có ba bậc; thêm bằng
-  `magpie group set review models+=<provider/model>`.
-- `scripts/setup-groups.sh` **chỉ tạo khi thiếu**; `--force` không reset hai group
-  này, nên `finish.sh` không xoá ladder tự thêm.
+- `routing=order`, `stays=turn`; máy tham chiếu: `review` dùng
+  `freepi4/deepseek-v4.1-flash:high`, `reviewplan` dùng
+  `freepi/deepseek-v4.1-flash:high`.
+- Levels `high,max` (magpie mở levels khi đặt `effort=auto`; FreePi không expose mức
+  reasoning nhưng vẫn ghim `:high`), classifier `opencode-zen/jev-1.13-free`,
+  `effort=auto`.
+- Thêm bậc bằng `magpie group set review models+=<provider/model>`.
+- `scripts/setup-groups.sh` **chỉ tạo khi thiếu**; `finish.sh` không dùng `--force`,
+  nên không xoá ladder tự thêm.
 
 Review đọc nhiều file nên tốn quota; FreePi chỉ có 15.000 credit/ngày, nên
-`reviewplan` dùng tài khoản FreePi5 thay vì giành slot với `review`. Khi thêm bậc,
-nên đặt một model khác family ở cuối ladder để failover thật sự.
+`reviewplan` dùng tài khoản FreePi chính còn `review` dùng FreePi4 để không giành slot.
+Khi thêm bậc, nên đặt một model khác family ở cuối ladder để failover thật sự.
 
 ## Vì sao cấu hình như vậy
 
@@ -391,8 +387,8 @@ nên đặt một model khác family ở cuối ladder để failover thật s�
 
 ## Dựng lại
 
-Chạy `bash scripts/setup-groups.sh` (thêm `--force` để tạo lại bảy group cố định;
-`review`/`reviewplan` chỉ tạo khi thiếu). Cập nhật agent profile bằng
+Chạy `bash scripts/setup-groups.sh` (chỉ tạo group còn thiếu; thêm `--force` nếu
+thật sự muốn tạo lại bảy group cố định). Cập nhật agent profile bằng
 `bash scripts/setup-opencode.sh --sync --no-mcp`, rồi kiểm bằng
 `python3 scripts/check-agents.py` và bộ test. Tương đương thủ công:
 
@@ -413,8 +409,8 @@ magpie group set leader levels=low,high,max classifier=opencode-zen/jev-1.13-fre
 ```
 
 Các group còn lại giữ như [`groups.md`](groups.md). Trỏ agent:
-`magpie opencode group/main`, `magpie openchamber group/leader`,
-`magpie opencode small magpie/workbuddy-ai/hy4flash-free`.
+`magpie opencode group/leader`, `magpie openchamber group/leader`,
+`magpie opencode small default` (small model để mặc định).
 
 ## Kiểm tra
 
@@ -425,8 +421,8 @@ magpie group reviewplan
 magpie group leader
 
 grep -H '^model:' ~/.config/opencode/agents/{leader,review,reviewplan,coder,tester,tester2,tester3}.md
-magpie opencode            # magpie/group/main, small magpie/workbuddy-ai/hy4flash-free
-magpie openchamber         # magpie/group/leader
+magpie opencode            # magpie/group/leader, small —
+magpie openchamber         # magpie/group/leader, defaultAgent leader
 
 python3 scripts/check-agents.py
 python3 -m unittest discover -s tests -p 'test_*.py'
@@ -439,12 +435,12 @@ lại agent khi file đổi; phiên đang chạy vẫn giữ model/quyền của
 
 ## Cảnh báo
 
-- `scripts/setup-groups.sh --force` (và `finish.sh`, vì nó gọi `--force`) tạo lại
-  bảy group cố định và xoá `code`/`glm`/`deepseek` còn sót. Nó **không** reset
-  `review`/`reviewplan`; muốn reset hai group này thì `magpie group rm review`,
-  `magpie group rm reviewplan` rồi chạy lại script.
+- `scripts/setup-groups.sh --force` tạo lại sáu group cố định và xoá
+  `code`/`glm`/`deepseek` còn sót. `finish.sh` và `bootstrap.sh` **không** dùng
+  `--force`, nên không reset ladder người dùng đã sửa. Muốn reset một group:
+  `magpie group rm <id>` rồi chạy lại script.
 - `--force` cũng tạo lại `group/main` ở trạng thái bật. Trên máy tham chiếu group này
-  đang bật và là model mặc định của OpenCode; chỉ tắt tay khi cần.
+  đang tắt; OpenCode/OpenChamber dùng `group/leader`.
 - `scripts/setup-opencode.sh` mặc định không ghi đè file agent đã có. Muốn cập nhật
   cả file đã có, dùng `bash scripts/setup-opencode.sh --sync --no-mcp`: script backup
   vào `~/.config/opencode/agents/backups/<timestamp>/`, giữ dòng `model:` cục bộ, ghi
