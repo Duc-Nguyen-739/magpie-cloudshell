@@ -19,7 +19,7 @@ người/agent cài lại máy khác biết đích cần đạt tới. Số li�
 | node | v26.13.0, qua nvm ở `/usr/local/nvm` (Cloud Shell nạp lazy) |
 | npm prefix | `~/.npm-global` (mọi package global nằm trong `$HOME`) |
 | `$HOME` | giữ được qua các lần restart Cloud Shell; `/usr/local` thì không |
-| Dung lượng | ~917 MB trống (đã dùng 81%) — đủ cho cài lại, không đủ cài thêm nhiều package lớn |
+| Dung lượng | ~825 MB trống (đã dùng 83%) — đủ cho cài lại, không đủ cài thêm nhiều package lớn |
 
 ## Cổng và tiến trình
 
@@ -114,7 +114,7 @@ là trạng thái hiện tại, không phải yêu cầu cài đặt** — model
 
 | Group | stays | levels | Model hiện tại |
 |---|---|---|---|
-| `leader` | `turn` | `low,high,max` | `freepi6/deepseek-v4.1-flash:max` → `workbuddy-ai/deepseek-v4.1-flash-sg:max` → `xingchi/gpt-6.1-sol` |
+| `leader` | `turn` | `low,high,max` | `freepi6/deepseek-v4.1-flash:max` → `xingchi/gpt-6.1-sol` |
 | `main` | `session` | `low,high,max` | `freepi/deepseek-v4.1-flash` → `agy-cli/gemini-3.8-flash` (thiếu provider) → `autoclaw/zai_glm-5.3-flash` → `workbuddy-ai/glm-5.3-flash`; **đang tắt** |
 | `review` | `turn` | `high,max` | `freepi4/deepseek-v4.1-flash:high` |
 | `reviewplan` | `turn` | `high,max` | `freepi/deepseek-v4.1-flash:high` |
@@ -151,8 +151,7 @@ gom cùng model từ nhiều provider; `auto-beam-free` đã bị ẩn.
 - `compaction.auto: false` (billion-context tự nén).
 - `disabled_providers`: `pendraa`, `kenari`, `kira`, `tokenharbor`, `tokenhabor`,
   `openrouter`, `kiro`, `amdradeon`, `dsh`. Các provider gọi thẳng còn khai báo:
-  `bynara`, `kiraai`, `kiro`, `pendraa`, `amdradeon`, `tokenharbor`, `kira`, `dsh`,
-  `tokenhabor` (relay/key riêng, repo không kèm).
+  `bynara`, `kiraai`, `kiro`, `pendraa`, `amdradeon` (relay/key riêng, repo không kèm).
 - MCP: `cloudflare-docs`, `magpie-web-search`, `magpie-vision`, `magpie-sessions`,
   `chrome-devtools` (5 bật).
 - Agent tự viết: `leader.md` (primary, `group/leader#max`), `review.md`,
@@ -288,7 +287,7 @@ Tester 3    ─→ group/tester-3        ─┤
 billion-context ─→ group/compress    ─┘
 
 Provider theo group (hiện tại):
-  leader      freepi6, workbuddy-ai, xingchi
+  leader      freepi6, xingchi
   review      freepi4
   reviewplan  freepi
   coder       freepi3, workbuddy-ai

@@ -31,18 +31,18 @@ class BillionContextConfigTests(unittest.TestCase):
 
     def test_leader_keeps_long_memory(self) -> None:
         leader = self.models["group/leader"]["compress"]
-        self.assertEqual(leader["preserveRecentTokens"], 200000)
-        self.assertEqual(leader["preserveRecentMessages"], 28)
+        self.assertEqual(leader["preserveRecentTokens"], 160000)
+        self.assertEqual(leader["preserveRecentMessages"], 24)
         self.assertEqual(leader["maxSummaryLength"], 60000)
-        self.assertEqual(leader["maxContextLimit"], "55%")
+        self.assertEqual(leader["maxContextLimit"], "48%")
 
     def test_review_protects_recent_reads(self) -> None:
         for name in ("group/review", "group/reviewplan"):
             compress = self.models[name]["compress"]
             self.assertEqual(compress["neverPreserveRecentTools"], [])
             self.assertEqual(compress["preserveRecentTools"], ["bash"])
-            self.assertEqual(compress["maxContextLimit"], "25%")
-            self.assertEqual(compress["preserveRecentTokens"], 40000)
+            self.assertEqual(compress["maxContextLimit"], "20%")
+            self.assertEqual(compress["preserveRecentTokens"], 32000)
 
     def test_compress_provider_output_is_large_enough(self) -> None:
         provider = self.data["providers"]["magpie"]["models"]
