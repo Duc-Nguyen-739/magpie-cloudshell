@@ -77,6 +77,33 @@ Nếu `openchamber` hành xử như CLI npm (không in link), kiểm tra `comman
 `pkill -f "magpie serve"` khớp cả shell đang gõ câu đó và tự giết mình. Script trong repo
 dùng pid (`headless.pid`) hoặc pattern neo ở argv[0]: `pgrep -f '^magpie serve'`.
 
+## Giữ Cloud Shell sống khi chạy việc dài
+
+Cloud Shell tự kết thúc sau **40 phút không có hoạt động phiên**; đây là giới hạn
+phía Google, không có API nào tắt hẳn. Script `cloudshell-keepalive` tạo hoạt động
+trên **terminal tmux đang mở** (status line + refresh client), không sửa file và
+không gọi mạng:
+
+```sh
+cloudshell-keepalive --status          # terminal nào, có client attach không
+cloudshell-keepalive                   # vòng lặp 60 giây, chạy nền
+cloudshell-keepalive --duration 240    # tự dừng sau 240 phút
+cloudshell-keepalive --stop            # dừng bản đang chạy
+```
+
+Điều kiện: **phải có tab Cloud Shell (terminal) đang mở**. Nếu chỉ mở OpenChamber
+qua preview, tmux không có client attach và script chỉ ghi log cảnh báo — không
+có cách nào từ trong VM tạo hoạt động thay cho trình duyệt. Khi đó dùng một trong
+hai cách:
+
+1. Giữ tab Cloud Shell mở và chạy snippet trong DevTools Console:
+   `cloudshell-keepalive --print-browser`.
+2. Từ máy local, mở phiên SSH ổn định bằng
+   `gcloud cloud-shell ssh --authorize-session` và giữ terminal đó.
+
+Leader được phép chạy đúng một ngoại lệ `cloudshell-keepalive*` trong allowlist
+shell read-only; mọi lệnh khác vẫn theo allowlist cũ.
+
 ## Log và trạng thái
 
 ```sh

@@ -50,7 +50,7 @@ bash "$REPO_DIR/scripts/plugins.sh" || warn "một số plugin chưa cài đư�
 # ------------------------------------------------------- 3. lệnh tiện dụng
 step "3/9 · lệnh tiện dụng trong ~/.local/bin"
 mkdir -p "$HOME/.local/bin"
-for f in openchamber openmagpie magpie-headless magpie-headless-start magpie-headless-stop magpie-headless-status; do
+for f in openchamber openmagpie magpie-headless magpie-headless-start magpie-headless-stop magpie-headless-status cloudshell-keepalive; do
   install -m 755 "$REPO_DIR/scripts/$f" "$HOME/.local/bin/$f"
   ok "~/.local/bin/$f"
 done

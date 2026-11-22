@@ -101,6 +101,10 @@ class PolicyTests(unittest.TestCase):
         self.assertEqual(validator.decide(rules, "execute", "*"), "deny")
         self.assertEqual(validator.decide(rules, "subagent", "review"), "allow")
         self.assertEqual(validator.decide(rules, "subagent", "build"), "deny")
+        # Ngoại lệ vận hành duy nhất: script keepalive, không mở đường cho loop tự do.
+        self.assertEqual(validator.decide(rules, "shell", "cloudshell-keepalive --status"), "allow")
+        self.assertEqual(validator.decide(rules, "shell", "sleep 1"), "deny")
+        self.assertEqual(validator.decide(rules, "shell", "while :; do echo x; sleep 1; done"), "deny")
 
 
 class SyncTests(unittest.TestCase):

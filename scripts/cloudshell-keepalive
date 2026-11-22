@@ -1,0 +1,171 @@
+#!/usr/bin/env bash
+# cloudshell-keepalive — tạo hoạt động terminal để Cloud Shell không bị coi là idle.
+# Không sửa file, không gọi mạng; chỉ vẽ status line của tmux client đang attach.
+#
+#   cloudshell-keepalive                  # vòng lặp mỗi 60 giây (chạy nền)
+#   cloudshell-keepalive --once           # một nhịp rồi thoát
+#   cloudshell-keepalive --status         # xem terminal/client đang attach
+#   cloudshell-keepalive --stop           # dừng bản đang chạy
+#   cloudshell-keepalive --print-browser  # in snippet cho Console trình duyệt
+#
+# Cloud Shell tự kết thúc sau 40 phút không có hoạt động phiên. Script này chỉ có
+# tác dụng khi terminal Cloud Shell đang mở (tmux có client attach); nếu chỉ mở
+# OpenChamber qua preview thì giữ tab Cloud Shell hoặc dùng --print-browser.
+set -u
+
+STATE="${XDG_STATE_HOME:-$HOME/.local/state}/cloudshell-keepalive"
+LOG="$STATE/keepalive.log"
+PID_FILE="$STATE/keepalive.pid"
+INTERVAL="${CLOUDSHELL_KEEPALIVE_INTERVAL:-60}"
+DURATION_MIN=0
+ONCE=0
+STATUS=0
+STOP=0
+PRINT_BROWSER=0
+
+mkdir -p "$STATE"
+
+say() { printf '%s\n' "$*"; }
+log() { printf '[%s] %s\n' "$(date -Is)" "$*" >> "$LOG"; }
+
+usage() { sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'; }
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --interval) INTERVAL="${2:-}"; shift 2 ;;
+    --duration) DURATION_MIN="${2:-}"; shift 2 ;;
+    --once) ONCE=1; shift ;;
+    --status) STATUS=1; shift ;;
+    --stop) STOP=1; shift ;;
+    --print-browser) PRINT_BROWSER=1; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) say "tham số lạ: $1" >&2; usage >&2; exit 2 ;;
+  esac
+done
+
+case "$INTERVAL" in
+  ''|*[!0-9]*|0) say "--interval phải là số nguyên dương" >&2; exit 2 ;;
+esac
+case "$DURATION_MIN" in
+  ''|*[!0-9]*) say "--duration phải là số nguyên >= 0" >&2; exit 2 ;;
+esac
+
+# Session tmux của Cloud Shell có tên ngẫu nhiên; window luôn tên "cloudshell".
+pane_target() {
+  command -v tmux >/dev/null 2>&1 || return 1
+  tmux list-panes -a -F '#{session_name}:#{window_index}.#{pane_index} #{window_name}' 2>/dev/null \
+    | awk '$2 == "cloudshell" { print $1; exit }'
+}
+
+client_count() {
+  command -v tmux >/dev/null 2>&1 || { printf '0'; return; }
+  tmux list-clients -F '#{client_name}' 2>/dev/null | wc -l | tr -d ' '
+}
+
+print_browser() {
+  cat <<'JS'
+// Dán vào DevTools Console của tab Cloud Shell và giữ tab mở.
+// Mỗi 60 giây phát một tương tác nhẹ để Cloud Shell không tính là idle.
+setInterval(() => {
+  const el = document.elementFromPoint(8, 8);
+  if (el) el.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: 8, clientY: 8 }));
+  document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', bubbles: true }));
+}, 60000);
+JS
+}
+
+beat() {
+  local target="$1" ts="$2"
+  if [ -n "$target" ] && [ "$(client_count)" -gt 0 ]; then
+    # display-message vẽ lên status line của client đang attach, tạo traffic terminal.
+    tmux display-message -t "$target" "[keepalive] $ts" 2>/dev/null || true
+    tmux refresh-client -S 2>/dev/null || true
+    return 0
+  fi
+  return 1
+}
+
+if [ "$PRINT_BROWSER" = 1 ]; then
+  print_browser
+  exit 0
+fi
+
+TARGET="$(pane_target || true)"
+
+if [ "$STOP" = 1 ]; then
+  if [ -s "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+    pid="$(cat "$PID_FILE")"
+    kill "$pid" 2>/dev/null || true
+    for _ in 1 2 3 4 5 6 7 8 9 10; do
+      kill -0 "$pid" 2>/dev/null || break
+      sleep 0.2
+    done
+    rm -f "$PID_FILE"
+    say "đã dừng keepalive (pid $pid)"
+  else
+    rm -f "$PID_FILE"
+    say "không có keepalive đang chạy"
+  fi
+  exit 0
+fi
+
+if [ "$STATUS" = 1 ]; then
+  if [ -s "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+    printf 'keepalive: đang chạy (pid %s)\n' "$(cat "$PID_FILE")"
+  else
+    printf 'keepalive: không chạy\n'
+  fi
+  printf 'terminal: %s\n' "${TARGET:-không thấy}"
+  printf 'client đang attach: %s\n' "$(client_count)"
+  printf 'log: %s\n' "$LOG"
+  exit 0
+fi
+
+if [ -z "$TARGET" ]; then
+  say "không thấy tmux window 'cloudshell' — mở terminal Cloud Shell rồi chạy lại" >&2
+  log "không thấy pane cloudshell"
+  exit 2
+fi
+
+if [ "$ONCE" = 1 ]; then
+  TS="$(date -Is)"
+  if beat "$TARGET" "$TS"; then
+    log "once ok target=$TARGET"
+    say "đã gửi keepalive tới $TARGET"
+    exit 0
+  fi
+  log "once: không có client attach"
+  say "không có client terminal nào attach — mở tab Cloud Shell (terminal) rồi thử lại" >&2
+  exit 2
+fi
+
+# Một tiến trình duy nhất, giống supervisor của magpie-headless.
+exec 9>"$STATE/keepalive.lock"
+if ! flock -n 9; then
+  say "đã có keepalive khác đang chạy" >&2
+  exit 0
+fi
+
+echo $$ > "$PID_FILE"
+trap 'rm -f "$PID_FILE"' EXIT
+trap 'exit 0' HUP INT TERM
+log "start target=$TARGET interval=${INTERVAL}s duration=${DURATION_MIN}m pid=$$"
+
+START=$(date +%s)
+LAST_WARN=0
+while :; do
+  NOW=$(date +%s)
+  if [ "$DURATION_MIN" -gt 0 ] && [ $((NOW - START)) -ge $((DURATION_MIN * 60)) ]; then
+    log "hết duration ${DURATION_MIN}m — thoát"
+    break
+  fi
+  TS="$(date -Is)"
+  if beat "$TARGET" "$TS"; then
+    log "beat target=$TARGET"
+  elif [ $((NOW - LAST_WARN)) -ge 300 ]; then
+    # Không spam log khi terminal đóng: cảnh báo mỗi 5 phút.
+    log "không có client attach — mở terminal Cloud Shell để keepalive có tác dụng"
+    LAST_WARN=$NOW
+  fi
+  sleep "$INTERVAL"
+done

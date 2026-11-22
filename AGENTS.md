@@ -153,7 +153,8 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   báo và làm tiếp. Id ngoài danh sách thì không nạp, ghi lý do.
 - Permission agent (OpenCode V2, rule cuối thắng): Leader deny read/glob/grep/edit/
   webfetch/websearch/skill/execute; shell allowlist chỉ đọc (git read, sha1sum, grep,
-  cat, gh run view…); Review có shell allowlist chỉ đọc; Reviewplan/
+  cat, gh run view…) và một ngoại lệ vận hành `cloudshell-keepalive*` (giữ Cloud Shell,
+  không đọc/ghi file; xem `docs/cloudshell.md`); Review có shell allowlist chỉ đọc; Reviewplan/
   Coder/tester có deny-list lệnh phá huỷ; tester chỉ ghi file test ownership `testerN`;
   `tester`/`tester2` deny `chrome-devtools_*` (giữ dấu gạch ngang; underscore
   **không** khớp), `tester3` giữ browser. Đây là best-effort, **không phải sandbox** —
