@@ -38,6 +38,7 @@
     }
   },
   "task_modes": ["CONSULT", "PLAN", "CHANGE", "RELEASE"],
+  "run_modes": ["FAST", "SAFE", "MULTI"],
   "outcomes": ["PASS", "FAIL", "BLOCKED", "N/A"],
   "counters": {
     "brief_attempt": 2,

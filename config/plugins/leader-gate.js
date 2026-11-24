@@ -1,3 +1,4 @@
+import crypto from "node:crypto"
 import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
@@ -10,10 +11,14 @@ const DEFAULT_CONFIG = {
   judgeModel: "magpie/group/reviewplan",
   maxSteers: 2,
   enforceOneSession: true,
+  enforceOneSessionAll: true,
   enforceGate: true,
+  prepEnabled: true,
+  artifactHash: true,
   logFile: path.join(HOME, ".local/share/opencode/leader-gate.log"),
 }
 const GATED_AGENTS = new Set(["review", "reviewplan"])
+const ALL_AGENTS = new Set(["review", "reviewplan", "coder", "tester", "tester2", "tester3"])
 
 function readConfig() {
   try {
@@ -53,6 +58,9 @@ export function parseGate(prompt) {
     r: kv.r.split(",").map((s) => s.trim()).filter(Boolean),
     expected: kv.expected,
     stop_if: kv.stop_if || "",
+    artifact: kv.artifact || "",
+    artifact_revision: kv.artifact_revision || "",
+    artifact_hash: kv.artifact_hash || "",
     raw: m[0].trim(),
   }
 }
@@ -62,6 +70,10 @@ const VERDICT_ALIASES = {
   "ĐÃ SỬA": "PASS",
   "KHÔNG ĐẠT": "BLOCKED",
   "CẦN ĐIỀU TRA": "BLOCKED",
+  "GO": "PASS",
+  "STEER": "BLOCKED",
+  "SẴN SÀNG": "PREP_READY",
+  "CHƯA SẴN SÀNG": "PREP_BLOCKED",
 }
 
 function normalizeVerdict(raw) {
@@ -80,6 +92,7 @@ export function parseReport(text) {
     r_covered: (kv.r_covered || kv.r || "").split(",").map((s) => s.trim()).filter(Boolean),
     verdict: normalizeVerdict(kv.verdict),
     evidence: kv.evidence || "",
+    artifact_hash: kv.artifact_hash || "",
     raw: m[0].trim(),
   }
 }
@@ -115,19 +128,32 @@ function findSessionID(value, depth = 0) {
 }
 
 export function renderContract(gate) {
+  const isPrep = gate.phase === "PREP"
+  const hashRequired = gate.agent === "reviewplan" && ["PLAN", "GATE", "AUDIT"].includes(gate.phase)
+  const hashValue = hashRequired
+    ? gate.artifact_hash || "<sha256>"
+    : "<sha256 thật của artifact; điền sau khi freeze>"
+  const verdictLine = isPrep ? "verdict: PREP_READY|PREP_BLOCKED" : "verdict: PASS|BLOCKED"
+  const verdictRule = isPrep
+    ? "PREP chỉ dùng PREP_READY hoặc PREP_BLOCKED; không chấm PASS/BLOCKED khi chưa có artifact đóng băng."
+    : "Chỉ dùng PASS hoặc BLOCKED; STEER là hành động của Leader, không phải verdict của report."
   return [
     "---",
     "## GATE CONTRACT (plugin-injected)",
     "Bạn đang bị Leader gác. Không đổi scope, R, expected.",
+    `artifact: ${gate.artifact || "<path>"}`,
+    `artifact_revision: ${gate.artifact_revision || "<rN>"}`,
+    `artifact_hash: ${hashValue}`,
     "Cuối báo cáo, bắt buộc thêm:",
     "GATE_REPORT:",
     `decision_id: ${gate.decision_id}`,
     `scope: ${gate.scope}`,
     `R_covered: <R đã kiểm, vd ${gate.r.join(",")}>`,
-    "verdict: PASS|BLOCKED",
-    "Chỉ dùng PASS hoặc BLOCKED; STEER là hành động của Leader, không phải verdict của report.",
+    verdictLine,
+    verdictRule,
     "evidence: <file:line / lệnh / output>",
-    "Nếu không thể theo đúng gate, ghi verdict: BLOCKED kèm lý do.",
+    `artifact_hash: ${hashValue}`,
+    `Nếu không thể theo đúng gate, ghi verdict: ${isPrep ? "PREP_BLOCKED" : "BLOCKED"} kèm lý do.`,
     "---",
   ].join("\n")
 }
@@ -139,6 +165,7 @@ export function renderSteer(gate, verdict) {
     `scope: ${gate.scope}`,
     `R: ${gate.r.join(",")}`,
     `expected: ${gate.expected}`,
+    `artifact_hash: ${gate.artifact_hash || "<sha256>"}`,
     "",
     "Báo cáo trước đó lệch gate:",
     ...verdict.reasons.map((r) => `- ${r}`),
@@ -181,6 +208,27 @@ async function findActiveChild(ctx, parentID, agent) {
   }
 }
 
+function normHash(value) {
+  return String(value || "").replace(/^sha256:/i, "").trim()
+}
+
+function artifactHash(ctx, gate) {
+  if (!gate.artifact || !ctx?.location?.directory) return null
+  const abs = path.isAbsolute(gate.artifact) ? gate.artifact : path.resolve(ctx.location.directory, gate.artifact)
+  let bytes
+  try {
+    bytes = fs.readFileSync(abs)
+  } catch {
+    return { ok: false, reason: `Không đọc được artifact: ${gate.artifact}` }
+  }
+  const normalized = bytes.toString("utf8").replace(/^artifact_hash: .*$/m, "artifact_hash: SELF")
+  return {
+    ok: true,
+    abs,
+    hash: crypto.createHash("sha256").update(normalized, "utf8").digest("hex"),
+  }
+}
+
 async function judge(ctx, cfg, gate, reportText) {
   if (!cfg.semantic || !cfg.judgeModel) return { ok: true, skipped: true }
   const model = modelRef(cfg.judgeModel)
@@ -189,6 +237,7 @@ async function judge(ctx, cfg, gate, reportText) {
     "Bạn là cổng gác của Leader. So báo cáo của subagent với quyết định gate.",
     'Chỉ trả JSON: {"verdict":"GO"|"STEER"|"BLOCK","reasons":["..."],"corrections":["..."]}.',
     "STEER nếu báo cáo: đổi scope, bỏ R, tự thêm yêu cầu, dùng gate không có trong quyết định, hoặc thiếu bằng chứng.",
+    "Không STEER chỉ vì báo cáo nhắc tên artifact của phase sau (ví dụ plan.md trong BRIEF) nếu báo cáo ghi rõ nó ngoài phạm vi phase hiện tại.",
     "Report chỉ có verdict PASS hoặc BLOCKED (PASS hợp lệ khi bằng chứng đủ). Không đòi verdict tiếng Việt (ĐẠT/ĐÃ SỬA/...); chỉ chấm nội dung, không chấm verdict string.",
     "",
     "GATE:",
@@ -246,6 +295,55 @@ export async function evaluate(ctx, cfg, gate, text) {
       corrections: [`Bổ sung R: ${missing.join(",")}`],
     }
   }
+  if (gate.phase === "PREP") {
+    if (report.verdict === "PREP_BLOCKED") return { ok: true, blocked: true, prep: true }
+    if (report.verdict !== "PREP_READY") {
+      return {
+        ok: false,
+        reasons: [`PREP verdict=${report.verdict || "?"}`],
+        corrections: ["Chỉ dùng PREP_READY hoặc PREP_BLOCKED cho phase PREP."],
+      }
+    }
+    return { ok: true, prep: true }
+  }
+  if (cfg.artifactHash && gate.agent === "reviewplan" && ["PLAN", "GATE", "AUDIT"].includes(gate.phase)) {
+    if (!gate.artifact) {
+      return {
+        ok: false,
+        reasons: ["Thiếu artifact path trong GATE."],
+        corrections: ["Ghi artifact: <path plan.md> trong GATE."],
+      }
+    }
+    if (!gate.artifact_hash) {
+      return {
+        ok: false,
+        reasons: ["Thiếu artifact_hash trong GATE."],
+        corrections: ["Freeze plan và ghi artifact_hash trước khi gate."],
+      }
+    }
+    const verified = artifactHash(ctx, gate)
+    if (verified && !verified.ok) {
+      return {
+        ok: false,
+        reasons: [verified.reason],
+        corrections: ["Kiểm lại artifact path; không gate khi không đọc được file."],
+      }
+    }
+    if (verified && normHash(verified.hash) !== normHash(gate.artifact_hash)) {
+      return {
+        ok: false,
+        reasons: [`artifact_hash không khớp file: ${normHash(verified.hash)} != ${normHash(gate.artifact_hash)}`],
+        corrections: ["Tính lại hash theo quy ước SELF từ plan.md và cập nhật GATE."],
+      }
+    }
+    if (normHash(report.artifact_hash) !== normHash(gate.artifact_hash)) {
+      return {
+        ok: false,
+        reasons: [`artifact_hash lệch: ${report.artifact_hash || "?"} != ${gate.artifact_hash}`],
+        corrections: ["Copy đúng artifact_hash từ GATE vào GATE_REPORT; gate lại trên artifact đã freeze."],
+      }
+    }
+  }
   if (report.verdict === "BLOCKED") return { ok: true, blocked: true }
   if (report.verdict !== "PASS") {
     return {
@@ -271,6 +369,16 @@ export default {
       if (event.agent !== "leader") return
       const input = event.input
       const target = input?.agent
+      if (!ALL_AGENTS.has(target)) return
+      const enforceAll = cfg.enforceOneSessionAll || (cfg.enforceOneSession && GATED_AGENTS.has(target))
+      if (enforceAll) {
+        const active = await findActiveChild(ctx, event.sessionID, target)
+        if (active) {
+          throw new Error(
+            `LEADER_GATE: ${target} đang có session ${active.id}; chờ session đó dừng trước khi mở session mới.`,
+          )
+        }
+      }
       if (!GATED_AGENTS.has(target)) return
       const prompt = String(input?.prompt ?? "")
       const gate = parseGate(prompt)
@@ -282,11 +390,11 @@ export default {
       if (gate.agent !== target) {
         throw new Error(`LEADER_GATE: GATE.agent=${gate.agent} nhưng giao ${target}.`)
       }
-      if (cfg.enforceOneSession) {
-        const active = await findActiveChild(ctx, event.sessionID, target)
-        if (active && input?.sessionID !== active.id) {
+      if (gate.agent === "reviewplan" && ["PLAN", "GATE", "AUDIT"].includes(gate.phase)) {
+        const h = normHash(gate.artifact_hash)
+        if (!/^[0-9a-f]{64}$/i.test(h)) {
           throw new Error(
-            `LEADER_GATE: ${target} đang có session ${active.id}; chờ session đó dừng trước khi mở session mới.`,
+            "LEADER_GATE: artifact_hash phải là 64 hex; không gửi hash cắt. Tính lại bằng scripts/plan-hash.py hoặc heredoc.",
           )
         }
       }
@@ -322,6 +430,8 @@ export default {
     const onIdle = async (event) => {
       const gate = childGates.get(event.sessionID)
       if (!gate) return
+      const active = await findActiveChild(ctx, gate.parentID, gate.agent)
+      if (active && active.id === event.sessionID) return
       let messages
       try {
         messages = await ctx.session.context({ sessionID: event.sessionID })
@@ -336,6 +446,22 @@ export default {
       const verdict = await evaluate(ctx, cfg, gate, text)
       if (verdict.ok) {
         childGates.delete(event.sessionID)
+        if (verdict.prep) {
+          log(cfg, "gate.prep", {
+            parent: gate.parentID,
+            child: event.sessionID,
+            agent: gate.agent,
+            decision_id: gate.decision_id,
+            blocked: Boolean(verdict.blocked),
+          })
+          if (verdict.blocked) {
+            await ctx.session.synthetic({
+              sessionID: gate.parentID,
+              text: `GATE_PREP_BLOCKED (child) — ${gate.agent}/${gate.decision_id}; đọc prep.md và quyết định.`,
+            })
+          }
+          return
+        }
         if (verdict.blocked) {
           await ctx.session.synthetic({
             sessionID: gate.parentID,
@@ -345,11 +471,9 @@ export default {
         log(cfg, "gate.pass", { parent: gate.parentID, child: event.sessionID, agent: gate.agent, decision_id: gate.decision_id })
         return
       }
-      const n = (steers.get(event.sessionID) ?? 0) + 1
-      steers.set(event.sessionID, n)
-      const summary =
-        `GATE_STEER ${gate.agent}/${gate.decision_id} — lần ${n}/${cfg.maxSteers}\n` +
-        verdict.reasons.map((r) => `- ${r}`).join("\n")
+      const steerKey = gate.decision_id
+      const n = (steers.get(steerKey) ?? 0) + 1
+      steers.set(steerKey, n)
       if (n > cfg.maxSteers) {
         childGates.delete(event.sessionID)
         const blocked =
@@ -365,16 +489,15 @@ export default {
         })
         return
       }
-      try {
-        await ctx.session.prompt({
-          sessionID: event.sessionID,
-          text: renderSteer(gate, verdict),
-          delivery: "steer",
-          resume: true,
-        })
-      } catch (e) {
-        log(cfg, "gate.steer_error", { child: event.sessionID, error: e?.message })
-      }
+      childGates.delete(event.sessionID)
+      const summary = [
+        `GATE_STEER ${gate.agent}/${gate.decision_id} — lần ${n}/${cfg.maxSteers}`,
+        "Lý do:",
+        ...verdict.reasons.map((r) => `- ${r}`),
+        "Sửa:",
+        ...(verdict.corrections || []).map((c) => `- ${c}`),
+        "Mở session mới cùng agent với GATE cũ + nội dung này; không nối session cũ.",
+      ].join("\n")
       await ctx.session.synthetic({ sessionID: gate.parentID, text: summary })
       log(cfg, "gate.steer", {
         parent: gate.parentID,

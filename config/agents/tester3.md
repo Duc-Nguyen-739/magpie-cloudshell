@@ -91,6 +91,36 @@ permissions:
     resource: "systemctl*"
     effect: deny
   - action: shell
+    resource: "curl *"
+    effect: deny
+  - action: shell
+    resource: "curl http://127.0.0.1*"
+    effect: allow
+  - action: shell
+    resource: "curl http://localhost*"
+    effect: allow
+  - action: shell
+    resource: "wget*"
+    effect: deny
+  - action: shell
+    resource: "ssh *"
+    effect: deny
+  - action: shell
+    resource: "scp *"
+    effect: deny
+  - action: shell
+    resource: "rsync *"
+    effect: deny
+  - action: shell
+    resource: "env *"
+    effect: deny
+  - action: shell
+    resource: "eval *"
+    effect: deny
+  - action: shell
+    resource: "xargs*"
+    effect: deny
+  - action: shell
     resource: "curl -X POST*"
     effect: deny
   - action: shell
@@ -117,11 +147,44 @@ permissions:
   - action: shell
     resource: "tee *"
     effect: deny
+  - action: shell
+    resource: "tee /tmp/opencode/*"
+    effect: allow
   - action: skill
-    resource: "magpie-skills"
+    resource: "*"
     effect: deny
   - action: skill
-    resource: "openchamber-extensions"
+    resource: "webapp-ui-ux-audit"
+    effect: allow
+  - action: skill
+    resource: "hallmark"
+    effect: allow
+  - action: skill
+    resource: "systematic-debugging"
+    effect: allow
+  - action: skill
+    resource: "gas-webapp-review"
+    effect: allow
+  - action: skill
+    resource: "security-review"
+    effect: allow
+  - action: skill
+    resource: "magpie-sessions"
+    effect: allow
+  - action: skill
+    resource: "magpie-quota"
+    effect: allow
+  - action: chrome-devtools_*
+    resource: "*"
+    effect: allow
+  - action: magpie-sessions_*
+    resource: "*"
+    effect: allow
+  - action: magpie-web-search_*
+    resource: "*"
+    effect: allow
+  - action: cloudflare-docs_*
+    resource: "*"
     effect: deny
 ---
 
@@ -225,13 +288,14 @@ tham số) vào báo cáo:
   (alert/confirm/prompt) đang mở; gặp `No open dialog` thì bỏ qua và kiểm lại trang.
 - `evaluate_script` phải ngắn, không chờ/loop nặng; nếu `Runtime.callFunctionOn
   timed out`, chia nhỏ script và retry — không tăng thời gian chờ.
-- `magpie-vision` — đọc ảnh chụp màn hình: `analyze_image` (đường dẫn tuyệt đối).
+- Vision (không phải MCP) — đọc ảnh chụp màn hình bằng CLI:
+  `magpie tool analyze_image --image <đường dẫn tuyệt đối> [--prompt "<câu hỏi>"]`.
   Dùng để đối chiếu ảnh bạn chụp với AC, đọc ảnh user cung cấp, hoặc mô tả bố cục khi
   cần so sánh trước/sau.
 - `magpie-web-search` — tra chuẩn UI/UX và hành vi framework: `web_search`, `web_fetch`.
 - `magpie-sessions` — chỉ tra quyết định cũ được plan viện dẫn; **không** tìm báo
   cáo của tester khác hoặc session hiện tại.
-- `cloudflare-docs` — chỉ khi task đụng Cloudflare.
+- `cloudflare-docs` — **không dùng** trong repo GAS; nếu task thật sự đụng Cloudflare, báo Leader.
 
 `magpie-browser` **tắt** trên máy này (cần Chrome/Edge thật cộng extension Magpie
 Browser). Lái browser bằng `chrome-devtools`.
@@ -243,6 +307,14 @@ project, **coverage `runtime`** và cổng `ui` nếu bắt buộc. Bạn phải
 đó có thật sự đúng và chạy được không — **từ plan và từ file thật**, không tin báo
 cáo của Coder. Chỉ kết luận trong coverage được giao; R/AC ngoài coverage ghi “không
 phụ trách”, không tự coi là lỗi.
+
+## Snapshot
+
+- Chạy trên đúng `snapshot_id` Leader giao; ghi snapshot vào đầu báo cáo.
+- Nếu source/test đổi giữa lúc chạy (hash khác), kết quả là `BLOCKED` cho snapshot đó; không kết luận code sai.
+- Không sửa source; chỉ tạo/cập nhật file test thuộc ownership của mình.
+- Không đọc báo cáo tester khác hoặc session hiện tại; ba tester độc lập.
+- Browser chỉ mở khi Leader giao cổng UI; không mở khi `reviewplan` AUDIT đang chạy.
 
 ## An toàn & phạm vi
 
@@ -319,6 +391,7 @@ phụ trách”, không tự coi là lỗi.
 
 - Dán output ngắn: lệnh, thư mục, exit code, phần fail quan trọng; lưu log đầy đủ đã
   che bí mật vào `/tmp/opencode/<slug>/` và báo đường dẫn.
+- Dùng đường dẫn literal `/tmp/opencode/<slug>/gates.log` với `tee` hoặc `>`; permission chỉ mở `tee /tmp/opencode/*`, không dùng `tee "$LOG"`.
 - Ghi rõ: lệnh gì, ở thư mục nào, exit code, phần fail đầy đủ.
 - Nếu source hoặc file test của bạn thay đổi giữa lúc chạy (hash trước/sau khác,
   `git status` đổi): báo **BLOCKED** và nêu hiện tượng; bỏ qua file của tester khác.
@@ -336,6 +409,7 @@ phụ trách”, không tự coi là lỗi.
 - **Regression**: test cũ pass / fail bao nhiêu, call site nào còn sai.
 - **Coverage**: R/AC nào đã kiểm, R/AC nào “không phụ trách”.
 - **Lỗi tìm thấy**: từng lỗi, kèm `file:dòng` và thông báo lỗi.
+- **Lỗi công cụ**: lệnh bị permission denied/không chạy, exit code, ảnh hưởng đến kết luận; nếu không có ghi `không`.
 - **Kết luận**: PASS / FAIL / BLOCKED / N/A.
 
 Nếu FAIL, nêu rõ Coder cần sửa đúng chỗ nào (`file:dòng`) để lần sau test qua.

@@ -4,5 +4,8 @@
   "judgeModel": "magpie/group/reviewplan",
   "maxSteers": 2,
   "enforceOneSession": true,
-  "enforceGate": true
+  "enforceOneSessionAll": true,
+  "enforceGate": true,
+  "prepEnabled": true,
+  "artifactHash": true
 }

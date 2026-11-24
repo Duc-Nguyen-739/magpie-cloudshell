@@ -1,4 +1,4 @@
-# Leader + pipeline review/reviewplan (cập nhật 2026-11-20)
+# Leader + pipeline review/reviewplan (cập nhật 2026-11-24)
 
 Tài liệu này ghi lại **cấu hình chuẩn trong repo** cho pipeline 7 agent. Đây là
 pipeline của `CHANGE`; `CONSULT`/`PLAN`/`RELEASE` dừng ở điểm tương ứng, không chạy
@@ -456,6 +456,34 @@ lại agent khi file đổi; phiên đang chạy vẫn giữ model/quyền của
   cho việc khó vì sinh gấp ~2.7 lần token output. `leader.md` giữ
   `group/leader#max` cho OpenCode CLI.
 - Không commit `~/.config/magpie/plugin-auth.json`, `web-key`, hay bất kỳ key nào.
+
+## Cập nhật 2026-11-24 — gate artifact, mode vận hành, MCP
+
+Bản profile đang chạy trên máy tham chiếu từ 2026-11-24 bổ sung, so với pipeline mô tả
+ở trên:
+
+- **Mỗi lượt gọi subagent là session mới**, kể cả `review`/`reviewplan`; không truyền
+  `sessionID`. Dùng tool `openchamber` (chỉ đọc) để kiểm trạng thái và báo cáo con:
+  `session.list { children, withStatus }`, `session.status`, `session.messages`.
+- **Block `GATE:`** trong mọi prompt giao việc (`decision_id`, `phase`, `agent`,
+  `scope`, `R`, `expected`, `stop_if`, `artifact`, `artifact_revision`,
+  `artifact_hash`) và `GATE_REPORT` ở báo cáo con. Plugin
+  `config/plugins/leader-gate.js` đăng ký gate, giới hạn STEER theo `maxSteers`, và
+  yêu cầu hash ở pha `PLAN`/`GATE`/`AUDIT`.
+- **Artifact hash**: plan được freeze với dòng `artifact_hash: SELF`; tính bằng
+  `python3 scripts/plan-hash.py <plan>` (helper trong repo, cài ở
+  `~/.config/opencode/scripts/plan-hash.py`). Hash lệch → `BLOCKED`, không chấm tiếp.
+- **Mode vận hành** `FAST` (mặc định), `SAFE` (auth/dữ liệu/hai kho), `MULTI` (≥2 task
+  độc lập) — ghi `Mode:` vào mọi handoff. `FAST` vẫn giữ đủ cổng bắt buộc, chỉ song
+  song thêm ở pha PREP.
+- **Skill chỉ lấy từ repo đang làm** (`skills/` khai báo trong `opencode.json`) cộng
+  `opencode`/`report`; cấm nạp skill thư viện magpie. Hai ngoại lệ là `magpie-sessions`
+  (Leader được phép) và `magpie-quota` (khi có trong catalog). Mỗi dòng giao skill
+  ghi `required` hoặc `optional`.
+- **Quyền Leader**: `openchamber` được phép (chỉ đọc), `magpie-sessions_*` được phép;
+  `magpie-web-search_*`/`cloudflare-docs_*`/`chrome-devtools_*` bị deny. Shell vẫn
+  read-only, bổ sung `sha256sum`, `jq`, `python3 scripts/plan-hash.py`,
+  `magpie tool analyze_image`.
 
 ## Phụ lục: file agent
 

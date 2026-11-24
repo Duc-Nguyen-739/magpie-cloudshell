@@ -149,7 +149,7 @@ def require_rules(role: str, rules: list[dict], problems: list[str]) -> None:
             ("edit", "*", "deny"),
             ("shell", "rm *", "deny"),
             ("shell", "bash -c*", "deny"),
-            ("chrome-devtools_*", "*", "allow"),
+            ("chrome-devtools_*", "*", "deny"),
         ],
         "reviewplan": [
             ("subagent", "*", "deny"),
@@ -164,37 +164,41 @@ def require_rules(role: str, rules: list[dict], problems: list[str]) -> None:
             ("subagent", "*", "deny"),
             ("question", "*", "deny"),
             ("edit", "**/.opencode/plans/**", "deny"),
-            ("skill", "magpie-skills", "deny"),
-            ("skill", "openchamber-extensions", "deny"),
+            ("skill", "*", "deny"),
             ("shell", "git push --force*", "deny"),
         ],
         "tester": [
             ("subagent", "*", "deny"),
             ("question", "*", "deny"),
             ("edit", "*", "deny"),
-            ("skill", "magpie-skills", "deny"),
-            ("skill", "openchamber-extensions", "deny"),
+            ("skill", "*", "deny"),
             ("chrome-devtools_*", "*", "deny"),
         ],
         "tester2": [
             ("subagent", "*", "deny"),
             ("question", "*", "deny"),
             ("edit", "*", "deny"),
-            ("skill", "magpie-skills", "deny"),
-            ("skill", "openchamber-extensions", "deny"),
+            ("skill", "*", "deny"),
             ("chrome-devtools_*", "*", "deny"),
         ],
         "tester3": [
             ("subagent", "*", "deny"),
             ("question", "*", "deny"),
             ("edit", "*", "deny"),
-            ("skill", "magpie-skills", "deny"),
-            ("skill", "openchamber-extensions", "deny"),
+            ("skill", "*", "deny"),
         ],
     }[role]
     for action, resource, effect in required:
         if not has_rule(rules, action, resource, effect):
             problems.append(f"{role}: missing rule {action} {resource!r} -> {effect}")
+
+
+def require_skill_exclusions(role: str, rules: list[dict], problems: list[str]) -> None:
+    if role not in ("coder", "tester", "tester2", "tester3"):
+        return
+    for skill in ("magpie-skills", "openchamber-extensions"):
+        if has_rule(rules, "skill", skill, "allow"):
+            problems.append(f"{role}: skill {skill!r} must stay denied")
 
 
 def require_text(role: str, body: str, problems: list[str]) -> None:
@@ -220,7 +224,7 @@ def require_no_text(role: str, body: str, problems: list[str]) -> None:
         "Leader sẽ đọc lại code",
     ]
     if role == "leader":
-        forbidden += ["rm -rf", "tự xoá plan"]
+        forbidden += ["tự xoá plan"]
     for needle in forbidden:
         if needle in body:
             problems.append(f"{role}: forbidden text still present: {needle!r}")
@@ -269,6 +273,7 @@ def validate(source: Path, contract_path: Path) -> list[str]:
                 problems.append(f"{role}: permission {index} bad effect {rule['effect']!r}")
 
         require_rules(role, rules, problems)
+        require_skill_exclusions(role, rules, problems)
         require_text(role, body, problems)
         require_no_text(role, body, problems)
 

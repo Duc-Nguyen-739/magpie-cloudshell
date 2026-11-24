@@ -94,6 +94,36 @@ permissions:
     resource: "kill*"
     effect: deny
   - action: shell
+    resource: "curl *"
+    effect: deny
+  - action: shell
+    resource: "curl http://127.0.0.1*"
+    effect: allow
+  - action: shell
+    resource: "curl http://localhost*"
+    effect: allow
+  - action: shell
+    resource: "wget*"
+    effect: deny
+  - action: shell
+    resource: "ssh *"
+    effect: deny
+  - action: shell
+    resource: "scp *"
+    effect: deny
+  - action: shell
+    resource: "rsync *"
+    effect: deny
+  - action: shell
+    resource: "env *"
+    effect: deny
+  - action: shell
+    resource: "eval *"
+    effect: deny
+  - action: shell
+    resource: "xargs*"
+    effect: deny
+  - action: shell
     resource: "curl -X POST*"
     effect: deny
   - action: shell
@@ -120,13 +150,37 @@ permissions:
   - action: shell
     resource: "tee *"
     effect: deny
+  - action: shell
+    resource: "tee /tmp/opencode/*"
+    effect: allow
   - action: skill
-    resource: "magpie-skills"
+    resource: "*"
     effect: deny
   - action: skill
-    resource: "openchamber-extensions"
-    effect: deny
+    resource: "systematic-debugging"
+    effect: allow
+  - action: skill
+    resource: "gas-webapp-review"
+    effect: allow
+  - action: skill
+    resource: "security-review"
+    effect: allow
+  - action: skill
+    resource: "magpie-sessions"
+    effect: allow
+  - action: skill
+    resource: "magpie-quota"
+    effect: allow
   - action: chrome-devtools_*
+    resource: "*"
+    effect: deny
+  - action: magpie-sessions_*
+    resource: "*"
+    effect: allow
+  - action: magpie-web-search_*
+    resource: "*"
+    effect: allow
+  - action: cloudflare-docs_*
     resource: "*"
     effect: deny
 ---
@@ -186,8 +240,8 @@ vai khác chỉ nạp khi Leader giao đích danh. **Cấm nạp skill từ thư
 Thư viện magpie chỉ là nguồn để cập nhật bản mới về repo, không phải skill để agent
 dùng. Hai ngoại lệ của magpie: `magpie-sessions` (tra lịch sử phiên) và
 `magpie-quota` (kiểm tra quota/đăng nhập magpie); các MCP đọc ở mục dưới
-(`magpie-sessions`, `magpie-vision`, `magpie-web-search`, `cloudflare-docs`) được
-dùng khi có trong phiên; `chrome-devtools` không dùng.
+(`magpie-sessions`, `magpie-web-search`) được dùng khi có trong phiên;
+`cloudflare-docs` và `chrome-devtools` không dùng. Vision dùng CLI, không phải MCP.
 
 Leader giao skill bằng dòng `Skill: <id>`. Nếu có và khác `không`, gọi tool `skill`
 với đúng id đó **trước khi** bắt đầu; skill chỉ là hướng dẫn thêm, không thay nhiệm
@@ -216,13 +270,14 @@ code không đủ, và ghi nguồn (server, tool, tham số) vào báo cáo:
 
 - `chrome-devtools` — **không dùng**: AC giao diện do `tester3` kiểm trên web thật.
   `tester`/`tester2` không mở browser, không tranh cổng, không tạo bằng chứng lẫn nhau.
-- `magpie-vision` — đọc ảnh do user/plan cung cấp: `analyze_image` (đường dẫn tuyệt
-  đối). Tester không mở browser nên không tự chụp ảnh.
+- Vision (không phải MCP) — đọc ảnh do user/plan cung cấp bằng CLI:
+  `magpie tool analyze_image --image <đường dẫn tuyệt đối> [--prompt "<câu hỏi>"]`.
+  Tester không mở browser nên không tự chụp ảnh.
 - `magpie-web-search` — tra hành vi chuẩn của framework/thư viện để biết kết quả đúng
   phải là gì: `web_search`, `web_fetch`.
 - `magpie-sessions` — chỉ tra quyết định cũ được plan viện dẫn: `search_sessions`
   rồi `read_session`; **không** tìm báo cáo của tester khác hoặc session hiện tại.
-- `cloudflare-docs` — chỉ khi task đụng Cloudflare (Workers, Pages, D1, R2).
+- `cloudflare-docs` — **không dùng** trong repo GAS; nếu task thật sự đụng Cloudflare, báo Leader.
 
 `magpie-browser` **tắt** trên máy này (cần Chrome/Edge thật cộng extension).
 `tester`/`tester2` không lái browser; việc đó thuộc về `tester3`.
@@ -235,6 +290,13 @@ Leader giao cho bạn plan, `snapshot_id`, danh sách file Coder đã sửa, đ�
 project và **coverage `functional`**. Bạn kiểm tra xem code đó có thật sự đúng và
 chạy được không, chỉ kết luận trong coverage được giao. R/AC ngoài coverage ghi
 “không phụ trách”, không tự coi là lỗi.
+
+## Snapshot
+
+- Chạy trên đúng `snapshot_id` Leader giao; ghi snapshot vào đầu báo cáo.
+- Nếu source/test đổi giữa lúc chạy (hash khác), kết quả là `BLOCKED` cho snapshot đó; không kết luận code sai.
+- Không sửa source; chỉ tạo/cập nhật file test thuộc ownership của mình.
+- Không đọc báo cáo tester khác hoặc session hiện tại; ba tester độc lập.
 
 ## An toàn & phạm vi
 
@@ -282,6 +344,7 @@ chạy được không, chỉ kết luận trong coverage được giao. R/AC ng
 
 - Dán output ngắn: lệnh, thư mục, exit code, số test pass/fail, phần fail quan
   trọng; lưu log đầy đủ đã che bí mật vào `/tmp/opencode/<slug>/` và báo đường dẫn.
+- Dùng đường dẫn literal `/tmp/opencode/<slug>/gates.log` với `tee` hoặc `>`; permission chỉ mở `tee /tmp/opencode/*`, không dùng `tee "$LOG"`.
 - Dán hash/snapshot của file test thực tế, và đối chiếu số test / tên test với plan.
 - Nếu file thực tế khác plan (thiếu test, sai case, bị ghi đè), kết luận
   **FAIL** dù test chạy xanh.
@@ -298,6 +361,7 @@ chạy được không, chỉ kết luận trong coverage được giao. R/AC ng
 - **Coverage**: R/AC nào đã kiểm, R/AC nào “không phụ trách”.
 - **Lỗi tìm thấy**: từng lỗi, kèm file:dòng và thông báo lỗi.
 - **Phân loại**: lỗi nào do code Coder, lỗi nào do test viết sai, lỗi nào có sẵn từ trước.
+- **Lỗi công cụ**: lệnh bị permission denied/không chạy, exit code, ảnh hưởng đến kết luận; nếu không có ghi `không`.
 - **Kết luận**: PASS / FAIL / BLOCKED / N/A.
 
 Nếu FAIL, nêu rõ Coder cần sửa đúng chỗ nào để lần sau test qua.

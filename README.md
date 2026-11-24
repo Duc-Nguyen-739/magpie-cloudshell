@@ -279,8 +279,8 @@ bootstrap.sh                cài đặt một lần
 AGENTS.md                   playbook cho AI agent (đọc là cài được hết)
 config/agents/              leader.md + review, reviewplan, coder, tester (OpenCode)
 config/agent-contract.json  contract cho validator/test của 7 agent
-config/plugins/leader-gate.js  plugin gác review/reviewplan (verdict PASS|BLOCKED)
-config/leader-gate.json        config plugin (judge model, maxSteers, one-session)
+config/plugins/leader-gate.js  plugin gác GATE (PASS|BLOCKED|PREP_READY|PREP_BLOCKED, artifact_hash)
+config/leader-gate.json        config plugin (judge model, maxSteers, one-session-all, prep, hash)
 tests/                      regression offline cho profile + installer
 scripts/
   install.sh                magpie CLI từ installer chính thức (MAGPIE_CLI=1)
@@ -292,6 +292,7 @@ scripts/
   install-openchamber.sh    @openchamber/web vào ~/.npm-global
   setup-opencode.sh         agent leader + 6 subagent (không cài skill; --sync để cập nhật có backup)
   check-agents.py           lint contract/permissions của 7 agent profile
+  plan-hash.py              hash plan quy ước SELF cho GATE artifact_hash (cài vào ~/.config/opencode/scripts/)
   sync-agents.py            đồng bộ profile an toàn (check/dry-run/apply/install-missing)
   setup-mcp.sh              MCP: magpie-sessions/search, Cloudflare docs, Chrome DevTools (magpie-browser tắt)
   setup-settings.sh         settings.json + trạng thái provider (chỉ thêm khoá thiếu)

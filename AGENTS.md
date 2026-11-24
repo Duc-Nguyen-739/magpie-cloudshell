@@ -135,7 +135,10 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   `~/.config/opencode/agents/backups/<timestamp>/`, giữ dòng `model:` cục bộ, ghi
   atomic từng file, không đụng group/MCP). Kiểm trước/sau bằng
   `python3 scripts/check-agents.py` và `python3 -m unittest discover -s tests -p
-  'test_*.py'`; không nhúng `--sync` vào `finish.sh`.
+  'test_*.py'`; không nhúng `--sync` vào `finish.sh`. Script cũng cài helper
+  `scripts/plan-hash.py` vào `~/.config/opencode/scripts/`; dự án dùng GATE
+  `artifact_hash` cần có helper này trong `scripts/` của project (hoặc gọi thẳng
+  đường dẫn đã cài).
 - Skill: agent **chỉ** nạp skill của repo đang làm (các thư mục trong `skills/` khai
   báo ở `opencode.json`) cộng hai skill môi trường `opencode`, `report`. **Cấm** nạp
   skill từ thư viện magpie (`magpie-skills`, `banner-design`, `brand`, `design`,
@@ -152,8 +155,11 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   Leader ghi `required`/`optional`: required thiếu → `BLOCKED`, optional thiếu → cảnh
   báo và làm tiếp. Id ngoài danh sách thì không nạp, ghi lý do.
 - Permission agent (OpenCode V2, rule cuối thắng): Leader deny read/glob/grep/edit/
-  webfetch/websearch/skill/execute; shell allowlist chỉ đọc (git read, sha1sum, grep,
-  cat, gh run view…) và một ngoại lệ vận hành `cloudshell-keepalive*` (giữ Cloud Shell,
+  webfetch/websearch/skill/execute; shell allowlist chỉ đọc (git read, sha1sum,
+  sha256sum, grep, jq, python3 scripts/plan-hash.py, magpie tool analyze_image, cat,
+  gh run view…); `openchamber` chỉ đọc session con, MCP `magpie-sessions` cho phép,
+  `magpie-web-search`/`cloudflare-docs`/`chrome-devtools` deny; và một ngoại lệ vận
+  hành `cloudshell-keepalive*` (giữ Cloud Shell,
   không đọc/ghi file; xem `docs/cloudshell.md`); Review có shell allowlist chỉ đọc; Reviewplan/
   Coder/tester có deny-list lệnh phá huỷ; tester chỉ ghi file test ownership `testerN`;
   `tester`/`tester2` deny `chrome-devtools_*` (giữ dấu gạch ngang; underscore

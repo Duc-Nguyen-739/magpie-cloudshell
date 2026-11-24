@@ -79,6 +79,11 @@ class PolicyTests(unittest.TestCase):
         rules = rules_for("review")
         self.assertEqual(validator.decide(rules, "edit", "src/app.ts"), "deny")
         self.assertEqual(validator.decide(rules, "edit", ".opencode/plans/x/plan.md"), "allow")
+        self.assertEqual(validator.decide(rules, "chrome-devtools_navigate_page", "*"), "deny")
+        self.assertNotEqual(validator.decide(rules, "chrome_devtools_navigate_page", "*"), "deny")
+
+    def test_reviewplan_browser_scope(self):
+        rules = rules_for("reviewplan")
         self.assertEqual(validator.decide(rules, "chrome-devtools_navigate_page", "*"), "allow")
         self.assertNotEqual(validator.decide(rules, "chrome_devtools_navigate_page", "*"), "deny")
 
@@ -105,6 +110,26 @@ class PolicyTests(unittest.TestCase):
         self.assertEqual(validator.decide(rules, "shell", "cloudshell-keepalive --status"), "allow")
         self.assertEqual(validator.decide(rules, "shell", "sleep 1"), "deny")
         self.assertEqual(validator.decide(rules, "shell", "while :; do echo x; sleep 1; done"), "deny")
+        # Quyền mới của Leader bản 2026-11-24.
+        self.assertEqual(validator.decide(rules, "openchamber", "session.list"), "allow")
+        self.assertEqual(validator.decide(rules, "magpie-sessions_search_sessions", "*"), "allow")
+        self.assertEqual(validator.decide(rules, "shell", "sha256sum plan.md"), "allow")
+        self.assertEqual(validator.decide(rules, "shell", "python3 scripts/plan-hash.py plan.md"), "allow")
+        self.assertEqual(validator.decide(rules, "shell", "jq . config.json"), "allow")
+
+
+class GateConfigTests(unittest.TestCase):
+    def test_gate_config_enables_hash_and_prep(self):
+        cfg = json.loads((ROOT / "config" / "leader-gate.json").read_text(encoding="utf-8"))
+        self.assertTrue(cfg["artifactHash"])
+        self.assertTrue(cfg["prepEnabled"])
+        self.assertTrue(cfg["enforceOneSessionAll"])
+
+    def test_gate_plugin_parses_artifact_fields(self):
+        plugin = (ROOT / "config" / "plugins" / "leader-gate.js").read_text(encoding="utf-8")
+        self.assertIn("import crypto from", plugin)
+        self.assertIn("artifact_hash: kv.artifact_hash ||", plugin)
+        self.assertIn("enforceOneSessionAll", plugin)
 
 
 class SyncTests(unittest.TestCase):

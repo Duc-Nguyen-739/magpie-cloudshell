@@ -47,6 +47,10 @@ install -m 644 "$REPO_DIR/config/plugins/leader-gate.js" "$CONF/plugins/leader-g
 install -m 644 "$REPO_DIR/config/leader-gate.json" "$CONF/leader-gate.json"
 ok "leader-gate plugin + config"
 
+mkdir -p "$CONF/scripts"
+install -m 644 "$REPO_DIR/scripts/plan-hash.py" "$CONF/scripts/plan-hash.py"
+ok "plan-hash helper (SELF hash cho GATE artifact_hash)"
+
 
 if [ "$SYNC" = 1 ]; then
   if ! command -v python3 >/dev/null 2>&1; then
