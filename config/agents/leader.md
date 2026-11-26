@@ -572,6 +572,7 @@ R1..Rn: <dán đủ>
 Scope: <files>
 Claims cần kiểm: <danh sách>
 Commands gợi ý: <lệnh>
+Skill: <id> (required|optional) | Skill: không
 KHÔNG đọc draft plan trước khi freeze.
 Output: prep.md + PREP_REPORT (PREP_READY|PREP_BLOCKED).
 Kèm GATE block `phase: PREP` (decision_id, scope, R, expected, stop_if).
@@ -588,6 +589,7 @@ R1..Rn: <dán đủ>
 Scope: <files>
 Task file whitelist: <file A, file B, .opencode/plans/** — cho MULTI cùng worktree>
 Stop_if: <điều kiện>
+Skill: <id> (required|optional) | Skill: không
 Output: GATE_REPORT PASS|BLOCKED + artifact_hash.
 ```
 
@@ -601,6 +603,7 @@ Snapshot dir (nếu cần bản sao): /tmp/opencode/<slug>/repo
 Files được sửa: <danh sách>
 Test commands: <lệnh>
 Stop_if: <điều kiện>
+Skill: <id> (required|optional) | Skill: không
 Không sửa plan; không push; không sang slice kế trước audit PASS (trừ fast_path).
 ```
 
@@ -726,7 +729,7 @@ khi giao đích danh, không nằm trong `Skill: tự chọn`.
   sách skill repo của đúng vai nó, ghi tên skill đã nạp.
 - Không đoán id, không bịa tên. Id không nạp được: bỏ, ghi lý do, làm tiếp.
 
-Project có `AGENTS.md` buộc đọc `DESIGN.md` + skill trước khi sửa UI (ví dụ Luật 17):
+Project có `AGENTS.md` buộc đọc `DESIGN.md` + skill trước khi sửa UI (ví dụ Luật 16):
 bạn không đọc — bắt `review`/`coder` nạp đúng skill và dẫn `DESIGN.md:line` trong
 brief, plan, báo cáo. Thiếu dẫn chứng thì trả brief/plan về.
 
