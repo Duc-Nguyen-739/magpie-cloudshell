@@ -13,6 +13,9 @@ permissions:
     resource: "*"
     effect: deny
   - action: edit
+    resource: "/tmp/opencode/**"
+    effect: allow
+  - action: edit
     resource: "**/*.tester3.test.*"
     effect: allow
   - action: edit
@@ -76,8 +79,17 @@ permissions:
     resource: "rm *"
     effect: deny
   - action: shell
+    resource: "rm /tmp/opencode/*"
+    effect: allow
+  - action: shell
+    resource: "rm -rf /tmp/opencode/*"
+    effect: allow
+  - action: shell
     resource: "mv *"
     effect: deny
+  - action: shell
+    resource: "mv /tmp/opencode/*"
+    effect: allow
   - action: shell
     resource: "chmod*"
     effect: deny
@@ -94,10 +106,10 @@ permissions:
     resource: "curl *"
     effect: deny
   - action: shell
-    resource: "curl http://127.0.0.1*"
+    resource: "curl *127.0.0.1*"
     effect: allow
   - action: shell
-    resource: "curl http://localhost*"
+    resource: "curl *localhost*"
     effect: allow
   - action: shell
     resource: "wget*"
@@ -124,10 +136,10 @@ permissions:
     resource: "curl -X POST*"
     effect: deny
   - action: shell
-    resource: "curl -X POST http://127.0.0.1*"
+    resource: "curl -X POST*127.0.0.1*"
     effect: allow
   - action: shell
-    resource: "curl -X POST http://localhost*"
+    resource: "curl -X POST*localhost*"
     effect: allow
   - action: shell
     resource: "npm publish*"
@@ -145,10 +157,16 @@ permissions:
     resource: "sed -i*"
     effect: deny
   - action: shell
+    resource: "sed -i* /tmp/opencode/*"
+    effect: allow
+  - action: shell
     resource: "tee *"
     effect: deny
   - action: shell
     resource: "tee /tmp/opencode/*"
+    effect: allow
+  - action: shell
+    resource: "tee * /tmp/opencode/*"
     effect: allow
   - action: skill
     resource: "*"

@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # setup-settings.sh — đặt cấu hình magpie giống máy tham chiếu:
-#   - settings.json: theme, ngôn ngữ, vision model + effort, image model, check-in,
-#     redaction, cỡ chữ, model bị ẩn…
-#   - provider: opencode-zen bật nhưng chỉ expose jev-1.13-free (classifier); opencode-zen-free tắt
-#     (free tier qua API key bị chặn, đường plugin cạn theo IP dùng chung — xem docs/zen-free.md);
-#     qoder/aihubmix/agnes tắt hẳn; workbuddy-ai chỉ expose
+#   - settings.json: theme, ngôn ngữ, vision model, check-in, redaction, cỡ chữ…
+#   - provider: opencode-zen bật nhưng chỉ expose jev-1.13-free (classifier);
+#     opencode-zen-free bật (free tier hoạt động lại 2026-11-25); qoder/aihubmix/
+#     copilot/agnes tắt hẳn; workbuddy-ai chỉ expose
 #     deepseek-v4.1-flash-sg, glm-5.3-flash, hy4flash-free
 #
 # Giá model (input/output/cache), context/output, reasoning levels và cấu hình
@@ -34,7 +33,7 @@ models="$(magpie models 2>/dev/null | awk '{print $1}')"
 has_model() { printf '%s\n' "$models" | grep -Fxq "$1"; }
 
 # ---------------------------------------------------------------- provider
-say "provider: opencode-zen bật (chỉ jev-1.13-free) · opencode-zen-free tắt"
+say "provider: opencode-zen bật (chỉ jev-1.13-free) · opencode-zen-free bật"
 # jev-1.13-free là model phân loại nội bộ, không bị chặn free tier và không hiện cho
 # agent; các model free còn lại của Zen đã 429 nên không expose. Catalog đổi liên tục
 # (model mới tự được expose), nên không dùng danh sách trừ cố định: đọc danh sách đang
@@ -53,7 +52,7 @@ if [ "$DRY" = 1 ]; then
     [ -n "$m" ] || continue
     printf '  \033[2m[dry-run]\033[0m magpie provider models opencode-zen -%s\n' "$m"
   done < <(zen_drop_list)
-  printf '  \033[2m[dry-run]\033[0m magpie provider off opencode-zen-free\n'
+  printf '  \033[2m[dry-run]\033[0m magpie provider on opencode-zen-free\n'
   printf '  \033[2m[dry-run]\033[0m magpie provider off qoder antigravity copilot aihubmix agnes\n'
   printf '  \033[2m[dry-run]\033[0m magpie provider models workbuddy-ai deepseek-v4.1-flash-sg glm-5.3-flash hy4flash-free\n'
 else
@@ -70,14 +69,18 @@ else
     magpie provider models opencode-zen -"$m" >/dev/null 2>&1
   done < <(zen_drop_list)
   ok "opencode-zen chỉ còn jev-1.13-free"
-  if magpie provider off opencode-zen-free >/dev/null 2>&1; then
-    ok "opencode-zen-free đang tắt (plugin vẫn cài, bật lại được)"
+  # opencode-zen-free: trên máy này free tier đã hoạt động lại (đo 2026-11-25,
+  # iceman-free ✓), nên để bật như hiện tại. Nếu IP dùng chung cạn quota thì
+  # `magpie provider off opencode-zen-free`; xem docs/zen-free.md.
+  if magpie provider on opencode-zen-free >/dev/null 2>&1; then
+    ok "opencode-zen-free đang bật"
   else
-    warn "không tắt được opencode-zen-free (chưa cài plugin?) — bỏ qua"
+    warn "không bật được opencode-zen-free (chưa cài plugin?) — bỏ qua"
   fi
 
   # qoder / antigravity / copilot / aihubmix / agnes không nằm trong ladder nào: tắt
-  # hẳn. kilo/openrouter/nvidia BẬT vì group/compress dùng model của chúng.
+  # hẳn. kilo/openrouter/nvidia/kiro/cline/groq BẬT vì group/compress hoặc provider
+  # đang dùng model của chúng.
   for off_id in qoder antigravity copilot aihubmix agnes; do
     if magpie provider off "$off_id" >/dev/null 2>&1; then
       ok "provider $off_id đang tắt"
@@ -98,10 +101,11 @@ else
 fi
 
 # ---------------------------------------------------------------- settings
-# Giá trị lấy từ máy tham chiếu (magpie 0.1.4334). vision/imageGen chỉ đặt khi
-# model tương ứng đã có, để UI không trỏ vào model không tồn tại.
+# Giá trị lấy từ máy tham chiếu (magpie 0.1.4625). Chỉ chứa khoá giao diện/riêng
+# tư; khoá theo model (giá, context/output, efforts, images, APIs) do
+# setup-model-settings.sh ghi. vision chỉ đặt khi model đã có, để UI không trỏ
+# vào model không tồn tại.
 VISION="workbuddy-ai/hy4flash-free"
-IMAGE="workbuddy-ai/hy-image-3.5"
 
 seed='{
   "theme": "dark",
@@ -119,16 +123,14 @@ seed='{
   "redactModelName": "astrlink-guard",
   "redactModelAuto": true,
   "redactPersonal": true,
-  "redactKinds": {"birthday": false, "home": true, "iban": false, "ip": true, "serial": true, "ssn": false, "userhost": false},
+  "redactKinds": {"bucket": true, "home": true, "ip": true, "userhost": true},
   "quotaLeft": true,
   "trayUsageEvery": 3,
   "textSize": 110,
-  "visionEffort": "max",
-  "disabledModels": ["freepi/deepseek-v4.1-flash-1017-ultrafast"]
+  "vision": "workbuddy-ai/hy4flash-free"
 }'
 
-has_model "$VISION" && seed="$(printf '%s' "$seed" | python3 -c 'import json,sys;d=json.load(sys.stdin);d["vision"]="'"$VISION"'";print(json.dumps(d))')"
-has_model "$IMAGE"  && seed="$(printf '%s' "$seed" | python3 -c 'import json,sys;d=json.load(sys.stdin);d["imageGen"]="'"$IMAGE"'";print(json.dumps(d))')"
+has_model "$VISION" || seed="$(printf '%s' "$seed" | python3 -c 'import json,sys;d=json.load(sys.stdin);d.pop("vision",None);print(json.dumps(d))')"
 
 say "settings.json — chỉ thêm khoá còn thiếu"
 if [ "$DRY" = 1 ]; then

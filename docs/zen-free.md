@@ -1,5 +1,12 @@
 # OpenCode Zen — vì sao tắt `opencode-zen-free`, và vì sao `opencode-zen` chỉ còn `jev-1.13-free`
 
+> **Cập nhật 2026-11-25:** free tier của plugin `opencode-zen-free` **hoạt động lại**
+> trên máy này (`magpie provider test opencode-zen-free` → `✓ chat 12160 ms ·
+> iceman-free`). Provider đang **bật** và `setup-settings.sh` giữ bật. Phần dưới là
+> bằng chứng lịch sử của giai đoạn free tier theo IP dùng chung bị cạn; nếu gặp 429
+> trở lại thì `magpie provider off opencode-zen-free` và dùng `opencode-zen` API key
+> (chỉ `jev-1.13-free`) làm classifier như cũ.
+
 Tóm tắt: **kết cục** — `opencode-zen-free` (plugin, không cần key) **tắt hẳn** vì bể free
 tính theo **IP dùng chung** đã cạn và không hồi lại. `opencode-zen` (API key) **bật** nhưng
 **chỉ expose đúng `jev-1.13-free`**, dùng làm **classifier** cho tám group có classifier;

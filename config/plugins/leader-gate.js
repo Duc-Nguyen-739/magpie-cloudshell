@@ -65,6 +65,27 @@ export function parseGate(prompt) {
   }
 }
 
+export function parseSteer(prompt) {
+  if (typeof prompt !== "string") return null
+  const m = prompt.match(/(?:^|\n)STEER:\s*\n([\s\S]*?)(?=\n(?:GATE_REPORT:|GATE:|##|---)|$)/)
+  if (!m) return null
+  const kv = parseKV(m[1])
+  if (!kv.decision_id || !kv.scope || !kv.r) return null
+  return {
+    decision_id: kv.decision_id,
+    phase: kv.phase || "",
+    agent: kv.agent || "",
+    scope: kv.scope,
+    r: kv.r.split(",").map((s) => s.trim()).filter(Boolean),
+    expected: kv.expected || "",
+    stop_if: kv.stop_if || "",
+    artifact: kv.artifact || "",
+    artifact_revision: kv.artifact_revision || "",
+    artifact_hash: kv.artifact_hash || "",
+    raw: m[0].trim(),
+  }
+}
+
 const VERDICT_ALIASES = {
   "ĐẠT": "PASS",
   "ĐÃ SỬA": "PASS",
@@ -160,18 +181,20 @@ export function renderContract(gate) {
 
 export function renderSteer(gate, verdict) {
   return [
-    "LEADER_GATE — STEER",
+    "STEER:",
     `decision_id: ${gate.decision_id}`,
+    `phase: ${gate.phase || ""}`,
+    `agent: ${gate.agent || ""}`,
     `scope: ${gate.scope}`,
     `R: ${gate.r.join(",")}`,
-    `expected: ${gate.expected}`,
+    `expected: ${gate.expected || ""}`,
     `artifact_hash: ${gate.artifact_hash || "<sha256>"}`,
     "",
     "Báo cáo trước đó lệch gate:",
     ...verdict.reasons.map((r) => `- ${r}`),
     "",
     "Sửa đúng các điểm sau, giữ nguyên phần còn lại, không mở rộng:",
-    ...verdict.corrections.map((c) => `- ${c}`),
+    ...(verdict.corrections || []).map((c) => `- ${c}`),
     "",
     "Kết thúc bằng GATE_REPORT đúng contract.",
   ].join("\n")
@@ -202,7 +225,36 @@ async function findActiveChild(ctx, parentID, agent) {
   try {
     const page = await ctx.session.list({ parentID, directory: ctx.location.directory, limit: 20, order: "desc" })
     const list = page?.data ?? page ?? []
-    return list.find((s) => s.agent === agent && s.time?.busy && (!s.time?.idle || s.time.busy > s.time.idle)) ?? null
+    const candidates = list.filter((s) => s.agent === agent)
+    if (!candidates.length) return null
+
+    // A run interrupted by a crash or shutdown leaves time.busy set and time.idle unset,
+    // so the time fields alone would keep that session "active" forever. The active
+    // endpoint is authoritative: a session absent from it is not running.
+    try {
+      const res = await ctx.session.active()
+      const data = res?.data ?? res ?? {}
+      const running = new Set(
+        Array.isArray(data)
+          ? data.map((v) => (typeof v === "string" ? v : v?.id)).filter(Boolean)
+          : Object.entries(data)
+              .filter(([, v]) => v === true || v === "running" || v?.type === "running")
+              .map(([id]) => id),
+      )
+      return candidates.find((s) => running.has(s.id)) ?? null
+    } catch {
+      // fall through to the time heuristic when the endpoint is unavailable
+    }
+
+    const now = Date.now()
+    return (
+      candidates.find(
+        (s) =>
+          s.time?.busy &&
+          (!s.time?.idle || s.time.busy > s.time.idle) &&
+          now - (s.time.updated ?? s.time.busy) < 10 * 60 * 1000,
+      ) ?? null
+    )
   } catch {
     return null
   }
@@ -370,18 +422,55 @@ export default {
       const input = event.input
       const target = input?.agent
       if (!ALL_AGENTS.has(target)) return
+      const targetSessionID = typeof input?.sessionID === "string" ? input.sessionID : null
       const enforceAll = cfg.enforceOneSessionAll || (cfg.enforceOneSession && GATED_AGENTS.has(target))
       if (enforceAll) {
         const active = await findActiveChild(ctx, event.sessionID, target)
-        if (active) {
+        if (active && active.id !== targetSessionID) {
           throw new Error(
-            `LEADER_GATE: ${target} đang có session ${active.id}; chờ session đó dừng trước khi mở session mới.`,
+            `LEADER_GATE: ${target} đang có session ${active.id}; chỉ được STEER vào chính session đó bằng sessionID=${active.id}, hoặc chờ dừng trước khi mở session mới.`,
           )
         }
       }
-      if (!GATED_AGENTS.has(target)) return
+      if (!GATED_AGENTS.has(target)) {
+        if (targetSessionID) log(cfg, "steer.open", { parent: event.sessionID, child: targetSessionID, agent: target })
+        return
+      }
       const prompt = String(input?.prompt ?? "")
       const gate = parseGate(prompt)
+      const steer = parseSteer(prompt)
+      if (targetSessionID) {
+        const existing = childGates.get(targetSessionID) || {}
+        const merged = { ...existing, ...(gate || steer || {}), parentID: event.sessionID }
+        if (!merged.agent) merged.agent = target
+        if (!merged.decision_id || !merged.scope || !Array.isArray(merged.r) || !merged.r.length) {
+          throw new Error(
+            "LEADER_GATE: follow-up cho review/reviewplan phải có block STEER hoặc GATE (decision_id/scope/R), hoặc session đã có gate đang mở.",
+          )
+        }
+        if (merged.agent !== target) {
+          throw new Error(`LEADER_GATE: gate.agent=${merged.agent} nhưng STEER vào ${target}.`)
+        }
+        if (target === "reviewplan" && !merged.phase) {
+          throw new Error("LEADER_GATE: STEER cho reviewplan phải có phase (PLAN|GATE|AUDIT|PREP).")
+        }
+        if (target === "reviewplan" && ["PLAN", "GATE", "AUDIT"].includes(merged.phase)) {
+          const h = normHash(merged.artifact_hash)
+          if (!/^[0-9a-f]{64}$/i.test(h)) {
+            throw new Error(
+              "LEADER_GATE: artifact_hash phải là 64 hex; không gửi hash cắt. Tính lại bằng scripts/plan-hash.py hoặc heredoc.",
+            )
+          }
+        }
+        childGates.set(targetSessionID, merged)
+        log(cfg, "steer.open", {
+          parent: event.sessionID,
+          child: targetSessionID,
+          agent: target,
+          decision_id: merged.decision_id,
+        })
+        return
+      }
       if (!gate) {
         throw new Error(
           "LEADER_GATE: thiếu block GATE trong prompt giao review/reviewplan. Thêm GATE: decision_id/phase/agent/scope/R/expected.",
@@ -408,7 +497,8 @@ export default {
       const input = event.input
       const target = input?.agent
       if (!GATED_AGENTS.has(target)) return
-      const gate = parseGate(String(input?.prompt ?? ""))
+      const prompt = String(input?.prompt ?? "")
+      const gate = parseGate(prompt) || parseSteer(prompt)
       if (!gate) return
       if (event.status !== "completed") {
         log(cfg, "gate.child_error", { parent: event.sessionID, agent: target, error: event.error?.message })
@@ -423,8 +513,14 @@ export default {
         log(cfg, "gate.no_child", { parent: event.sessionID, agent: target, decision_id: gate.decision_id })
         return
       }
-      childGates.set(childID, { ...gate, parentID: event.sessionID })
-      log(cfg, "gate.registered", { parent: event.sessionID, child: childID, agent: target, decision_id: gate.decision_id })
+      const existing = childGates.get(childID) || {}
+      const merged = { ...existing, ...gate, parentID: event.sessionID }
+      if (!merged.agent) merged.agent = target
+      for (const [id, g] of childGates) {
+        if (id !== childID && g.agent === target) childGates.delete(id)
+      }
+      childGates.set(childID, merged)
+      log(cfg, "gate.registered", { parent: event.sessionID, child: childID, agent: target, decision_id: merged.decision_id })
     }
 
     const onIdle = async (event) => {
@@ -445,7 +541,6 @@ export default {
       lastSeen.set(event.sessionID, hash)
       const verdict = await evaluate(ctx, cfg, gate, text)
       if (verdict.ok) {
-        childGates.delete(event.sessionID)
         if (verdict.prep) {
           log(cfg, "gate.prep", {
             parent: gate.parentID,
@@ -457,17 +552,25 @@ export default {
           if (verdict.blocked) {
             await ctx.session.synthetic({
               sessionID: gate.parentID,
-              text: `GATE_PREP_BLOCKED (child) — ${gate.agent}/${gate.decision_id}; đọc prep.md và quyết định.`,
+              text:
+                `GATE_PREP_BLOCKED (child) — ${gate.agent}/${gate.decision_id}; đọc prep.md và quyết định.` +
+                `\nNếu chỉ cần sửa cục bộ, STEER vào chính session ${event.sessionID}; nếu đổi hướng thì mở session mới.`,
             })
+            return
           }
+          childGates.delete(event.sessionID)
           return
         }
         if (verdict.blocked) {
           await ctx.session.synthetic({
             sessionID: gate.parentID,
-            text: `GATE_BLOCKED (child) — ${gate.agent}/${gate.decision_id}; đọc báo cáo con và quyết định.`,
+            text:
+              `GATE_BLOCKED (child) — ${gate.agent}/${gate.decision_id}; đọc báo cáo con và quyết định.` +
+              `\nCó thể STEER vào chính session ${event.sessionID} bằng subagent sessionID + block STEER, hoặc mở session mới nếu đổi scope/phase.`,
           })
+          return
         }
+        childGates.delete(event.sessionID)
         log(cfg, "gate.pass", { parent: gate.parentID, child: event.sessionID, agent: gate.agent, decision_id: gate.decision_id })
         return
       }
@@ -489,14 +592,14 @@ export default {
         })
         return
       }
-      childGates.delete(event.sessionID)
+      const steerPrompt = renderSteer(gate, verdict)
       const summary = [
         `GATE_STEER ${gate.agent}/${gate.decision_id} — lần ${n}/${cfg.maxSteers}`,
-        "Lý do:",
-        ...verdict.reasons.map((r) => `- ${r}`),
-        "Sửa:",
-        ...(verdict.corrections || []).map((c) => `- ${c}`),
-        "Mở session mới cùng agent với GATE cũ + nội dung này; không nối session cũ.",
+        `Gửi nguyên khối dưới đây vào chính session con ${event.sessionID} bằng subagent với sessionID (không mở session mới):`,
+        "```text",
+        steerPrompt,
+        "```",
+        "Giữ nguyên decision_id/scope/R; không đổi gate để lách maxSteers.",
       ].join("\n")
       await ctx.session.synthetic({ sessionID: gate.parentID, text: summary })
       log(cfg, "gate.steer", {

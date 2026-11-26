@@ -134,5 +134,5 @@ if [ "$NO_MCP" = 0 ] && [ -x "$REPO_DIR/scripts/setup-mcp.sh" ]; then
 fi
 
 say ""
-say "Provider magpie trong opencode.jsonc do chính magpie ghi khi bạn chạy"
+say "Provider magpie trong opencode.json do chính magpie ghi khi bạn chạy"
 say "'magpie opencode group/leader' — không cần sửa tay. Xem docs/opencode.md."

@@ -97,13 +97,22 @@ permissions:
     resource: "mv *"
     effect: deny
   - action: shell
+    resource: "mv /tmp/opencode/*"
+    effect: allow
+  - action: shell
     resource: "sed -i*"
     effect: deny
+  - action: shell
+    resource: "sed -i* /tmp/opencode/*"
+    effect: allow
   - action: shell
     resource: "tee *"
     effect: deny
   - action: shell
     resource: "tee /tmp/opencode/*"
+    effect: allow
+  - action: shell
+    resource: "tee * /tmp/opencode/*"
     effect: allow
   - action: shell
     resource: "bash -c*"
@@ -283,10 +292,10 @@ permissions:
     resource: "curl *"
     effect: deny
   - action: shell
-    resource: "curl http://127.0.0.1*"
+    resource: "curl *127.0.0.1*"
     effect: allow
   - action: shell
-    resource: "curl http://localhost*"
+    resource: "curl *localhost*"
     effect: allow
   - action: shell
     resource: "wget*"

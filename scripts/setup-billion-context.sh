@@ -44,7 +44,12 @@ CRED="$CONFIG_DIR/billion-context.json.summary-credentials.json"
 TEMPLATE="$REPO_DIR/config/billion-context.json"
 PLUGIN_DIR="$HOME/.config/opencode/plugins/billion-context"
 PLUGIN="$PLUGIN_DIR/index.js"
-OC_CONFIG="$HOME/.config/opencode/opencode.jsonc"
+# OpenCode V2 dùng opencode.json; bản cũ dùng opencode.jsonc. Chọn file đang có.
+if [ -f "$HOME/.config/opencode/opencode.jsonc" ]; then
+  OC_CONFIG="$HOME/.config/opencode/opencode.jsonc"
+else
+  OC_CONFIG="$HOME/.config/opencode/opencode.json"
+fi
 
 command -v node >/dev/null 2>&1 || die "chưa có node trên PATH"
 command -v npm  >/dev/null 2>&1 || die "chưa có npm trên PATH"

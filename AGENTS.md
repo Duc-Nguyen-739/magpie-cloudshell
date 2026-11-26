@@ -30,13 +30,13 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
 ## Bạn đang dựng gì
 
 - magpie bản terminal trong `~/.local/bin` (không desktop, không systemd).
-- **18 provider** hiện trong `magpie providers`, **14 bật / 4 tắt** (`aihubmix`,
-  `copilot`, `agnes`, `opencode-zen-free`). `providers.json` còn record `qoder` và
-  `antigravity` nhưng không hiện vì thiếu plugin. Mười hai entry plugin đang cài
-  (11 plugin; `freepi` có hai bản): AutoClaw (Zhipu) 0.2.11, WorkBuddy, agnes,
-  FreePi, FreePi2, FreePi3, FreePi4, FreePi5, FreePi6, FreePi7, OpenCode Zen Free.
-  `scripts/plugins.sh` không cài agy-cli/cline/kiro/qoder/zcode trên máy tham chiếu;
-  muốn dùng thì `magpie plugin add @magpie-community/opencode-<tên>-auth`.
+- **21 provider** hiện trong `magpie providers`, **18 bật / 3 tắt** (`aihubmix`,
+  `copilot`, `agnes`). `providers.json` còn record `qoder` và `antigravity` nhưng
+  không hiện vì thiếu plugin. Mười bốn entry plugin đang cài: AutoClaw (Zhipu) 0.2.9,
+  WorkBuddy, OpenCode Zen Free + `opencode-zen-freex`, Kiro, Cline, agnes, FreePi,
+  FreePi2, FreePi3, FreePi4, FreePi5, FreePi6, FreePi7. `scripts/plugins.sh` cài
+  đúng bộ này; `agy-cli`/`qoder`/`zcode` không cài trên máy tham chiếu — muốn dùng
+  thì `magpie plugin add @magpie-community/opencode-<tên>-auth`.
   `free-pi` đã được gỡ khỏi máy này ngày 2026-11-18 theo yêu cầu; các script
   `patch-free-pi.mjs`, `patch-free-pi-ads.mjs`, `setup-freepi-pair.mjs` vẫn còn trong
   repo nếu cài lại. `freepi2` là tài khoản thứ hai,
@@ -51,13 +51,12 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   [`docs/freepi3.md`](docs/freepi3.md), [`docs/freepi4.md`](docs/freepi4.md),
   [`docs/freepi5.md`](docs/freepi5.md), [`docs/freepi6.md`](docs/freepi6.md),
   [`docs/freepi7.md`](docs/freepi7.md).
-- `settings.json` giống máy tham chiếu (theme dark, `vision=workbuddy-ai/hy4flash-free`
-  + `visionEffort=max`, `redact=astrlink-guard`, `redactKinds` gồm `home/ip/serial`,
-  `quotaLeft`, `textSize=110`, `disabledModels=freepi/deepseek-v4.1-flash-1017-ultrafast`,
-  check-in AutoClaw + Qoder — qoder đang tắt nên chỉ còn AutoClaw có tác dụng);
-  `opencode-zen` (API key) **bật nhưng chỉ mở `jev-1.13-free`** làm
-  classifier — free tier qua API key bị chặn ở upstream, đường plugin cũng cạn theo IP
-  dùng chung; xem [`docs/zen-free.md`](docs/zen-free.md).
+- `settings.json` giống máy tham chiếu (theme dark, `vision=workbuddy-ai/hy4flash-free`,
+  `redact=astrlink-guard`, `redactKinds` gồm `bucket/home/ip/userhost`, `quotaLeft`,
+  `textSize=110`, check-in AutoClaw + Qoder — qoder đang tắt nên chỉ còn AutoClaw có
+  tác dụng); `opencode-zen` (API key) **bật nhưng chỉ mở `jev-1.13-free`** làm
+  classifier; `opencode-zen-free` **bật** (free tier hoạt động lại 2026-11-25); xem
+  [`docs/zen-free.md`](docs/zen-free.md).
 - Giá model (**input/output/cache**) và context/output/reasoning nằm ở
   `scripts/setup-model-settings.sh`: `*/deepseek-v4.1-flash` = `1,4,0.1,1.25`,
   `*/jev-1.13-free` = `0,0,0,0`, hai model WorkBuddy đang expose = `1,4,0.1,1.25`; FreePi
@@ -108,14 +107,15 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   "one request at a time" của cùng tài khoản. Trên máy tham chiếu: `review` FreePi4,
   `reviewplan` FreePi, `coder` FreePi3, `tester` FreePi2, `tester-2` FreePi7,
   `tester-3` FreePi5, `leader` FreePi6; `main` dùng FreePi chính.
-- Provider đang tắt: `aihubmix`, `copilot`, `agnes`, `opencode-zen-free`. WorkBuddy
+- Provider đang tắt: `aihubmix`, `copilot`, `agnes`. WorkBuddy
   chỉ expose `deepseek-v4.1-flash-sg`, `glm-5.3-flash`, `hy4flash-free`; `kilo` **bật**
-  vì `group/compress` dùng `particle-1:free`; `kiro`/`cline`/`agy-cli` **không cài**
-  trên máy tham chiếu (repo vẫn có thể cài như tuỳ chọn); `aihubmix` đang tắt, nếu bật
+  vì `group/compress` dùng `particle-1:free`; `kiro`/`cline`/`groq` **bật** (đã cài
+  plugin); `agy-cli` **không cài** trên máy tham chiếu; `aihubmix` đang tắt, nếu bật
   thì 36 model `-free` chỉ trả câu từ chối (tài khoản chưa nạp tiền) — xem mục lỗi
   thường gặp.
-- OpenCode thấy **24 model** của provider `magpie` (8 `group/*` + 16 model lẻ, trong
-  đó có `freepi/…` … `freepi7/…`, `nvidia/…`, `xingchi/…`): OpenCode V2 hỏi thẳng
+- OpenCode thấy **44 model** của provider `magpie` (8 `group/*` + 36 model lẻ, trong
+  đó có `freepi/…` … `freepi7/…`, `opencode-zen-free/…`, `nvidia/…`, `xingchi/…`):
+  OpenCode V2 hỏi thẳng
   `/v1/models` của gateway nên danh sách luôn khớp, không cần map tĩnh trong
   `opencode.json`. `model: magpie/group/leader`, small model để mặc định (không ghim).
   OpenChamber đặt
@@ -166,8 +166,8 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   **không** khớp), `tester3` giữ browser. Đây là best-effort, **không phải sandbox** —
   shell vẫn chạy bằng quyền user host. `ask` bị OpenChamber auto-accept trên máy này,
   nên ranh giới cứng dùng `deny`, không dựa vào `ask`.
-- Năm MCP đang bật trong library magpie (`magpie-sessions`, `magpie-vision`,
-  `magpie-web-search`, `cloudflare-docs`, `chrome-devtools`) ghi vào gemini, agy,
+- Bốn MCP đang bật trong library magpie (`magpie-sessions`, `magpie-web-search`,
+  `cloudflare-docs`, `chrome-devtools`) ghi vào gemini, agy,
   opencode; OpenChamber dùng chung config OpenCode nên cũng thấy. **Danh sách là
   động**: chỉ dùng server/tool thật sự có trong phiên; thiếu server cho một cổng thì
   ghi `BLOCKED`, không bịa. Cả bảy prompt agent có mục `## MCP có sẵn` nói rõ vai nào
@@ -231,7 +231,7 @@ Kiểm tra:
 ```sh
 magpie --version                  # có số phiên bản
 magpie healthcheck && echo ok     # exit 0
-magpie plugin list                # 12 entry (11 plugin), "on"
+magpie plugin list                # 14 entry, "on"
 command -v openchamber openmagpie magpie-headless-start
 ```
 
@@ -368,13 +368,13 @@ magpie provider test autoclaw zai_auto
 | Subagent `coder` lỗi model | thiếu `group/coder` hoặc model chưa expose | `setup-opencode.sh` đã lùi về `group/leader`; hoặc sửa dòng `model:` |
 | OpenCode báo `Compression FAILED … target-timeout` | billion-context hết `targetTimeoutMs` (đang 300 s) | sửa budget rồi reload — [`docs/billion-context.md`](docs/billion-context.md) |
 
-## Plugin AutoClaw — bản đang chạy (2026-11-22: 0.2.11)
+## Plugin AutoClaw — bản đang chạy (2026-11-25: 0.2.9)
 
-Máy tham chiếu đang chạy **`@magpie-community/opencode-autoclaw-auth@0.2.11`**
-(magpie `0.1.4625`). Đã kiểm tra `magpie provider test autoclaw zai_auto` →
-`✓ chat 1180 ms` ngày 2026-11-22. Bản **0.2.9** vẫn là bản vàng dự phòng: nếu bản
-mới trả 401/`invalid_request_error`/`exports no OpenCode plugin function`, hạ về
-0.2.9.
+Máy tham chiếu đang chạy **`@magpie-community/opencode-autoclaw-auth@0.2.9`**
+(magpie `0.1.4851`). Bản **0.2.11** đã kiểm tra `magpie provider test autoclaw zai_auto`
+→ `✓ chat 1180 ms` ngày 2026-11-22 (magpie `0.1.4625`); dùng 0.2.11 khi muốn nâng,
+và quay về 0.2.9 nếu bản mới trả 401/`invalid_request_error`/
+`exports no OpenCode plugin function`.
 
 Kết quả test 0.2.9 lúc **2026-10-29 02:54 UTC** (tài khoản đang hoạt động:
 `Đức Nguyễn Văn (9m00x9)`), `magpie provider test autoclaw <model>`:
@@ -399,7 +399,7 @@ hỏng — hạ về 0.2.9.
 Kiểm tra đang chạy bản nào:
 
 ```sh
-magpie plugin list | head -3            # @magpie-community/opencode-autoclaw-auth@0.2.11  on
+magpie plugin list | head -3            # @magpie-community/opencode-autoclaw-auth@0.2.9  on
 magpie plugin list --json | grep autoclaw
 magpie provider test autoclaw zai_auto  # ✓ chat  (gọi thật, tốn 1 request nhỏ)
 ```

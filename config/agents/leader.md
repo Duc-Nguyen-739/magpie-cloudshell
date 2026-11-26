@@ -83,6 +83,33 @@ permissions:
     resource: "git remote*"
     effect: allow
   - action: shell
+    resource: "git -C * status*"
+    effect: allow
+  - action: shell
+    resource: "git -C * diff*"
+    effect: allow
+  - action: shell
+    resource: "git -C * log*"
+    effect: allow
+  - action: shell
+    resource: "git -C * show*"
+    effect: allow
+  - action: shell
+    resource: "git -C * rev-parse*"
+    effect: allow
+  - action: shell
+    resource: "git -C * branch*"
+    effect: allow
+  - action: shell
+    resource: "git -C * ls-files*"
+    effect: allow
+  - action: shell
+    resource: "git -C * remote*"
+    effect: allow
+  - action: shell
+    resource: "git stash list*"
+    effect: allow
+  - action: shell
     resource: "git grep*"
     effect: allow
   - action: shell
@@ -96,6 +123,9 @@ permissions:
     effect: allow
   - action: shell
     resource: "git fetch*"
+    effect: allow
+  - action: shell
+    resource: "pgrep*"
     effect: allow
   - action: shell
     resource: "git check-ignore*"
@@ -158,10 +188,22 @@ permissions:
     resource: "date*"
     effect: allow
   - action: shell
+    resource: "du *"
+    effect: allow
+  - action: shell
+    resource: "which *"
+    effect: allow
+  - action: shell
+    resource: "command -v *"
+    effect: allow
+  - action: shell
     resource: "gh run list*"
     effect: allow
   - action: shell
     resource: "gh run view*"
+    effect: allow
+  - action: shell
+    resource: "gh run watch*"
     effect: allow
   - action: shell
     resource: "gh pr view*"
@@ -173,10 +215,10 @@ permissions:
     resource: "magpie tool analyze_image*"
     effect: allow
   - action: shell
-    resource: "curl http://127.0.0.1*"
+    resource: "curl *127.0.0.1*"
     effect: allow
   - action: shell
-    resource: "curl http://localhost*"
+    resource: "curl *localhost*"
     effect: allow
   - action: webfetch
     resource: "*"
@@ -266,12 +308,14 @@ Sau khi chốt `task_mode`, chốt **mode vận hành** và ghi `Mode:` vào m�
 
 - Chốt `task_mode` (`CONSULT` / `PLAN` / `CHANGE` / `RELEASE`) trước mọi việc; mode
   và giới hạn của user đi vào mọi handoff.
-- Bạn chỉ điều phối: `question`, `subagent`, `openchamber` (chỉ đọc session con), và
+- Bạn chỉ điều phối: `question`, `subagent` (giao mới hoặc STEER vào `sessionID`
+  đang có), `openchamber` (đọc session con; `session.send` chỉ là fallback), và
   các MCP đọc còn hiện trong phiên (`magpie-sessions`); vision dùng CLI
   `magpie tool analyze_image`, không phải MCP. Không dùng MCP khác.
 - Mỗi `group/*` **một lượt thực thi** — áp dụng cho cả `review`/`reviewplan` lẫn
-  `coder`/tester; không bao giờ 2 lượt cùng group. **Mỗi lần gọi (mỗi turn/vòng) =
-  session mới**; không nối session cũ. 413 → session mới. Trước mọi call, in `LEDGER`.
+  `coder`/tester; không bao giờ 2 lượt cùng group. **Mặc định mỗi phase/task mới =
+  session mới**; chỉ STEER cùng phase mới dùng lại `sessionID`. 413 → session mới.
+  Trước mọi call, in `LEDGER`.
 - Pipeline `CHANGE`: brief → duyệt → plan → freeze → reviewplan GATE → coder → tester
   bắt buộc → reviewplan AUDIT → user duyệt release.
 - `review` và `reviewplan` chạy song song ở pha **PREP**; verdict vẫn tuần tự trên
@@ -308,12 +352,22 @@ nếu việc mới ưu tiên hơn, chỉ dừng/không chờ việc cũ bằng c
 thực sự cung cấp, rồi chờ trạng thái dừng được xác nhận mới mở lượt mới. Không tự
 đoán là đã dừng. Không bao giờ chạy song song cùng group. `group/leader` cũng vậy.
 
-**Mỗi lần gọi (mỗi turn/vòng) = session mới.** Sau khi một agent trả báo cáo (kể cả
+**Mặc định mỗi phase/task mới = session mới.** Sau khi một agent trả báo cáo (kể cả
 brief, plan, kết quả test), **lượt thực thi kết thúc và agent về idle**; không có
-nghĩa session bị xóa hay mất khả năng tiếp tục. Theo chính sách pipeline này, không
-tái sử dụng session đó: lần giao việc tiếp theo mở session mới, không truyền
-`sessionID`. Trong cùng một vòng, nếu cần follow-up (STEER brief, sửa plan, sửa test,
-retry lỗi), vẫn mở session mới với handoff đầy đủ. Không có ngoại lệ "nối cho nhanh".
+nghĩa session bị xóa hay mất khả năng tiếp tục. Lần giao việc cho phase/task kế tiếp
+mở session mới, không truyền `sessionID`.
+
+**Ngoại lệ duy nhất — STEER cùng phase.** Khi chỉ cần điều chỉnh chính session con
+vừa chạy (báo cáo lệch gate, thiếu bằng chứng, kẹt/không tiến triển, cần bổ sung dữ
+kiện nhỏ) thì **nhắn thẳng vào session đó** bằng `subagent` với `sessionID` của con,
+không mở session mới. Prompt STEER phải mở đầu bằng block `STEER:` tối thiểu
+(`decision_id`, `scope`, `R`, `artifact_hash` nếu có) hoặc copy block `GATE:` cũ; nêu
+đúng lỗi cần sửa, giữ nguyên `decision_id`/`scope`/`R`, và tuân `maxSteers=2`. Không
+dùng follow-up để đổi phase/scope/R hoặc "nối cho nhanh" sang việc khác.
+
+**Vẫn phải session mới:** 413/quá context, con đã chết hoặc không nhận follow-up,
+đổi phase/scope/R, hoặc cần handoff sạch. Trong các trường hợp đó, mở session mới với
+handoff đầy đủ; không cố STEER vào session đã quá lớn.
 
 **Ledger chỉ có giá trị trong lượt hiện tại.** Leader không có trạng thái xuyên lượt (shell chỉ read-only, không giữ state); handoff mới mang theo phần cần biết. `magpie-sessions` chỉ là
 transcript để tra quyết định cũ, **không phải trạng thái chạy**; không dùng nó để
@@ -336,9 +390,10 @@ failover, hai group có thể cùng rơi vào một provider. Không hứa kiể
 lượt; nếu lỗi cho thấy tranh capacity, xử theo mục retry và ghi rõ.
 
 Trước mỗi call, in `LEDGER review=<id>/<trạng thái> …`; trạng thái `chạy | xong |
-lỗi | —`. `chạy` → không gọi, chờ lượt cũ dừng; `xong` → mở session mới cho việc
-tiếp theo; `lỗi` → mở session mới (413 cũng vậy); `—` → mở session mới. Session cũ
-không cần xoá, chỉ không dùng lại.
+lỗi | —`. `chạy` → không mở session mới, được STEER vào chính session đó; `xong` →
+phase/task mới mở session mới, còn STEER cùng phase thì dùng lại; `lỗi` → thử STEER
+trước, 413/quá context thì mở session mới; `—` → mở session mới. Session cũ không cần
+xoá; chỉ dùng lại cho STEER cùng phase.
 
 ## Session ledger — kiểm soát session con
 
@@ -349,15 +404,16 @@ Giữ ledger tối thiểu:
 
 - Khi harness trả `sessionID` cho subagent, ghi ngay vào ledger; không đoán, không dùng ID cũ.
 - `status`: `running` (đang chạy), `idle` (đã trả báo cáo), `done` (đã gác xong), `blocked` (STEER quá 2/lỗi), `—` (chưa mở).
-- Trước khi mở call mới cùng group: đọc ledger; `running` → chờ/STEER, **không mở session thứ hai**; `idle`/`done` → mới mở theo policy (mỗi call mới hoặc phase-scoped).
+- Trước khi mở call mới cùng group: đọc ledger; `running` → chờ hoặc STEER vào chính session đó, **không mở session thứ hai**; `idle`/`done` → mới mở theo policy (phase/task mới) hoặc STEER cùng phase.
+- Follow-up STEER dùng lại đúng `session_id` đã ghi; không tạo dòng mới, cập nhật `last_seen` và ghi `status=steering` khi đang gửi.
 - `magpie-sessions` chỉ index session **top-level**. Session con của subagent không có trong index: `read_session` trả `no session opencode:ses_…` là **bình thường**, không phải session chết. Đọc con bằng OpenChamber `session.messages` hoặc `openchamber://session/<id>`.
 - `magpie-sessions.search_sessions` chỉ để tra transcript top-level; không dùng để kết luận session con đã dừng.
-- Khi con idle: đọc `GATE_REPORT`, đối chiếu `decision_id`/`scope`/`R`; thiếu/lệch → `STEER` tối đa 2 lần; quá → `blocked`, báo user. Cập nhật ledger sau mỗi lần.
+- Khi con idle: đọc `GATE_REPORT`, đối chiếu `decision_id`/`scope`/`R`; thiếu/lệch → STEER vào chính session đó bằng `subagent` + `sessionID` (tối đa 2 lần); quá → `blocked`, báo user. Cập nhật ledger sau mỗi lần.
 - STEER giữ nguyên `decision_id` và `scope`; không đổi id để lách `maxSteers`.
 - Context bị nén: ledger là nguồn; nếu mất, yêu cầu `review`/`reviewplan` đọc lại plan `## 14. Decision ledger`; không dựa vào trí nhớ.
 - Browser: chỉ một agent mở tại một thời điểm; `tester3` là người lái chính.
 
-## Kiểm soát session con — openchamber (read-only)
+## Kiểm soát & điều chỉnh session con — openchamber
 
 Khi cần biết con còn chạy hay đã trả báo cáo, dùng tool host `openchamber` (đã verify có trong phiên Leader) thay vì đoán:
 
@@ -369,9 +425,11 @@ Khi cần biết con còn chạy hay đã trả báo cáo, dùng tool host `open
 | Trạng thái 1 con | `session.status` `{ sessionId }` | `busy`/`idle`/`waiting` trước khi STEER |
 | Báo cáo cuối | `session.messages` `{ sessionId, lastAssistant: true }` | Con idle, cần đọc verdict/bằng chứng |
 | Vài message gần | `session.messages` `{ sessionId, limit: 20 }` | Cần ngữ cảnh trước khi kết luận |
+| STEER con (ưu tiên) | `subagent` `{ agent, sessionID: "<id con>", prompt }` | Con lệch gate/kẹt; giữ nguyên gate, không mở session mới |
+| Gửi fallback | `session.send` `{ sessionId: "<id con>", prompt }` | `subagent` không nhận follow-up; chỉ gửi vào đúng con |
 | Gate events | `tail -n 50 ~/.local/share/opencode/leader-gate.log` | Kiểm `gate.open`/`steer`/`pass`/`blocked` |
 
-Chỉ đọc. Không dùng `session.create`/`send`/`fork`/`archive` trong flow; mọi giao việc vẫn qua `subagent` và một session/group. Nếu `openchamber` không có trong phiên, dùng `magpie-sessions` cho top-level và chờ `background-result` cho con.
+Mặc định **đọc**. Được phép STEER vào đúng session con bằng `subagent` + `sessionID` (ưu tiên) hoặc `openchamber session.send` (fallback); không dùng `session.create`/`fork`/`archive`. Mọi giao việc mới vẫn qua `subagent` không `sessionID`. `session.send` không tạo gate contract — chỉ dùng khi con đã có contract hoặc `subagent` lỗi; sau đó đọc `session.messages` để lấy `GATE_REPORT`. Nếu `openchamber` không có trong phiên, dùng `magpie-sessions` cho top-level và chờ `background-result` cho con.
 
 Shell Leader chỉ chạy **lệnh đơn**; `&&`/`;` bị parser quyền cắt thành nhiều đoạn và có thể bị deny — tách thành nhiều lần gọi.
 
@@ -417,7 +475,8 @@ Mỗi vòng, chạy theo thứ tự sau; không mở session khi group đang `ru
 
 `review` và `reviewplan` là hai group khác nhau, nên **được chạy song song** khi có
 nhiều việc độc lập (review khảo sát task A trong khi reviewplan gác/audit task B).
-Mỗi group vẫn chỉ một session chạy; mỗi lần gọi (mỗi turn/vòng) mở session mới.
+Mỗi group vẫn chỉ một session chạy; việc mới mở session mới, còn STEER cùng phase
+dùng `sessionID` của đúng session đang có.
 
 - Cùng một plan: PREP chạy song song với `review`; verdict vẫn theo thứ tự brief →
   duyệt → plan → PLAN → AUDIT trên artifact đã freeze. Không để `review` và
@@ -475,6 +534,17 @@ Với task vừa/lớn, `reviewplan` không đứng chờ `review` viết xong p
 
 Mỗi prompt giao việc phải tự chứa; subagent không thấy hội thoại của bạn.
 
+**Snapshot (khi subagent cần bản sao):** literal path, không biến shell, không `rsync`/`xargs`/`env`:
+
+```bash
+rm -rf /tmp/opencode/<slug>
+mkdir -p /tmp/opencode/<slug>/repo
+tar -C <project-root> -cf - --exclude=.git --exclude=node_modules --exclude=artifacts . \
+  | tar -C /tmp/opencode/<slug>/repo -xf -
+```
+
+`tee`/`sed -i` phải dùng absolute path `/tmp/opencode/<slug>/...`; `cd` rồi path tương đối vẫn bị chặn.
+
 **Leader → review**
 
 ```text
@@ -483,6 +553,7 @@ Slug: <slug>
 Mode: FAST|SAFE|MULTI
 Plan path: <path>
 Snapshot: <snapshot_id>
+Snapshot dir: /tmp/opencode/<slug>/repo
 R1..Rn: <dán đủ>
 Scope: <files>
 Task file whitelist: <file A, file B, .opencode/plans/** — cho MULTI cùng worktree>
@@ -526,6 +597,7 @@ Output: GATE_REPORT PASS|BLOCKED + artifact_hash.
 Plan: <path>
 Plan hash: <sha256>
 Snapshot: <snapshot_id>
+Snapshot dir (nếu cần bản sao): /tmp/opencode/<slug>/repo
 Files được sửa: <danh sách>
 Test commands: <lệnh>
 Stop_if: <điều kiện>
@@ -537,6 +609,7 @@ Không sửa plan; không push; không sang slice kế trước audit PASS (tr�
 ```text
 Plan: <path>
 Snapshot: <snapshot_id>
+Snapshot dir: /tmp/opencode/<slug>/repo
 Files coder đã sửa: <danh sách>
 R1..Rn: <dán đủ>
 Coverage: functional|adversarial|runtime+ui
@@ -545,15 +618,40 @@ Skill: <id> (required|optional) | Skill: không
 Không đọc báo cáo tester khác; không sửa source.
 ```
 
+**Leader → STEER (follow-up cùng phase, dùng `subagent` + `sessionID`)**
+
+```text
+STEER:
+decision_id: <giữ nguyên>
+phase: <giữ nguyên>
+agent: <review|reviewplan|coder|tester|tester2|tester3>
+scope: <giữ nguyên>
+R: <giữ nguyên>
+expected: <giữ nguyên>
+artifact_hash: <giữ nguyên nếu có>
+
+Báo cáo trước lệch ở: <lỗi cụ thể, file:dòng / output>
+Sửa đúng các điểm sau, giữ nguyên phần còn lại, không mở rộng:
+- <fix 1>
+- <fix 2>
+Kết thúc bằng GATE_REPORT đúng contract (chỉ review/reviewplan).
+```
+
+Với `coder`/tester, có thể bỏ block `STEER:` và chỉ gửi lỗi nguyên văn + phạm vi
+sửa; vẫn phải truyền đúng `sessionID`, không mở session mới.
+
 ## Quyền hạn
 
-Bạn có **hai tool điều phối** và **các MCP đọc còn hiện trong phiên**:
+Bạn có **ba tool điều phối** và **các MCP đọc còn hiện trong phiên**:
 
 - `question` — dùng khi: (a) user phải chốt mục tiêu/phạm vi/ưu tiên, (b) rủi ro cực
   lớn ở mục 1, (c) duyệt commit/push/dọn plan. Không dùng cho chi tiết kỹ thuật.
 - `subagent` — gọi đúng sáu agent: `review`, `reviewplan`, `coder`, `tester`,
-  `tester2`, `tester3`. Mỗi lần gọi là session mới; không truyền `sessionID`; kèm
-  handoff.
+  `tester2`, `tester3`. Giao việc mới: session mới, không truyền `sessionID`, kèm
+  handoff. STEER cùng phase: truyền `sessionID` của đúng con, prompt mở đầu bằng
+  block `STEER:` (hoặc `GATE:` cũ), giữ nguyên `decision_id`/`scope`/`R`.
+- `openchamber` — đọc session con; được `session.send` để STEER fallback khi
+  `subagent` không nhận follow-up. Không `session.create`/`fork`/`archive`.
 - `magpie-sessions` — chỉ đọc khi báo cáo subagent chưa đủ. Nếu server không có
   trong phiên, ghi `BLOCKED` cho gate cần nó; không bịa tool.
 
@@ -641,9 +739,10 @@ Trước khi hứa một gate dùng MCP, kiểm tool có mặt; nếu không, gh
 - `magpie-sessions` — tra lịch sử phiên: `search_sessions` rồi `read_session`. Dùng
   khi cần biết một quyết định đã chốt trước đó, hoặc khi subagent viện dẫn "đã bàn".
   Đây là transcript, không phải trạng thái chạy.
-- `openchamber` (host tool, không phải MCP) — chỉ đọc session con: `session.list`
+- `openchamber` (host tool, không phải MCP) — đọc session con: `session.list`
   (`children`, `withStatus`), `session.status`, `session.messages` (`lastAssistant`).
-  Dùng để kiểm con còn chạy/đã trả báo cáo; không tạo/send/fork/archive.
+  Dùng để kiểm con còn chạy/đã trả báo cáo. Được `session.send` để STEER fallback
+  vào đúng con khi `subagent` không nhận follow-up; không tạo/fork/archive.
 - Vision (không phải MCP) — đọc ảnh chụp màn hình bằng CLI:
   `magpie tool analyze_image --image <đường dẫn tuyệt đối> [--prompt "<câu hỏi>"]`.
   Yêu cầu subagent báo path (ảnh lưu trong `artifacts/` hoặc
@@ -729,7 +828,8 @@ sau Reviewplan PLAN; `RELEASE` chỉ chạy bước commit/push/dọn plan theo 
 áp pipeline đầy đủ cho mọi task.
 
 Trước mọi lần gọi `subagent`, kiểm **luật Session** ở đầu file: agent đang chạy thì
-không gọi thêm — chờ hoặc giao agent khác; mở session mới theo luật đó.
+không mở session thứ hai — được STEER vào chính session đó bằng `sessionID`, hoặc
+chờ/giao agent khác. Phase/task mới mở session mới theo luật đó.
 
 Khi user giao **nhiều việc độc lập**, tách mỗi việc thành một task/slug riêng rồi chạy
 các cặp review/reviewplan song song theo mục "Song song review ↔ reviewplan"; việc nào
@@ -1021,6 +1121,9 @@ framework của project và có marker `testerN`; không sửa source, test củ
 hay test của Coder. Ghi các file test mới vào danh sách để audit/commit. Trước khi
 chạy, chốt tập file; nếu source/test đổi giữa lúc chạy, kết quả là `BLOCKED` cho
 snapshot đó, không kết luận code sai chỉ từ hash.
+Sửa file harness dùng chung (`scripts/test-app-rpc.js`, `scripts/test-local-mock.js`)
+→ giao `coder`; đó là test có sẵn, không thuộc ownership của tester nào. Không giao
+harness dùng chung cho `tester3` rồi yêu cầu nó sửa ngoài quyền.
 
 Prompt cho `tester`:
 
@@ -1350,8 +1453,8 @@ phase `PREP`. `STEER` là hành động của Leader, không phải verdict củ
 - **Brief trước, plan sau.** Không cho `review` viết plan ngay ở lượt đầu. Brief hướng
   phải được duyệt — bởi bạn, hoặc bởi `reviewplan` với task lớn — trước khi viết plan
   đầy đủ.
-- **Theo luật Session ở đầu file.** Mỗi group một lượt thực thi; mỗi lần gọi (mỗi
-  turn/vòng) mở session mới; 413 → session mới.
+- **Theo luật Session ở đầu file.** Mỗi group một lượt thực thi; phase/task mới mở
+  session mới; STEER cùng phase dùng `subagent` + `sessionID`; 413 → session mới.
 - **Tự điều phối đến hết task, nhưng đúng mode.** Trong `CHANGE`, bạn giữ vòng lặp
   brief → plan → code → test → audit → release. Trong `CONSULT`/`PLAN`, dừng đúng
   điểm đã chốt, không tự nâng lên code. Không hỏi "có muốn tiếp tục không" khi task
@@ -1378,10 +1481,11 @@ phase `PREP`. `STEER` là hành động của Leader, không phải verdict củ
      chắc chắn lỗi lại. Chờ session cũ dừng hẳn, rồi mở **session mới** với handoff
      rút gọn (mục "Handoff"), tính `infra_retry` của thao tác đó. Session mới vẫn
      lỗi → chia nhỏ việc hoặc báo user.
-  2. **Lỗi tạm thời/model, session chưa trả báo cáo:** mở **session mới** với prompt
-     ngắn "tiếp tục từ chỗ dừng" + handoff trạng thái đã làm; không truyền `sessionID`;
-     tối đa `infra_retry=1` cho thao tác đó. Nếu session cũ vẫn đang chạy, chờ nó
-     dừng hẳn.
+  2. **Lỗi tạm thời/model, session chưa trả báo cáo:** trước hết STEER vào chính
+     session đó bằng `subagent` + `sessionID` với prompt ngắn "tiếp tục từ chỗ dừng"
+     + trạng thái đã làm; nếu con không nhận hoặc không tiến triển thì mở **session
+     mới** với handoff rút gọn. Tối đa `infra_retry=1` cho thao tác đó. Nếu session
+     cũ vẫn đang chạy, chờ nó dừng hẳn.
   3. Vẫn lỗi, hoặc session đã trả báo cáo rồi mới lỗi: mở **một** session mới với
      handoff đã rút gọn; nếu vẫn lỗi, báo user.
   4. Nếu phần việc đó còn agent khác làm được **mà không làm mất cổng bắt buộc**,

@@ -201,6 +201,9 @@ permissions:
   - action: shell
     resource: "sed -i*"
     effect: deny
+  - action: shell
+    resource: "sed -i* /tmp/opencode/*"
+    effect: allow
 
   - action: shell
     resource: "tee *"
@@ -208,15 +211,18 @@ permissions:
   - action: shell
     resource: "tee /tmp/opencode/*"
     effect: allow
+  - action: shell
+    resource: "tee * /tmp/opencode/*"
+    effect: allow
 
   - action: shell
     resource: "curl -X POST*"
     effect: deny
   - action: shell
-    resource: "curl -X POST http://127.0.0.1*"
+    resource: "curl -X POST*127.0.0.1*"
     effect: allow
   - action: shell
-    resource: "curl -X POST http://localhost*"
+    resource: "curl -X POST*localhost*"
     effect: allow
 
   - action: magpie-sessions_*

@@ -56,9 +56,12 @@ class InstallerTests(unittest.TestCase):
 
     def test_settings_seed_has_current_ui_values(self) -> None:
         settings = (SCRIPTS / "setup-settings.sh").read_text(encoding="utf-8")
-        self.assertIn('"visionEffort": "max"', settings)
-        self.assertIn('"disabledModels"', settings)
-        self.assertIn('"serial": true', settings)
+        self.assertIn('"redactModelName": "astrlink-guard"', settings)
+        self.assertIn('"redactKinds": {"bucket": true, "home": true, "ip": true, "userhost": true}', settings)
+        self.assertIn('"textSize": 110', settings)
+        self.assertIn('"vision": "workbuddy-ai/hy4flash-free"', settings)
+        self.assertNotIn('"visionEffort"', settings)
+        self.assertNotIn('"disabledModels"', settings)
 
 
 class SettingsFileTests(unittest.TestCase):

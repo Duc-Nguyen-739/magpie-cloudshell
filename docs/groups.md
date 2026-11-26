@@ -140,10 +140,10 @@ levels cho nó. Config billion-context chỉ trỏ `magpie/group/compress`; xem
 
 ### Provider đang tắt
 
-`aihubmix`, `copilot`, `agnes` và `opencode-zen-free` đang tắt vì không nằm trong group
-nào; `qoder`/`antigravity` chỉ còn record trong `providers.json` và không hiện vì thiếu
+`aihubmix`, `copilot` và `agnes` đang tắt vì không nằm trong group
+nào; `opencode-zen-free` **bật** (free tier hoạt động lại 2026-11-25); `qoder`/`antigravity` chỉ còn record trong `providers.json` và không hiện vì thiếu
 plugin. `kilo` **bật** vì `group/compress` dùng `particle-1:free`; `openrouter` và
-`nvidia` bật vì `group/compress` cần. `kiro`, `cline`, `agy-cli` **không cài** trên máy
+`nvidia` bật vì `group/compress` cần. `kiro`, `cline`, `groq` **bật**; `agy-cli` **không cài** trên máy
 tham chiếu (repo vẫn cài như tuỳ chọn). `aihubmix` nếu bật thì 36 model `-free` chỉ trả
 câu từ chối (tài khoản chưa nạp tiền) — đừng đưa vào group nào. `opencode-zen` vẫn bật
 nhưng **chỉ** giữ `jev-1.13-free` làm classifier, không phải rung fallback: script đọc

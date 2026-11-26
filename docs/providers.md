@@ -18,8 +18,8 @@ sửa cấu hình agent** — magpie tự ghi lại danh sách model.
 | `freepi5` | FreePi5 | OAuth (plugin riêng, repo private) | tài khoản FreePi thứ năm | `magpie provider test freepi5 deepseek-v4.1-flash` |
 | `freepi6` | FreePi6 | OAuth (plugin riêng, repo private) | tài khoản FreePi thứ sáu | `magpie provider test freepi6 deepseek-v4.1-flash` |
 | `freepi7` | FreePi7 | OAuth (plugin riêng, repo private) | tài khoản FreePi thứ bảy | `magpie provider test freepi7 deepseek-v4.1-flash` |
-| `cline` | Cline | OAuth (plugin) | tài khoản Cline | **không cài**; thêm bằng `magpie plugin add @magpie-community/opencode-cline-auth` |
-| `kiro` | Kiro | OAuth Google (plugin) | tài khoản Kiro | **không cài**; thêm bằng `magpie plugin add @magpie-community/opencode-kiro-auth` |
+| `cline` | Cline | OAuth (plugin) | tài khoản Cline | **bật** (plugin đã cài) |
+| `kiro` | Kiro | OAuth Google (plugin) | tài khoản Kiro | **bật** (plugin đã cài) |
 | `agnes` | Agnes | plugin + API key `cpk-…` | key từ `platform.agnes-ai.com` | **tắt** (`magpie provider on agnes`) |
 | `kilo` | Kilo Gateway | API key `eyJ…` | key từ kilo.ai | `magpie provider test kilo` |
 | `openrouter` | OpenRouter | API key `sk-or-…` | key từ openrouter.ai | `magpie provider test openrouter` |
@@ -31,7 +31,7 @@ sửa cấu hình agent** — magpie tự ghi lại danh sách model.
 | `qoder` | Qoder | OAuth web (plugin) | tài khoản Qoder | record còn, **không hiện** (thiếu plugin) |
 | `antigravity` | Antigravity | OAuth (plugin) | tài khoản Google | record còn, **không hiện** (thiếu plugin) |
 | `copilot` | Copilot | OAuth GitHub | tài khoản GitHub Copilot | **tắt** |
-| `opencode-zen-free` | OpenCode Zen Free | plugin (key công khai) | không | **tắt** — hạn mức theo IP dùng chung |
+| `opencode-zen-free` | OpenCode Zen Free | plugin (key công khai) | không | **bật** — free tier hoạt động lại 2026-11-25 |
 
 ### `aihubmix` (AiHubMix) — bẫy "xanh giả"
 
@@ -69,13 +69,13 @@ Trên Cloud Shell phải chuyển tiếp cổng (xem `docs/autoclaw-login.md` m�
 ### AutoClaw (Zhipu) — `autoclaw`
 
 ```sh
-magpie plugin add @magpie-community/opencode-autoclaw-auth@0.2.11
+magpie plugin add @magpie-community/opencode-autoclaw-auth@0.2.9
 magpie plugin login autoclaw          # 1 = Google, 2 = z.ai
 magpie provider test autoclaw zai_auto
 ```
 
-Máy này đang chạy **0.2.11** (test `zai_auto` ✓ ngày 2026-11-22). Nếu bản mới lỗi,
-hạ về **0.2.9** — bản vàng, xem cuối `AGENTS.md`.
+Máy này đang chạy **0.2.9**. Bản **0.2.11** đã test `zai_auto` ✓ ngày 2026-11-22;
+dùng 0.2.11 khi muốn nâng, và hạ về **0.2.9** nếu bản mới lỗi — xem cuối `AGENTS.md`.
 
 Chi tiết đầy đủ: [`autoclaw-login.md`](autoclaw-login.md).
 
@@ -672,8 +672,8 @@ khoản, không cần key riêng). Bằng chứng và cách bật lại: [`zen-f
 
 ```sh
 magpie plugin add @magpie-community/opencode-zen-free-auth
-magpie provider on opencode-zen-free     # bật lại (setup-settings.sh đang để tắt)
-magpie provider off opencode-zen-free    # tắt, giữ cấu hình — trạng thái hiện tại
+magpie provider on opencode-zen-free     # bật — trạng thái hiện tại (setup-settings.sh đặt bật)
+magpie provider off opencode-zen-free    # tắt khi bể IP dùng chung cạn quota
 ```
 
 ## Thêm relay OpenAI-compatible của riêng bạn

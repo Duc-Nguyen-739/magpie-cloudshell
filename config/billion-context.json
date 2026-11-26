@@ -12,6 +12,10 @@
         "group/compress": {
           "contextWindow": 262144,
           "outputTokens": 32768
+        },
+        "group/free": {
+          "contextWindow": 200000,
+          "outputTokens": 8192
         }
       }
     },

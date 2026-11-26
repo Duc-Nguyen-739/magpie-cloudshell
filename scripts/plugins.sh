@@ -8,15 +8,16 @@ export PATH="$HOME/.local/bin:$PATH"
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 PLUGINS=(
-  "@magpie-community/opencode-autoclaw-auth"    # AutoClaw (Zhipu) — OAuth Google/z.ai
+  "@magpie-community/opencode-autoclaw-auth@0.2.9"  # AutoClaw (Zhipu) — OAuth Google/z.ai
   "@magpie-community/opencode-workbuddy-auth"   # WorkBuddy / WorkBuddy AI
-  "@magpie-community/opencode-agnes-auth"       # Agnes — không dùng, đang tắt
-  "magpie-freepi-auth"                          # FreePi — provider chính + 6 tài khoản private
   "@magpie-community/opencode-zen-free-auth"    # OpenCode Zen Free — classifier jev
+  "opencode-zen-freex@latest"                   # cùng provider, plugin thứ hai đang cài
+  "@magpie-community/opencode-kiro-auth"        # Kiro
+  "@magpie-community/opencode-cline-auth"       # Cline
+  "@magpie-community/opencode-agnes-auth"       # Agnes — cài nhưng provider đang tắt
+  "magpie-freepi-auth"                          # FreePi — provider chính + 6 tài khoản private
   # Tuỳ chọn, không cài trên máy tham chiếu (thêm bằng `magpie plugin add`):
   #   @magpie-community/opencode-agy-cli-auth   agy-cli (Antigravity)
-  #   @magpie-community/opencode-cline-auth     Cline
-  #   @magpie-community/opencode-kiro-auth      Kiro
   #   @magpie-community/opencode-qoder-auth     Qoder
   #   @magpie-community/opencode-zcode-auth     ZCode
 )

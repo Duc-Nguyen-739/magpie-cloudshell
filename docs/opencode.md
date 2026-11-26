@@ -11,7 +11,7 @@ openchamber ──HTTP──▶  http://127.0.0.1:3425/v1  ──▶  group/lead
 ## magpie ghi gì vào `opencode.json`
 
 Khi bạn chạy `magpie opencode group/leader`, magpie sửa
-`~/.config/opencode/opencode.jsonc` (giữ nguyên phần còn lại) và thêm/cập nhật:
+`~/.config/opencode/opencode.json` (bản OpenCode cũ dùng `opencode.jsonc`; giữ nguyên phần còn lại) và thêm/cập nhật:
 
 ```json
 {
@@ -39,7 +39,7 @@ Khi bạn chạy `magpie opencode group/leader`, magpie sửa
 - `apiKey: "magpie"` là chuỗi giả — gateway local không kiểm tra key. Đừng đổi thành key thật.
 - Trên máy này (OpenCode V2) khối `providers.magpie` **không có `models`**: OpenCode
   tự hỏi gateway `GET /v1/models` rồi dựng danh sách, nên nó luôn khớp cái magpie đang
-  phục vụ — hiện **24 model** = 8 `group/*` + 16 model lẻ (trong đó có `freepi/…` …
+  phục vụ — hiện **95 model** = 8 `group/*` + 87 model lẻ (trong đó có `freepi/…` …
   `freepi7/…`, `nvidia/…`, `xingchi/…`). Bản OpenCode cũ (hoặc file do OpenChamber sinh)
   có thể kèm map `models` tĩnh; cả hai cách đều chạy, chỉ đừng sửa tay.
 - Mỗi group có `variants` đúng bằng levels của group: `low`/`high`/`max` với phần
@@ -121,8 +121,8 @@ chỉ mở trong đúng danh sách của vai đó. Id không khớp thì giao `S
 
 ## MCP server
 
-`scripts/setup-mcp.sh` thêm năm server vào thư viện magpie rồi ghi vào OpenCode
-(và Gemini CLI, agy nếu có): `magpie-sessions`, `magpie-web-search`, `magpie-vision`
+`scripts/setup-mcp.sh` thêm bốn server vào thư viện magpie rồi ghi vào OpenCode
+(và Gemini CLI, agy nếu có): `magpie-sessions`, `magpie-web-search`
 (do magpie chạy, trỏ `MAGPIE_ADDR` về gateway), `cloudflare-docs` (remote) và
 `chrome-devtools`. Server nào đã có thì bỏ qua; `magpie library sync` ở cuối ghi
 lại nếu file agent bị sửa tay. `magpie-browser` **tắt mặc định** vì nó chỉ có
@@ -131,7 +131,6 @@ lại nếu file agent bị sửa tay. `magpie-browser` **tắt mặc định** 
 | MCP | Trạng thái trên máy headless | Ghi chú |
 |---|---|---|
 | `magpie-sessions` | ✓ dùng được | đọc lại phiên của mọi agent trên máy; cần gateway sống |
-| `magpie-vision` | ✓ dùng được | đọc ảnh/screenshot qua model vision trong `settings.json` (`vision`) |
 | `magpie-web-search` | ✓ dùng được | cần một search API: `magpie search add you` (miễn phí, không key, 100 lượt/ngày) |
 | `cloudflare-docs` | ✓ dùng được | remote HTTP, cần mạng ra ngoài |
 | `chrome-devtools` | ✓ dùng được | chạy `chrome-headless-shell` trong `~/.cache/puppeteer`, cờ `--headless --isolated --chromeArg=--no-sandbox --no-page-id-routing` |
