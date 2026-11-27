@@ -159,8 +159,9 @@ mâu thuẫn với file này, tài liệu chính thức thắng — và hãy nó
   sha256sum, grep, jq, python3 scripts/plan-hash.py, magpie tool analyze_image, cat,
   gh run view…); `openchamber` chỉ đọc session con, MCP `magpie-sessions` cho phép,
   `magpie-web-search`/`cloudflare-docs`/`chrome-devtools` deny; và một ngoại lệ vận
-  hành `cloudshell-keepalive*` (giữ Cloud Shell,
-  không đọc/ghi file; xem `docs/cloudshell.md`); Review có shell allowlist chỉ đọc; Reviewplan/
+  hành `cloudshell-keepalive-ssh` (giữ Cloud Shell, không đọc/ghi file; sau mỗi lần
+  giao việc cho subagent thì chạy `--ensure` im lặng; xem `docs/cloudshell.md`);
+  Review có shell allowlist chỉ đọc; Reviewplan/
   Coder/tester có deny-list lệnh phá huỷ; tester chỉ ghi file test ownership `testerN`;
   `tester`/`tester2` deny `chrome-devtools_*` (giữ dấu gạch ngang; underscore
   **không** khớp), `tester3` giữ browser. Đây là best-effort, **không phải sandbox** —

@@ -1,0 +1,223 @@
+#!/usr/bin/env bash
+# cloudshell-keepalive-ssh — giữ Cloud Shell sống mà không cần mở tab Cloud Shell.
+# Mở một phiên SSH thật tới Cloud Shell trong tmux rồi gửi một lệnh nhỏ mỗi 5 phút.
+# Không sửa file, không gọi mạng ngoài Cloud Shell API/SSH.
+#
+#   cloudshell-keepalive-ssh                 # chạy nền, mỗi 300 giây
+#   cloudshell-keepalive-ssh --ensure        # đảm bảo đang chạy (im lặng khi thành công)
+#   cloudshell-keepalive-ssh --once          # một nhịp rồi thoát
+#   cloudshell-keepalive-ssh --status        # xem trạng thái
+#   cloudshell-keepalive-ssh --stop          # dừng
+#
+# Cloud Shell vẫn có trần 12 giờ/phiên và tiêu hao quota 50 giờ/tuần.
+set -u
+
+STATE="${XDG_STATE_HOME:-$HOME/.local/state}/cloudshell-keepalive-ssh"
+LOG="$STATE/keepalive.log"
+PID_FILE="$STATE/keepalive.pid"
+LOCKDIR="$STATE/keepalive.lock"
+TMUX_SESSION="${CLOUDSHELL_KEEPALIVE_TMUX:-cs-keepalive}"
+INTERVAL="${CLOUDSHELL_KEEPALIVE_INTERVAL:-300}"
+DURATION_MIN=0
+ENSURE=0
+ONCE=0
+STATUS=0
+STOP=0
+
+mkdir -p "$STATE"
+say() { printf '%s\n' "$*"; }
+log() { printf '[%s] %s\n' "$(date -Is)" "$*" >> "$LOG"; }
+usage() { awk 'NR > 1 && /^#/ { sub(/^# ?/, ""); print; next } NR > 1 { exit }' "$0"; }
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --interval) INTERVAL="${2:-}"; shift 2 ;;
+    --duration) DURATION_MIN="${2:-}"; shift 2 ;;
+    --ensure) ENSURE=1; shift ;;
+    --once) ONCE=1; shift ;;
+    --status) STATUS=1; shift ;;
+    --stop) STOP=1; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) say "tham số lạ: $1" >&2; usage >&2; exit 2 ;;
+  esac
+done
+
+case "$INTERVAL" in
+  ''|*[!0-9]*|0) say "--interval phải là số nguyên dương" >&2; exit 2 ;;
+esac
+case "$DURATION_MIN" in
+  ''|*[!0-9]*) say "--duration phải là số nguyên >= 0" >&2; exit 2 ;;
+esac
+
+# Một phiên SSH interactive trong tmux; nếu pane chết thì tạo lại.
+ensure_session() {
+  if tmux has-session -t "$TMUX_SESSION" 2>/dev/null; then
+    return 0
+  fi
+  tmux new-session -d -s "$TMUX_SESSION" "gcloud cloud-shell ssh --quiet" \
+    >/dev/null 2>&1 || return 1
+  log "tạo tmux session $TMUX_SESSION"
+  return 0
+}
+
+# Pane phải đang chạy gcloud/ssh, không phải shell đang sleep chờ nối lại.
+session_ready() {
+  tmux has-session -t "$TMUX_SESSION" 2>/dev/null || return 1
+  cmd="$(tmux list-panes -t "$TMUX_SESSION" -F '#{pane_current_command}' 2>/dev/null | head -1)"
+  case "$cmd" in
+    python3|python|ssh|gcloud) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+beat() {
+  ensure_session || { log "không tạo được tmux session"; return 1; }
+  for attempt in 1 2; do
+    for _ in $(seq 1 20); do
+      session_ready && break
+      sleep 1
+    done
+    session_ready && break
+    if [ "$attempt" = 1 ]; then
+      tmux kill-session -t "$TMUX_SESSION" 2>/dev/null || true
+      ensure_session || { log "không tạo lại được tmux session"; return 1; }
+    fi
+  done
+  session_ready || { log "SSH chưa sẵn sàng"; return 1; }
+  if tmux send-keys -t "$TMUX_SESSION" "echo keepalive" Enter 2>/dev/null; then
+    log "beat ok"
+    return 0
+  fi
+  log "send-keys thất bại"
+  return 1
+}
+
+if [ "$STOP" = 1 ]; then
+  if [ -s "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+    pid="$(cat "$PID_FILE")"
+    pgid="$(ps -o pgid= -p "$pid" 2>/dev/null | tr -d ' ')"
+    if [ -n "$pgid" ] && [ "$pgid" = "$pid" ]; then
+      kill -TERM -- "-$pid" 2>/dev/null || true
+    else
+      kill -TERM "$pid" 2>/dev/null || true
+      pkill -TERM -P "$pid" 2>/dev/null || true
+    fi
+    for _ in 1 2 3 4 5 6 7 8 9 10; do
+      kill -0 "$pid" 2>/dev/null || break
+      sleep 0.2
+    done
+    if kill -0 "$pid" 2>/dev/null; then
+      kill -KILL -- "-$pid" 2>/dev/null || kill -KILL "$pid" 2>/dev/null || true
+    fi
+    rm -f "$PID_FILE"
+    say "đã dừng keepalive (pid $pid)"
+  else
+    rm -f "$PID_FILE"
+    say "không có keepalive đang chạy"
+  fi
+  rm -rf "$LOCKDIR"
+  if tmux has-session -t "$TMUX_SESSION" 2>/dev/null; then
+    tmux kill-session -t "$TMUX_SESSION" 2>/dev/null || true
+    say "đã đóng phiên SSH $TMUX_SESSION"
+  fi
+  exit 0
+fi
+
+if [ "$STATUS" = 1 ]; then
+  if [ -s "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+    printf 'keepalive: đang chạy (pid %s)\n' "$(cat "$PID_FILE")"
+  else
+    printf 'keepalive: không chạy\n'
+  fi
+  if tmux has-session -t "$TMUX_SESSION" 2>/dev/null; then
+    printf 'tmux: %s\n' "$TMUX_SESSION"
+    tmux list-panes -t "$TMUX_SESSION" -F 'pane: pid=#{pane_pid} cmd=#{pane_current_command} dead=#{pane_dead}' 2>/dev/null
+    printf 'output gần nhất:\n'
+    tmux capture-pane -p -t "$TMUX_SESSION" -S -30 2>/dev/null | grep -v '^$' | tail -5
+  else
+    printf 'tmux: chưa có %s\n' "$TMUX_SESSION"
+  fi
+  printf 'log: %s\n' "$LOG"
+  tail -5 "$LOG" 2>/dev/null
+  exit 0
+fi
+
+if [ "$ONCE" = 1 ]; then
+  if beat; then
+    say "đã gửi một nhịp keepalive"
+    exit 0
+  fi
+  say "chưa gửi được nhịp keepalive — xem log: $LOG" >&2
+  exit 2
+fi
+
+if [ "$ENSURE" = 1 ]; then
+  if [ -s "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+    if beat; then
+      log "ensure ok (đang chạy)"
+      exit 0
+    fi
+    say "keepalive đang chạy nhưng chưa gửi được nhịp — xem log: $LOG" >&2
+    exit 2
+  fi
+
+  SELF="$(command -v -- "$0" 2>/dev/null || printf '%s' "$0")"
+  if [ "$DURATION_MIN" -gt 0 ]; then
+    setsid -f "$SELF" --interval "$INTERVAL" --duration "$DURATION_MIN" >/dev/null 2>&1
+  else
+    setsid -f "$SELF" --interval "$INTERVAL" >/dev/null 2>&1
+  fi
+  for _ in $(seq 1 50); do
+    if [ -s "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+      break
+    fi
+    sleep 0.1
+  done
+  if [ -s "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+    if beat; then
+      log "ensure ok (vừa khởi động)"
+      exit 0
+    fi
+    say "keepalive đã khởi động nhưng chưa gửi được nhịp — xem log: $LOG" >&2
+    exit 2
+  fi
+  say "chưa khởi động được keepalive — xem log: $LOG" >&2
+  exit 2
+fi
+
+if [ -d "$LOCKDIR" ]; then
+  if [ -s "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+    say "đã có keepalive khác đang chạy" >&2
+    exit 0
+  fi
+  rm -rf "$LOCKDIR"
+fi
+if ! mkdir "$LOCKDIR" 2>/dev/null; then
+  say "đã có keepalive khác đang chạy" >&2
+  exit 0
+fi
+
+echo $$ > "$PID_FILE"
+cleanup() {
+  rm -f "$PID_FILE"
+  rmdir "$LOCKDIR" 2>/dev/null || true
+  tmux kill-session -t "$TMUX_SESSION" 2>/dev/null || true
+}
+trap cleanup EXIT
+trap 'exit 0' HUP INT TERM
+log "start tmux=$TMUX_SESSION interval=${INTERVAL}s duration=${DURATION_MIN}m pid=$$"
+
+START=$(date +%s)
+while :; do
+  NOW=$(date +%s)
+  if [ "$DURATION_MIN" -gt 0 ] && [ $((NOW - START)) -ge $((DURATION_MIN * 60)) ]; then
+    log "hết duration ${DURATION_MIN}m — thoát"
+    break
+  fi
+  if beat; then
+    :
+  else
+    log "beat lỗi — sẽ thử lại sau ${INTERVAL}s"
+  fi
+  sleep "$INTERVAL"
+done

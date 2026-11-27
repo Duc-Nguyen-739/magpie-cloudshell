@@ -79,30 +79,43 @@ dùng pid (`headless.pid`) hoặc pattern neo ở argv[0]: `pgrep -f '^magpie se
 
 ## Giữ Cloud Shell sống khi chạy việc dài
 
-Cloud Shell tự kết thúc sau **40 phút không có hoạt động phiên**; đây là giới hạn
-phía Google, không có API nào tắt hẳn. Script `cloudshell-keepalive` tạo hoạt động
-trên **terminal tmux đang mở** (status line + refresh client), không sửa file và
-không gọi mạng:
+Cloud Shell tự kết thúc sau **40 phút không có hoạt động phiên** và mỗi phiên có
+trần **12 giờ**; đây là giới hạn phía Google, không có API nào tắt hẳn. Có hai script:
+
+### `cloudshell-keepalive-ssh` — không cần tab Cloud Shell (khuyến nghị)
+
+Mở một phiên SSH thật tới Cloud Shell trong tmux (`gcloud cloud-shell ssh`), rồi gửi
+một lệnh nhỏ mỗi 5 phút. Phiên SSH có TTY và đi qua Cloud Shell API/WebSocket nên
+được tính là hoạt động; không cần giữ tab Cloud Shell.
 
 ```sh
-cloudshell-keepalive --status          # terminal nào, có client attach không
-cloudshell-keepalive                   # vòng lặp 60 giây, chạy nền
-cloudshell-keepalive --duration 240    # tự dừng sau 240 phút
-cloudshell-keepalive --stop            # dừng bản đang chạy
+cloudshell-keepalive-ssh --status        # pid, tmux, phiên SSH, log gần nhất
+cloudshell-keepalive-ssh --ensure        # đảm bảo đang chạy + gửi 1 nhịp; im lặng khi thành công
+cloudshell-keepalive-ssh                 # chạy nền, mỗi 300 giây
+cloudshell-keepalive-ssh --duration 480  # tự dừng sau 480 phút
+cloudshell-keepalive-ssh --stop          # dừng
 ```
 
-Điều kiện: **phải có tab Cloud Shell (terminal) đang mở**. Nếu chỉ mở OpenChamber
-qua preview, tmux không có client attach và script chỉ ghi log cảnh báo — không
-có cách nào từ trong VM tạo hoạt động thay cho trình duyệt. Khi đó dùng một trong
-hai cách:
+Leader được phép chạy đúng ngoại lệ `cloudshell-keepalive*` trong allowlist shell
+read-only. Sau mỗi lần giao việc cho subagent, Leader chạy
+`cloudshell-keepalive-ssh --ensure` im lặng (không gửi thông báo cho user); nếu lỗi
+thì báo `BLOCKED` kèm log.
 
-1. Giữ tab Cloud Shell mở và chạy snippet trong DevTools Console:
-   `cloudshell-keepalive --print-browser`.
-2. Từ máy local, mở phiên SSH ổn định bằng
-   `gcloud cloud-shell ssh --authorize-session` và giữ terminal đó.
+### `cloudshell-keepalive` — chỉ khi tab Cloud Shell đang mở
 
-Leader được phép chạy đúng một ngoại lệ `cloudshell-keepalive*` trong allowlist
-shell read-only; mọi lệnh khác vẫn theo allowlist cũ.
+Script cũ tạo hoạt động trên **terminal tmux đang mở** (status line + refresh client).
+Nó chỉ có tác dụng khi có client Cloud Shell attach; nếu chỉ mở OpenChamber qua
+preview thì log sẽ báo `client đang attach: 0`.
+
+```sh
+cloudshell-keepalive --status
+cloudshell-keepalive
+cloudshell-keepalive --duration 240
+cloudshell-keepalive --stop
+```
+
+Khi chỉ mở OpenChamber qua preview, dùng `cloudshell-keepalive-ssh` ở trên; hoặc giữ
+tab Cloud Shell và chạy snippet DevTools `cloudshell-keepalive --print-browser`.
 
 ## Log và trạng thái
 

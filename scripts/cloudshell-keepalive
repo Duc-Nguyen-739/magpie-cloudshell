@@ -10,7 +10,7 @@
 #
 # Cloud Shell tự kết thúc sau 40 phút không có hoạt động phiên. Script này chỉ có
 # tác dụng khi terminal Cloud Shell đang mở (tmux có client attach); nếu chỉ mở
-# OpenChamber qua preview thì giữ tab Cloud Shell hoặc dùng --print-browser.
+# OpenChamber qua preview thì dùng cloudshell-keepalive-ssh (SSH thật, không cần tab).
 set -u
 
 STATE="${XDG_STATE_HOME:-$HOME/.local/state}/cloudshell-keepalive"
